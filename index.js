@@ -1,6 +1,7 @@
 (() => {
   const PROPS_KEY = (window.MEI_KEYS && window.MEI_KEYS.properties) || "mei_properties_v1";
   const LEADS_KEY = (window.MEI_KEYS && window.MEI_KEYS.leads) || "mei_leads_v1";
+  const SESSION_KEY = (window.MEI_KEYS && window.MEI_KEYS.session) || "mei_session_v1";
 
   const DRAFTS = {
     landing: "mei_home_draft_landing_v1",
@@ -35,16 +36,6 @@
       TOAST_FN = null;
     }, timeout);
   }
-
-  $("toastAct").addEventListener("click", () => {
-    if (typeof TOAST_FN === "function") {
-      const fn = TOAST_FN;
-      $("toast").hidden = true;
-      $("toastAct").hidden = true;
-      TOAST_FN = null;
-      try { fn(); } catch (e) {}
-    }
-  });
 
   function readJSON(key, fallback) {
     try {
@@ -561,6 +552,96 @@
     renderBrokerPreview();
   }
 
+  function getSession() {
+    try {
+      if (typeof window.getSession === "function") {
+        return window.getSession();
+      }
+    } catch (e) {}
+    return readJSON(SESSION_KEY, null);
+  }
+
+  function clearSession() {
+    try {
+      if (typeof window.clearSession === "function") {
+        window.clearSession();
+        return;
+      }
+    } catch (e) {}
+    localStorage.removeItem(SESSION_KEY);
+  }
+
+  function applyRoleNavigation() {
+    const session = getSession();
+
+    const publicNav = $("publicNav");
+    const privateNav = $("privateNav");
+    const logoutBtn = $("logoutBtn");
+    const navDashboard = $("navDashboard");
+    const navCRM = $("navCRM");
+    const navAddProperty = $("navAddProperty");
+    const navListings = $("navListings");
+    const navBrokerNetwork = $("navBrokerNetwork");
+    const navSellerPage = $("navSellerPage");
+    const navUserLabel = $("navUserLabel");
+    const welcomeBar = $("welcomeBar");
+    const welcomeText = $("welcomeText");
+
+    if (!session || !session.role) {
+      publicNav.hidden = false;
+      privateNav.hidden = true;
+      welcomeBar.hidden = true;
+      return;
+    }
+
+    publicNav.hidden = true;
+    privateNav.hidden = false;
+    welcomeBar.hidden = false;
+
+    const role = String(session.role || "").toUpperCase();
+    const name = String(session.name || session.fullName || session.username || "User").trim();
+
+    navUserLabel.textContent = `👤 ${name} (${role})`;
+    welcomeText.textContent = `Logged in as ${name} • Role: ${role}`;
+
+    navDashboard.hidden = false;
+    navCRM.hidden = false;
+    navAddProperty.hidden = false;
+    navListings.hidden = false;
+    navBrokerNetwork.hidden = false;
+    navSellerPage.hidden = false;
+
+    if (role === "ADMIN") {
+      navDashboard.href = "dashboard.html";
+      navCRM.href = "crm.html";
+      navAddProperty.href = "add-property.html";
+      navBrokerNetwork.href = "broker-network.html";
+      navSellerPage.href = "seller.html";
+    } else if (role === "BROKER") {
+      navDashboard.href = "dashboard.html";
+      navCRM.href = "crm.html";
+      navAddProperty.href = "add-property.html";
+      navBrokerNetwork.href = "broker-network.html";
+      navSellerPage.hidden = true;
+    } else if (role === "SELLER") {
+      navDashboard.href = "dashboard.html";
+      navCRM.hidden = true;
+      navAddProperty.href = "add-property.html";
+      navBrokerNetwork.hidden = true;
+      navSellerPage.href = "seller.html";
+    } else {
+      navDashboard.href = "dashboard.html";
+    }
+
+    logoutBtn.onclick = () => {
+      clearSession();
+      toast("Logged out successfully");
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 500);
+    };
+  }
+
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -575,6 +656,16 @@
       toast("Listings refreshed");
     }
     if (act === "clearFilters") resetListingFilters();
+  });
+
+  $("toastAct").addEventListener("click", () => {
+    if (typeof TOAST_FN === "function") {
+      const fn = TOAST_FN;
+      $("toast").hidden = true;
+      $("toastAct").hidden = true;
+      TOAST_FN = null;
+      try { fn(); } catch (e) {}
+    }
   });
 
   $("landingLeadForm").addEventListener("submit", submitLandingLead);
@@ -614,4 +705,5 @@
   renderLandingLeadPreview();
   renderBrokerPreview();
   refreshListings();
+  applyRoleNavigation();
 })();
