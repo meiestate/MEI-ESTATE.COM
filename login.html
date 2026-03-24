@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>MEI Estate — Login</title>
+  <meta name="description" content="Login to MEI Estate dashboard, CRM, listings and broker tools." />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="loginWrap">
+      <div class="brandCard">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="brandText">
+          <h1>MEI Estate</h1>
+          <p>Login to access dashboard, CRM, listings, broker tools and your private workspace.</p>
+        </div>
+
+        <div class="infoGrid">
+          <div class="infoItem">
+            <div class="infoTitle">Admin Demo</div>
+            <div class="infoText">admin@meiestate.com</div>
+            <div class="infoText">Password: 1234</div>
+          </div>
+          <div class="infoItem">
+            <div class="infoTitle">Broker Demo</div>
+            <div class="infoText">broker@meiestate.com</div>
+            <div class="infoText">Password: 1234</div>
+          </div>
+          <div class="infoItem">
+            <div class="infoTitle">Seller Demo</div>
+            <div class="infoText">seller@meiestate.com</div>
+            <div class="infoText">Password: 1234</div>
+          </div>
+        </div>
+
+        <div class="backLinks">
+          <a href="index.html" class="ghostLink">← Back to Home</a>
+          <a href="register.html" class="ghostLink">Create account</a>
+        </div>
+      </div>
+
+      <div class="formCard">
+        <div class="formTop">
+          <div class="pill">Secure Access</div>
+          <h2>Sign in</h2>
+          <p>Use your email or mobile number and password.</p>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="identity">Email or Phone *</label>
+            <input
+              id="identity"
+              type="text"
+              autocomplete="username"
+              placeholder="admin@meiestate.com or 9999999999"
+              maxlength="80"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="password">Password *</label>
+            <div class="passwordRow">
+              <input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter password"
+                maxlength="40"
+                required
+              />
+              <button type="button" class="toggleBtn" id="togglePassword">Show</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <label class="checkLabel">
+              <input id="rememberMe" type="checkbox" />
+              <span>Remember me</span>
+            </label>
+
+            <a class="miniLink" href="register.html">Need an account?</a>
+          </div>
+
+          <div id="loginErr" class="err" hidden></div>
+          <div id="loginOk" class="ok" hidden></div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Login</button>
+            <button class="btn" type="button" id="fillAdmin">Use Admin Demo</button>
+            <button class="btn" type="button" id="clearForm">Clear</button>
+          </div>
+        </form>
+
+        <div class="tipsCard">
+          <div class="tipsTitle">What happens after login?</div>
+          <ul>
+            <li>Session will be saved in your browser.</li>
+            <li>Homepage will switch from public nav to private nav.</li>
+            <li>Role-based menu will be shown automatically.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>
