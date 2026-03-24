@@ -25,7 +25,6 @@
         </div>
       </div>
 
-      <!-- PUBLIC NAV -->
       <nav id="publicNav" aria-label="Public navigation">
         <a class="btn small" href="index.html">Home</a>
         <a class="btn small" href="#features">Features</a>
@@ -39,7 +38,6 @@
         <a class="btn small" href="register.html">📝 Register</a>
       </nav>
 
-      <!-- PRIVATE NAV -->
       <nav id="privateNav" aria-label="Private navigation" hidden>
         <a class="btn small" href="index.html">Home</a>
         <a class="btn small" id="navDashboard" href="dashboard.html">🛡️ Dashboard</a>
@@ -48,7 +46,7 @@
         <a class="btn small" id="navListings" href="listings.html">📋 All Listings</a>
         <a class="btn small" id="navBrokerNetwork" href="broker-network.html">🤝 Broker Network</a>
         <a class="btn small" id="navSellerPage" href="seller.html">🏷 Seller Page</a>
-        <a class="btn small" id="navUserLabel" href="javascript:void(0)">👤 User</a>
+        <a class="btn small" id="navLoginAs" href="javascript:void(0)">👤 User</a>
         <button class="btn danger small" type="button" id="logoutBtn">🚪 Logout</button>
       </nav>
     </div>
@@ -58,13 +56,16 @@
     <section class="hero">
       <div class="grid">
         <div>
-          <h1 class="h1">Trust-first Real Estate.<br />Approved listings. Serious leads.</h1>
-          <p class="muted">
+          <div id="heroBadge" class="heroBadge">Real Estate Operating Layer</div>
+
+          <h1 class="h1" id="heroTitle">Trust-first Real Estate.<br />Approved listings. Serious leads.</h1>
+
+          <p class="muted" id="heroText">
             Browse admin-approved listings, connect with verified brokers, post serious buyer or seller enquiries,
             and grow inventory through a clean real-estate pipeline.
           </p>
 
-          <div class="chips" aria-label="Key benefits">
+          <div class="chips" aria-label="Key benefits" id="publicBenefits">
             <span class="chip">✅ Approved listings only</span>
             <span class="chip">📞 Buyer & seller lead capture</span>
             <span class="chip">🤝 Broker network</span>
@@ -72,16 +73,42 @@
             <span class="chip">🛡️ Admin approval flow</span>
           </div>
 
-          <div class="heroActions">
+          <div class="heroActions" id="publicHeroActions">
             <a class="btn primary" href="#listings">Browse Approved Listings</a>
             <a class="btn" href="#lead">Post a Lead</a>
             <a class="btn" href="seller.html">Sell Property</a>
             <a class="btn" href="#broker">Join as Broker</a>
           </div>
 
-          <div id="welcomeBar" class="welcomeBar" hidden>
-            <div class="welcomeTitle">Welcome back 👋</div>
-            <div class="welcomeText" id="welcomeText">You are logged in.</div>
+          <div id="welcomePanel" class="welcomePanel" hidden>
+            <div class="welcomeHead">
+              <div>
+                <div class="welcomeTitle" id="welcomeTitle">Welcome back 👋</div>
+                <div class="welcomeText" id="welcomeText">Your workspace is ready.</div>
+              </div>
+              <div class="rolePill" id="rolePill">BROKER</div>
+            </div>
+
+            <div class="statGrid">
+              <div class="statCard">
+                <div class="statValue" id="smartStat1Value">0</div>
+                <div class="statLabel" id="smartStat1Label">Approved Listings</div>
+              </div>
+              <div class="statCard">
+                <div class="statValue" id="smartStat2Value">0</div>
+                <div class="statLabel" id="smartStat2Label">CRM Leads</div>
+              </div>
+              <div class="statCard">
+                <div class="statValue" id="smartStat3Value">0</div>
+                <div class="statLabel" id="smartStat3Label">Brokers</div>
+              </div>
+            </div>
+
+            <div class="smartActions" id="privateHeroActions">
+              <a class="btn primary" id="smartAction1" href="dashboard.html">Open Dashboard</a>
+              <a class="btn" id="smartAction2" href="crm.html">Open CRM</a>
+              <a class="btn" id="smartAction3" href="add-property.html">Add Property</a>
+            </div>
           </div>
         </div>
 
@@ -160,16 +187,57 @@
       </div>
     </section>
 
-    <section id="quick-actions">
+    <section id="smart-workspace" hidden>
       <div class="card">
-        <div class="listingsTop">
+        <div class="sectionTop">
           <div>
-            <h2 class="noMarginBottom">Quick Actions</h2>
-            <div class="muted">Choose the path that matches your role in the property journey.</div>
+            <h2 class="noMarginBottom">Your Workspace</h2>
+            <div class="muted" id="workspaceSubtext">Quick entry points based on your role.</div>
           </div>
         </div>
 
-        <div class="quickCards">
+        <div class="quickCards" id="workspaceCards">
+          <article class="quickCard">
+            <div class="quickIcon">🛡️</div>
+            <div class="titleText">Dashboard</div>
+            <div class="desc">Open your main control center and track platform activity.</div>
+            <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">📇</div>
+            <div class="titleText">CRM</div>
+            <div class="desc">Handle enquiries, follow-ups and daily lead movement.</div>
+            <a class="btn small primary" href="crm.html">Open CRM</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">➕</div>
+            <div class="titleText">Add Property</div>
+            <div class="desc">Create a fresh property entry and move it into approval flow.</div>
+            <a class="btn small primary" href="add-property.html">Add Property</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">📋</div>
+            <div class="titleText">Listings</div>
+            <div class="desc">Review all listings and jump into public-facing property pages.</div>
+            <a class="btn small primary" href="listings.html">Open Listings</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="quick-actions">
+      <div class="card">
+        <div class="sectionTop">
+          <div>
+            <h2 class="noMarginBottom">Quick Actions</h2>
+            <div class="muted" id="quickActionText">Choose the path that matches your role in the property journey.</div>
+          </div>
+        </div>
+
+        <div class="quickCards" id="quickActionGrid">
           <article class="quickCard">
             <div class="quickIcon">🏠</div>
             <div class="titleText">Browse Properties</div>
@@ -203,7 +271,7 @@
 
     <section id="listings">
       <div class="card">
-        <div class="listingsTop">
+        <div class="sectionTop">
           <div>
             <h2 class="noMarginBottom">Featured Approved Listings</h2>
             <div class="muted">Homepage preview of approved public listings</div>
