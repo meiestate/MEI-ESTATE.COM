@@ -1,1 +1,349 @@
-index
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>MEI Estate — Approved Listings • Buyer Leads • Seller Leads • Broker Network</title>
+  <meta
+    name="description"
+    content="MEI Estate — browse approved listings, post buyer and seller leads, list property for sale, and join as a broker."
+  />
+
+  <link rel="stylesheet" href="index.css" />
+</head>
+
+<body>
+  <a class="skipLink" href="#main">Skip to content</a>
+
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div>MEI Estate</div>
+          <div class="sub">Approved Listings • Buyer Leads • Seller Leads • Broker Network</div>
+        </div>
+      </div>
+
+      <nav aria-label="Primary navigation">
+        <a class="btn small" href="#features">Features</a>
+        <a class="btn small" href="#how">How it works</a>
+        <a class="btn small" href="#quick-actions">Explore</a>
+        <a class="btn small" href="#listings">Browse Listings</a>
+        <a class="btn primary small" href="#lead">Post Lead</a>
+        <a class="btn small" href="seller.html">🏷 Sell Property</a>
+        <a class="btn small" href="#broker">Join Broker</a>
+        <a class="btn small" href="dashboard.html">🛡️ Dashboard</a>
+        <a class="btn small" href="add-property.html">➕ Add Property</a>
+        <a class="btn small" href="listings.html">📋 All Listings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <section class="hero">
+      <div class="grid">
+        <div>
+          <h1 class="h1">Trust-first Real Estate.<br />Approved listings. Serious leads.</h1>
+          <p class="muted">
+            Browse admin-approved listings, connect with verified brokers, post serious buyer or seller enquiries,
+            and grow inventory through a clean real-estate pipeline.
+          </p>
+
+          <div class="chips" aria-label="Key benefits">
+            <span class="chip">✅ Approved listings only</span>
+            <span class="chip">📞 Buyer & seller lead capture</span>
+            <span class="chip">🤝 Broker network</span>
+            <span class="chip">🏷 Seller onboarding</span>
+            <span class="chip">🛡️ Admin approval flow</span>
+          </div>
+
+          <div class="heroActions">
+            <a class="btn primary" href="#listings">Browse Approved Listings</a>
+            <a class="btn" href="#lead">Post a Lead</a>
+            <a class="btn" href="seller.html">Sell Property</a>
+            <a class="btn" href="#broker">Join as Broker</a>
+          </div>
+        </div>
+
+        <div class="card" id="lead">
+          <h3>📩 Post a Buyer / Seller Lead</h3>
+          <p class="muted mtMinus">We’ll save this request into the CRM lead pipeline.</p>
+
+          <form id="landingLeadForm" novalidate>
+            <div class="row2">
+              <div>
+                <label for="leadName">Your Name *</label>
+                <input id="leadName" maxlength="60" placeholder="Name" required />
+              </div>
+              <div>
+                <label for="leadPhone">Phone *</label>
+                <input
+                  id="leadPhone"
+                  type="tel"
+                  inputmode="numeric"
+                  maxlength="16"
+                  placeholder="10-digit mobile or +91..."
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="row2 mt10">
+              <div>
+                <label for="leadType">Lead Type *</label>
+                <select id="leadType">
+                  <option value="BUYER">Buyer</option>
+                  <option value="SELLER">Seller</option>
+                </select>
+              </div>
+              <div>
+                <label for="leadLocality">Locality *</label>
+                <input id="leadLocality" maxlength="80" placeholder="Whitefield / ITPL / Hoodi…" required />
+              </div>
+            </div>
+
+            <div class="row2 mt10">
+              <div>
+                <label for="budgetMin">Budget Min (₹)</label>
+                <input id="budgetMin" type="number" min="0" inputmode="numeric" placeholder="e.g. 5000000" />
+              </div>
+              <div>
+                <label for="budgetMax">Budget Max (₹)</label>
+                <input id="budgetMax" type="number" min="0" inputmode="numeric" placeholder="e.g. 9000000" />
+              </div>
+            </div>
+
+            <div class="mt10">
+              <label for="leadNotes">Notes</label>
+              <textarea id="leadNotes" placeholder="Property type, timeline, preferences…"></textarea>
+            </div>
+
+            <div class="checkRow">
+              <input id="leadConsent" type="checkbox" class="checkBox" />
+              <div class="hint noTop">I agree to be contacted about this lead.</div>
+            </div>
+
+            <div id="landingLeadErr" class="err" hidden></div>
+
+            <div class="formActions">
+              <button class="btn primary" type="submit">Submit Lead</button>
+              <button class="btn" type="button" data-action="saveLandingDraft">💾 Save Draft</button>
+              <button class="btn" type="button" data-action="clearLandingForm">🧽 Clear</button>
+            </div>
+
+            <div class="preview">
+              <div class="hint noTop">Preview (safe text)</div>
+              <pre id="landingLeadPreview">—</pre>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="quick-actions">
+      <div class="card">
+        <div class="listingsTop">
+          <div>
+            <h2 class="noMarginBottom">Quick Actions</h2>
+            <div class="muted">Choose the path that matches your role in the property journey.</div>
+          </div>
+        </div>
+
+        <div class="quickCards">
+          <article class="quickCard">
+            <div class="quickIcon">🏠</div>
+            <div class="titleText">Browse Properties</div>
+            <div class="desc">See approved listings only and move into interest flow without noise.</div>
+            <a class="btn small primary" href="#listings">Browse Listings</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">🏷</div>
+            <div class="titleText">Sell Property</div>
+            <div class="desc">Owners, builders and land sellers can submit property details and enter the seller pipeline.</div>
+            <a class="btn small primary" href="seller.html">Open Seller Page</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">🤝</div>
+            <div class="titleText">Join Broker Network</div>
+            <div class="desc">Register for verification and become part of the broker-side opportunity flow.</div>
+            <a class="btn small primary" href="#broker">Join Broker</a>
+          </article>
+
+          <article class="quickCard">
+            <div class="quickIcon">🛡️</div>
+            <div class="titleText">Admin Dashboard</div>
+            <div class="desc">Manage approvals, buyer leads, seller leads, broker flow and follow-ups from one place.</div>
+            <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="listings">
+      <div class="card">
+        <div class="listingsTop">
+          <div>
+            <h2 class="noMarginBottom">Featured Approved Listings</h2>
+            <div class="muted">Homepage preview of approved public listings</div>
+          </div>
+          <div class="topActions">
+            <span class="pill">Approved: <span id="approvedCount">0</span></span>
+            <button class="btn small" type="button" data-action="refreshListings">🔄 Refresh</button>
+            <a class="btn small primary" href="listings.html">View All Listings</a>
+          </div>
+        </div>
+
+        <div class="filterBar" aria-label="Listing filters">
+          <div>
+            <label class="srOnly" for="q">Search listings</label>
+            <input id="q" placeholder="Search title / city / area / type..." />
+          </div>
+
+          <div>
+            <label class="srOnly" for="typeFilter">Type filter</label>
+            <select id="typeFilter">
+              <option value="">All Types</option>
+              <option value="Apartment">Apartment</option>
+              <option value="House">House</option>
+              <option value="Plot">Plot</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Villa">Villa</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="srOnly" for="sortFilter">Sort filter</label>
+            <select id="sortFilter">
+              <option value="NEWEST">Sort: Newest</option>
+              <option value="PRICE_LOW">Sort: Price low → high</option>
+              <option value="PRICE_HIGH">Sort: Price high → low</option>
+              <option value="FEATURED">Sort: Featured first</option>
+            </select>
+          </div>
+
+          <button class="btn ok" type="button" data-action="clearFilters">↩ Reset Filters</button>
+        </div>
+
+        <div id="grid" class="gridListings" aria-label="Approved listings grid"></div>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2 class="sectionHeading">What makes this different</h2>
+      <div class="features">
+        <div class="feat">
+          <b>✅ Admin Approved Listings</b>
+          <div class="muted">Public pages show only approved properties. Pending listings stay private.</div>
+        </div>
+        <div class="feat">
+          <b>📞 Lead Tracking</b>
+          <div class="muted">Every enquiry can flow into the dashboard CRM for follow-up and broker assignment.</div>
+        </div>
+        <div class="feat">
+          <b>🏷 Seller Module</b>
+          <div class="muted">Owners and builders can enter the platform directly through a dedicated sell-property flow.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="card">
+        <h3>How it works (MVP)</h3>
+        <ol class="howList">
+          <li>Broker or seller adds a property.</li>
+          <li>Admin reviews and approves it.</li>
+          <li>Approved listing appears publicly.</li>
+          <li>Buyer or seller submits enquiry from homepage or dedicated pages.</li>
+          <li>Lead shows up in dashboard CRM for follow-up.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="broker">
+      <div class="card">
+        <h3>🪪 Join as a Broker</h3>
+        <p class="muted mtMinus">Submit details — this request will be saved into the CRM for broker verification follow-up.</p>
+
+        <form id="brokerJoinForm" novalidate>
+          <div class="row2">
+            <div>
+              <label for="brokerName">Broker Name *</label>
+              <input id="brokerName" maxlength="60" placeholder="Full name" required />
+            </div>
+            <div>
+              <label for="brokerPhone">Phone *</label>
+              <input
+                id="brokerPhone"
+                type="tel"
+                inputmode="numeric"
+                maxlength="16"
+                placeholder="10-digit mobile or +91..."
+                required
+              />
+            </div>
+          </div>
+
+          <div class="row2 mt10">
+            <div>
+              <label for="brokerArea">Primary Area *</label>
+              <input id="brokerArea" maxlength="80" placeholder="Whitefield / Bangalore East…" required />
+            </div>
+            <div>
+              <label for="brokerExp">Experience (years)</label>
+              <input id="brokerExp" type="number" min="0" inputmode="numeric" placeholder="e.g. 5" />
+            </div>
+          </div>
+
+          <div class="mt10">
+            <label for="brokerCompany">Office / Company (optional)</label>
+            <input id="brokerCompany" maxlength="80" placeholder="Company / office name" />
+          </div>
+
+          <div class="checkRow">
+            <input id="brokerConsent" type="checkbox" class="checkBox" />
+            <div class="hint noTop">I agree to be contacted about broker verification.</div>
+          </div>
+
+          <div id="brokerErr" class="err" hidden></div>
+
+          <div class="formActions">
+            <button class="btn primary" type="submit">Request Verification</button>
+            <button class="btn" type="button" data-action="saveBrokerDraft">💾 Save Draft</button>
+            <button class="btn" type="button" data-action="clearBrokerForm">🧽 Clear</button>
+          </div>
+
+          <div class="preview">
+            <div class="hint noTop">Preview (safe text)</div>
+            <pre id="brokerPreview">—</pre>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footerInner">
+        <div>© <span id="yr"></span> MEI Estate</div>
+        <div class="footerLinks">
+          <a href="#listings">Browse Listings</a>
+          <a href="#lead">Post Lead</a>
+          <a href="seller.html">Sell Property</a>
+          <a href="#broker">Join Broker</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <div class="msg" id="toastMsg">✅ Updated</div>
+    <button class="act" id="toastAct" type="button" hidden>Undo</button>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>
