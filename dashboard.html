@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>MEI Estate — Dashboard</title>
+  <meta name="description" content="MEI Estate role-based SaaS dashboard." />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <a class="skipLink" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="shell topbarInner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="brandTitle">MEI Estate</div>
+          <div class="brandSub">Role-based SaaS Dashboard</div>
+        </div>
+      </div>
+
+      <nav class="topnav" aria-label="Dashboard navigation">
+        <a class="btn small" href="index.html">Home</a>
+        <a class="btn small" href="crm.html">CRM</a>
+        <a class="btn small" href="add-property.html">Add Property</a>
+        <a class="btn small" href="listings.html">Listings</a>
+        <a class="btn small" href="broker-network.html">Broker Network</a>
+        <button class="btn danger small" type="button" id="logoutBtn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell" id="main">
+    <section class="hero">
+      <div class="heroLeft">
+        <div class="heroBadge" id="heroBadge">Workspace</div>
+        <h1 class="heroTitle" id="heroTitle">Dashboard</h1>
+        <p class="heroText" id="heroText">Your workspace is loading.</p>
+      </div>
+
+      <div class="heroRight card">
+        <div class="profileTop">
+          <div>
+            <div class="profileName" id="profileName">User</div>
+            <div class="profileMeta" id="profileMeta">Role</div>
+          </div>
+          <div class="rolePill" id="rolePill">BROKER</div>
+        </div>
+
+        <div class="profileGrid">
+          <div class="miniStat">
+            <div class="miniValue" id="miniStat1Value">0</div>
+            <div class="miniLabel" id="miniStat1Label">Listings</div>
+          </div>
+          <div class="miniStat">
+            <div class="miniValue" id="miniStat2Value">0</div>
+            <div class="miniLabel" id="miniStat2Label">Leads</div>
+          </div>
+          <div class="miniStat">
+            <div class="miniValue" id="miniStat3Value">0</div>
+            <div class="miniLabel" id="miniStat3Label">Brokers</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="statsGrid" id="statsGrid">
+      <article class="statCard">
+        <div class="statValue" id="stat1Value">0</div>
+        <div class="statLabel" id="stat1Label">Approved Listings</div>
+      </article>
+      <article class="statCard">
+        <div class="statValue" id="stat2Value">0</div>
+        <div class="statLabel" id="stat2Label">Pending Properties</div>
+      </article>
+      <article class="statCard">
+        <div class="statValue" id="stat3Value">0</div>
+        <div class="statLabel" id="stat3Label">CRM Leads</div>
+      </article>
+      <article class="statCard">
+        <div class="statValue" id="stat4Value">0</div>
+        <div class="statLabel" id="stat4Label">Brokers</div>
+      </article>
+    </section>
+
+    <section class="contentGrid">
+      <div class="mainCol">
+        <div class="card sectionCard">
+          <div class="sectionTop">
+            <div>
+              <h2 id="actionSectionTitle">Quick Actions</h2>
+              <p class="muted" id="actionSectionText">Role-based shortcuts.</p>
+            </div>
+          </div>
+
+          <div class="actionGrid" id="actionGrid">
+            <a class="actionCard" href="add-property.html">
+              <div class="actionIcon">➕</div>
+              <div class="actionTitle">Add Property</div>
+              <div class="actionDesc">Create a new inventory entry.</div>
+            </a>
+          </div>
+        </div>
+
+        <div class="card sectionCard">
+          <div class="sectionTop">
+            <div>
+              <h2 id="tableTitle">Recent Activity</h2>
+              <p class="muted" id="tableText">Latest items from your workspace.</p>
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table class="dataTable">
+              <thead>
+                <tr id="tableHeadRow">
+                  <th>Item</th>
+                  <th>Detail</th>
+                  <th>Status</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr>
+                  <td colspan="4" class="emptyCell">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sideCol">
+        <div class="card sideCard">
+          <h3 id="sideTitle">Workspace Insight</h3>
+          <p class="muted" id="sideText">Smart summary based on your role.</p>
+
+          <div class="insightList" id="insightList">
+            <div class="insightItem">
+              <div class="insightDot"></div>
+              <div>Live dashboard insight will appear here.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card sideCard">
+          <h3>Fast Links</h3>
+          <div class="linkStack" id="fastLinks">
+            <a class="linkBtn" href="index.html">Open Homepage</a>
+            <a class="linkBtn" href="listings.html">Browse Listings</a>
+            <a class="linkBtn" href="crm.html">Open CRM</a>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
