@@ -13,7 +13,12 @@
       --line:#1f2a3d;
       --accent:#6ee7ff;
       --accent2:#a78bfa;
+      --okBorder: rgba(0,255,150,.30);
+      --okBg: rgba(0,255,150,.12);
+      --warnBorder: rgba(255,200,0,.30);
+      --warnBg: rgba(255,200,0,.10);
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -22,26 +27,39 @@
         radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
         radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
         var(--bg);
-      color:var(--text)
+      color:var(--text);
     }
+
     a{color:inherit;text-decoration:none}
-    .wrap{max-width:1150px;margin:0 auto;padding:22px}
-    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;}
-    .skip-link:focus{position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;}
+
+    .skip-link{
+      position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;
+    }
+    .skip-link:focus{
+      position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;
+    }
+
+    .wrap{max-width:1180px;margin:0 auto;padding:22px}
 
     header{
-      position:sticky;top:0;
+      position:sticky;
+      top:0;
       background:rgba(11,15,23,.65);
       backdrop-filter:blur(10px);
       border-bottom:1px solid rgba(31,42,61,.6);
-      z-index:10
+      z-index:10;
     }
-    header .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header .row{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+
     .brand{display:flex;align-items:center;gap:10px;font-weight:800}
     .logo{
       width:34px;height:34px;border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent2))
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      flex:0 0 auto;
     }
+
     nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
     .btn{
@@ -55,12 +73,18 @@
       background:rgba(15,22,36,.7);
       cursor:pointer;
       color:var(--text);
+      min-height:40px;
     }
-    .btn.small{padding:8px 12px;font-size:14px}
+    .btn.small{padding:8px 12px;font-size:14px;min-height:36px}
     .btn.primary{
       background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
-      border-color:rgba(110,231,255,.35)
+      border-color:rgba(110,231,255,.35);
     }
+    .btn.ok{
+      border-color:var(--okBorder);
+      background:var(--okBg);
+    }
+    .btn:hover{filter:brightness(1.05)}
 
     .top{
       display:flex;
@@ -68,22 +92,37 @@
       justify-content:space-between;
       gap:14px;
       flex-wrap:wrap;
-      margin-top:16px
+      margin-top:16px;
     }
+
     h1{margin:0;font-size:26px}
     .sub{margin:6px 0 0;color:var(--muted);line-height:1.6}
+    .count{color:var(--muted);font-size:13px}
 
-    .layout{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-top:16px}
-    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+    .layout{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:14px;
+      margin-top:16px;
+    }
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+    }
 
     .card{
       background:rgba(15,22,36,.55);
       border:1px solid rgba(31,42,61,.85);
       border-radius:22px;
-      padding:16px
+      padding:16px;
     }
 
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+    }
+
     input,select{
       width:100%;
       padding:11px 12px;
@@ -91,6 +130,7 @@
       border:1px solid rgba(31,42,61,.95);
       background:rgba(11,15,23,.55);
       color:var(--text);
+      min-height:42px;
     }
 
     .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -98,15 +138,15 @@
     @media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:650px){.grid{grid-template-columns:1fr}}
 
-    .p{
+    .listing{
       background:rgba(15,22,36,.45);
       border:1px solid rgba(31,42,61,.85);
       border-radius:20px;
-      overflow:hidden
+      overflow:hidden;
     }
 
     .img{
-      height:180px;
+      height:190px;
       background:
         linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18)),
         radial-gradient(300px 140px at 20% 20%, rgba(110,231,255,.20), transparent 55%),
@@ -124,15 +164,54 @@
       border:1px solid rgba(31,42,61,.85);
       padding:6px 9px;
       border-radius:999px;
-      background:rgba(11,15,23,.45)
+      background:rgba(11,15,23,.45);
     }
-    .price{font-size:18px;font-weight:900;margin:2px 0 0}
-    .addr{color:var(--muted);margin-top:6px;line-height:1.4}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .small{padding:8px 12px;border-radius:12px;font-size:14px}
-    .rowline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-    .count{color:var(--muted);font-size:13px}
-    footer{padding:22px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:18px}
+
+    .title{
+      font-size:20px;
+      font-weight:900;
+      margin:6px 0 0;
+      line-height:1.3;
+    }
+
+    .price{
+      font-size:18px;
+      font-weight:900;
+      margin:2px 0 0;
+    }
+
+    .addr{
+      color:var(--muted);
+      margin-top:6px;
+      line-height:1.45;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .rowline{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .empty{
+      padding:26px;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed rgba(31,42,61,.9);
+      border-radius:18px;
+      background:rgba(11,15,23,.25);
+      grid-column:1 / -1;
+    }
+
+    .mini{font-size:12px;color:var(--muted)}
 
     .toast{
       position:fixed;
@@ -143,19 +222,16 @@
       border:1px solid rgba(31,42,61,.9);
       padding:12px 14px;
       border-radius:16px;
-      display:none
+      display:none;
+      z-index:999;
     }
 
-    .empty{
-      padding:26px;
-      text-align:center;
+    footer{
+      padding:22px 0;
       color:var(--muted);
-      border:1px dashed rgba(31,42,61,.9);
-      border-radius:18px;
-      background:rgba(11,15,23,.25);
+      border-top:1px solid rgba(31,42,61,.6);
+      margin-top:18px;
     }
-
-    .mini{font-size:12px;color:var(--muted)}
 
     :focus{outline:2px solid var(--accent); outline-offset:2px;}
   </style>
@@ -172,6 +248,7 @@
           <div style="font-size:12px;color:var(--muted);font-weight:600">Approved Public Listings</div>
         </div>
       </div>
+
       <nav>
         <a class="btn small" href="index.html">⬅ Home</a>
         <a class="btn small" href="add-property.html">➕ Add Property</a>
@@ -247,16 +324,17 @@
             <option value="price_asc">Price: Low → High</option>
             <option value="price_desc">Price: High → Low</option>
             <option value="area_desc">Largest Area</option>
+            <option value="featured">Featured First</option>
           </select>
         </div>
 
         <div class="actions" style="margin-top:12px">
           <button class="btn primary" id="applyBtn" type="button">Apply</button>
-          <button class="btn" id="refreshBtn" type="button">Refresh Data</button>
+          <button class="btn ok" id="refreshBtn" type="button">Refresh Data</button>
         </div>
 
         <p class="sub" style="margin-top:10px;font-size:13px">
-          Demo fallback exists only if no approved properties are found locally.
+          This page reads approved properties from localStorage. If no approved properties exist, fallback demo cards will appear.
         </p>
       </aside>
 
@@ -280,12 +358,12 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const toast = msg => {
+    const toast = (msg) => {
       const el = $("toast");
       el.textContent = msg;
       el.style.display = "block";
       clearTimeout(el._timeout);
-      el._timeout = setTimeout(()=> el.style.display = "none", 2600);
+      el._timeout = setTimeout(() => el.style.display = "none", 2600);
     };
 
     function getDataSafe(key, fallback){
@@ -295,8 +373,15 @@
         const parsed = JSON.parse(raw);
         return parsed ?? fallback;
       }catch(e){
+        console.error("getDataSafe error:", e);
         return fallback;
       }
+    }
+
+    function cleanNumber(val){
+      if(typeof val === "number") return Number.isFinite(val) ? val : 0;
+      const cleaned = String(val || "").replace(/[^\d]/g, "");
+      return cleaned ? Number(cleaned) : 0;
     }
 
     function normalizeType(type){
@@ -310,48 +395,108 @@
       return String(type || "").trim();
     }
 
+    function normalizeStatus(status){
+      return String(status || "").trim().toLowerCase();
+    }
+
     function normalizeProperty(p){
       const out = Object.assign({}, p || {});
       out.id = String(out.id || "");
       out.title = String(out.title || out.name || "Untitled Listing").trim();
       out.city = String(out.city || "").trim();
-      out.area = String(out.area || "").trim();
+      out.area = String(out.area || out.locality || "").trim();
       out.type = normalizeType(out.type);
       out.bhk = String(out.bhk || "").trim();
-      out.price = Number(out.price || 0);
-      out.sqft = Number(out.sqft || out.areaSqft || 0);
-      out.description = String(out.description || out.desc || "").trim();
+      out.price = cleanNumber(out.price);
+      out.sqft = cleanNumber(out.sqft || out.areaSqft || out.area_size);
+      out.description = String(out.description || out.desc || out.note || "").trim();
       out.image = String(out.image || "").trim();
-      out.status = String(out.status || "").trim().toLowerCase();
+      out.status = normalizeStatus(out.status);
       out.createdAt = out.createdAt || "";
       out.featured = Boolean(out.featured);
       return out;
     }
 
     function getAllProperties(){
-      if(typeof window.getAllProperties === "function"){
-        return window.getAllProperties().map(normalizeProperty);
+      try{
+        if(typeof window.getAllProperties === "function"){
+          return window.getAllProperties().map(normalizeProperty);
+        }
+      }catch(e){
+        console.error("window.getAllProperties error:", e);
       }
       return getDataSafe(PROPS_KEY, []).map(normalizeProperty);
     }
 
-    function getApprovedProperties(){
-      const props = getAllProperties().filter(p => p.status === "approved");
-
-      if(props.length) return props;
-
+    function getFallbackApprovedProperties(){
       return [
-        { id:"demo1", city:"Bangalore", area:"Whitefield", type:"Apartment", price:8200000, sqft:1180, bhk:"2 BHK", title:"2BHK near ITPL", description:"Gated • Lift • Parking", status:"approved", image:"" },
-        { id:"demo2", city:"Bangalore", area:"Hoodi", type:"Apartment", price:6900000, sqft:1030, bhk:"2 BHK", title:"2BHK Hoodi", description:"Near Metro • Good rental", status:"approved", image:"" },
-        { id:"demo3", city:"Bangalore", area:"ITPL", type:"Commercial", price:15500000, sqft:920, bhk:"", title:"Office near ITPL", description:"High footfall • Clinic suitable", status:"approved", image:"" },
-        { id:"demo4", city:"Bangalore", area:"Whitefield", type:"Villa", price:26500000, sqft:2400, bhk:"4 BHK", title:"4BHK Villa Whitefield", description:"Premium layout • Calm street", status:"approved", image:"" }
+        {
+          id:"demo1",
+          city:"Bangalore",
+          area:"Whitefield",
+          type:"Apartment",
+          price:8200000,
+          sqft:1180,
+          bhk:"2 BHK",
+          title:"2BHK near ITPL",
+          description:"Gated • Lift • Parking",
+          status:"approved",
+          image:"",
+          featured:true
+        },
+        {
+          id:"demo2",
+          city:"Bangalore",
+          area:"Hoodi",
+          type:"Apartment",
+          price:6900000,
+          sqft:1030,
+          bhk:"2 BHK",
+          title:"2BHK Hoodi",
+          description:"Near Metro • Good rental",
+          status:"approved",
+          image:"",
+          featured:false
+        },
+        {
+          id:"demo3",
+          city:"Bangalore",
+          area:"ITPL",
+          type:"Commercial",
+          price:15500000,
+          sqft:920,
+          bhk:"",
+          title:"Office near ITPL",
+          description:"High footfall • Clinic suitable",
+          status:"approved",
+          image:"",
+          featured:false
+        },
+        {
+          id:"demo4",
+          city:"Bangalore",
+          area:"Whitefield",
+          type:"Villa",
+          price:26500000,
+          sqft:2400,
+          bhk:"4 BHK",
+          title:"4BHK Villa Whitefield",
+          description:"Premium layout • Calm street",
+          status:"approved",
+          image:"",
+          featured:true
+        }
       ].map(normalizeProperty);
     }
 
+    function getApprovedProperties(){
+      const live = getAllProperties().filter(p => p.status === "approved");
+      return live.length ? live : getFallbackApprovedProperties();
+    }
+
     function formatINR(n){
-      const num = Number(n || 0);
-      if(!num) return "Price on request";
-      return "₹" + num.toLocaleString("en-IN");
+      const num = cleanNumber(n);
+      return num ? "₹" + num.toLocaleString("en-IN") : "Price on request";
     }
 
     function safeBgImage(url){
@@ -361,71 +506,74 @@
     }
 
     function createCard(item){
-      const cardDiv = document.createElement("div");
-      cardDiv.className = "p";
+      const card = document.createElement("article");
+      card.className = "listing";
 
-      const imgDiv = document.createElement("div");
-      imgDiv.className = "img";
+      const img = document.createElement("div");
+      img.className = "img";
       if(item.image){
-        imgDiv.style.cssText += safeBgImage(item.image);
+        img.style.cssText += safeBgImage(item.image);
       }
 
-      const bodyDiv = document.createElement("div");
-      bodyDiv.className = "body";
+      const body = document.createElement("div");
+      body.className = "body";
 
-      const priceDiv = document.createElement("div");
-      priceDiv.className = "price";
-      priceDiv.textContent = formatINR(item.price);
+      const price = document.createElement("div");
+      price.className = "price";
+      price.textContent = formatINR(item.price);
 
-      const titleDiv = document.createElement("div");
-      titleDiv.style.fontWeight = "900";
-      titleDiv.style.margin = "6px 0 0";
-      titleDiv.textContent = item.title;
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = item.title;
 
-      const addrDiv = document.createElement("div");
-      addrDiv.className = "addr";
-      addrDiv.textContent = `${item.area || "Area"}, ${item.city || "City"} • ${item.type || "Property"}${item.bhk ? " • " + item.bhk : ""}${item.sqft ? " • " + item.sqft + " sqft" : ""}`;
+      const addr = document.createElement("div");
+      addr.className = "addr";
+      addr.textContent = `${item.area || "Area"}, ${item.city || "City"} • ${item.type || "Property"}${item.bhk ? " • " + item.bhk : ""}${item.sqft ? " • " + item.sqft + " sqft" : ""}`;
 
-      const metaDiv = document.createElement("div");
-      metaDiv.className = "meta";
-      ["Approved", item.type || "Property", item.featured ? "Featured" : "Live"].forEach(t => {
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      [
+        "Approved",
+        item.type || "Property",
+        item.featured ? "Featured" : "Live"
+      ].forEach(text => {
         const chip = document.createElement("span");
         chip.className = "chip";
-        chip.textContent = t;
-        metaDiv.appendChild(chip);
+        chip.textContent = text;
+        meta.appendChild(chip);
       });
 
-      const noteDiv = document.createElement("div");
-      noteDiv.className = "addr";
-      noteDiv.textContent = item.description || "Verified listing";
+      const note = document.createElement("div");
+      note.className = "addr";
+      note.textContent = item.description || "Verified listing";
 
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "actions";
+      const actions = document.createElement("div");
+      actions.className = "actions";
 
-      const viewLink = document.createElement("a");
-      viewLink.className = "btn small";
-      viewLink.href = `property.html?id=${encodeURIComponent(item.id)}`;
-      viewLink.textContent = "View";
+      const viewBtn = document.createElement("a");
+      viewBtn.className = "btn small";
+      viewBtn.href = `property.html?id=${encodeURIComponent(item.id)}`;
+      viewBtn.textContent = "View";
 
-      const leadLink = document.createElement("a");
-      leadLink.className = "btn primary small";
-      leadLink.href = `property.html?id=${encodeURIComponent(item.id)}`;
-      leadLink.textContent = "I'm Interested";
+      const interestBtn = document.createElement("a");
+      interestBtn.className = "btn primary small";
+      interestBtn.href = `property.html?id=${encodeURIComponent(item.id)}`;
+      interestBtn.textContent = "I'm Interested";
 
-      actionsDiv.appendChild(viewLink);
-      actionsDiv.appendChild(leadLink);
+      actions.appendChild(viewBtn);
+      actions.appendChild(interestBtn);
 
-      bodyDiv.appendChild(priceDiv);
-      bodyDiv.appendChild(titleDiv);
-      bodyDiv.appendChild(addrDiv);
-      bodyDiv.appendChild(metaDiv);
-      bodyDiv.appendChild(noteDiv);
-      bodyDiv.appendChild(actionsDiv);
+      body.appendChild(price);
+      body.appendChild(title);
+      body.appendChild(addr);
+      body.appendChild(meta);
+      body.appendChild(note);
+      body.appendChild(actions);
 
-      cardDiv.appendChild(imgDiv);
-      cardDiv.appendChild(bodyDiv);
+      card.appendChild(img);
+      card.appendChild(body);
 
-      return cardDiv;
+      return card;
     }
 
     function fillSelectOptions(){
@@ -462,7 +610,7 @@
       if([...bhkSelect.options].some(o => o.value === currentBhk)) bhkSelect.value = currentBhk;
     }
 
-    function applyFilters(){
+    function getFilteredResults(){
       const source = getApprovedProperties();
 
       const q = $("search").value.trim().toLowerCase();
@@ -470,8 +618,8 @@
       const locality = $("locality").value;
       const ptype = $("ptype").value;
       const bhk = $("bhk").value;
-      const bmin = Number($("bmin").value) || 0;
-      const bmax = Number($("bmax").value) || 0;
+      const bmin = cleanNumber($("bmin").value);
+      const bmax = cleanNumber($("bmax").value);
       const sort = $("sort").value;
 
       let results = source.filter(item => item.status === "approved");
@@ -494,26 +642,35 @@
       if(locality) results = results.filter(item => item.area === locality);
       if(ptype) results = results.filter(item => item.type === ptype);
       if(bhk) results = results.filter(item => item.bhk === bhk);
-      if(bmin) results = results.filter(item => item.price >= bmin);
-      if(bmax) results = results.filter(item => item.price <= bmax);
+      if(bmin) results = results.filter(item => cleanNumber(item.price) >= bmin);
+      if(bmax) results = results.filter(item => cleanNumber(item.price) <= bmax);
 
-      if(sort === "price_asc") results.sort((a,b)=>a.price - b.price);
-      if(sort === "price_desc") results.sort((a,b)=>b.price - a.price);
-      if(sort === "area_desc") results.sort((a,b)=>b.sqft - a.sqft);
-      if(sort === "new"){
+      if(sort === "price_asc"){
+        results.sort((a,b) => cleanNumber(a.price) - cleanNumber(b.price));
+      }else if(sort === "price_desc"){
+        results.sort((a,b) => cleanNumber(b.price) - cleanNumber(a.price));
+      }else if(sort === "area_desc"){
+        results.sort((a,b) => cleanNumber(b.sqft) - cleanNumber(a.sqft));
+      }else if(sort === "featured"){
+        results.sort((a,b) => Number(b.featured) - Number(a.featured));
+      }else{
         results.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
       }
 
+      return results;
+    }
+
+    function renderListings(){
+      const results = getFilteredResults();
       const grid = $("grid");
       grid.innerHTML = "";
 
       if(results.length === 0){
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.style.gridColumn = "1 / -1";
         empty.innerHTML = `
           <div style="font-weight:900;font-size:18px;">No listings found</div>
-          <div class="mini" style="margin-top:8px;">Try changing city, locality, budget, or property type filters.</div>
+          <div class="mini" style="margin-top:8px;">Try clearing budget/search filters or refreshing data.</div>
         `;
         grid.appendChild(empty);
       }else{
@@ -521,6 +678,10 @@
       }
 
       $("count").textContent = `${results.length} result${results.length === 1 ? "" : "s"}`;
+
+      console.log("All properties:", getAllProperties());
+      console.log("Approved properties:", getApprovedProperties());
+      console.log("Filtered results:", results);
     }
 
     function resetFilters(){
@@ -532,27 +693,30 @@
       $("bmin").value = "";
       $("bmax").value = "";
       $("sort").value = "new";
-      applyFilters();
+      renderListings();
     }
 
-    $("applyBtn").addEventListener("click", applyFilters);
+    $("applyBtn").addEventListener("click", renderListings);
+
     $("refreshBtn").addEventListener("click", () => {
       fillSelectOptions();
-      applyFilters();
+      renderListings();
       toast("Listings refreshed");
     });
+
     $("resetBtn").addEventListener("click", resetFilters);
 
     ["search","city","locality","ptype","bhk","sort"].forEach(id => {
-      $(id).addEventListener("input", applyFilters);
-      $(id).addEventListener("change", applyFilters);
+      $(id).addEventListener("input", renderListings);
+      $(id).addEventListener("change", renderListings);
     });
 
     ["bmin","bmax"].forEach(id => {
       $(id).addEventListener("keypress", e => {
-        if(e.key === "Enter") applyFilters();
+        if(e.key === "Enter") renderListings();
       });
-      $(id).addEventListener("change", applyFilters);
+      $(id).addEventListener("change", renderListings);
+      $(id).addEventListener("input", renderListings);
     });
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -560,7 +724,7 @@
         window.seedData();
       }
       fillSelectOptions();
-      applyFilters();
+      renderListings();
     });
   </script>
 </body>
