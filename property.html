@@ -2,7 +2,7 @@
 <html lang="ta">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MEI Estate — Property Details</title>
   <style>
     :root{
@@ -31,20 +31,49 @@
     }
 
     a{color:inherit;text-decoration:none}
-    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;}
-    .skip-link:focus{position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;}
+    :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+    .skip-link{
+      position:absolute;
+      left:-999px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+    }
+    .skip-link:focus{
+      position:static;
+      width:auto;
+      height:auto;
+      background:var(--accent);
+      color:#000;
+      padding:8px;
+    }
+
     .wrap{max-width:1120px;margin:0 auto;padding:22px}
 
     header{
-      position:sticky;top:0;
+      position:sticky;
+      top:0;
       background:rgba(11,15,23,.65);
       backdrop-filter:blur(10px);
       border-bottom:1px solid rgba(31,42,61,.6);
-      z-index:10
+      z-index:10;
     }
-    header .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
     .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+    }
+
     nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
     .btn{
@@ -58,26 +87,40 @@
       background:rgba(15,22,36,.7);
       cursor:pointer;
       color:var(--text);
+      min-height:40px;
     }
     .btn.small{padding:8px 12px;font-size:14px}
     .btn.primary{
       background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
-      border-color:rgba(110,231,255,.35)
+      border-color:rgba(110,231,255,.35);
     }
-    .btn.ok{border-color:var(--okBorder);background:var(--okBg)}
-    .btn.ok:hover{background:rgba(0,255,150,.18)}
-
-    .top{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:16px}
-    @media (max-width:980px){.top{grid-template-columns:1fr}}
+    .btn.ok{
+      border-color:var(--okBorder);
+      background:var(--okBg);
+    }
+    .btn:hover{filter:brightness(1.05)}
 
     .card{
       background:rgba(15,22,36,.55);
       border:1px solid rgba(31,42,61,.85);
       border-radius:22px;
-      padding:16px
+      padding:16px;
     }
 
-    .gallery{border-radius:22px;overflow:hidden;border:1px solid rgba(31,42,61,.85)}
+    .top{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
+      margin-top:16px;
+    }
+    @media (max-width:980px){.top{grid-template-columns:1fr}}
+
+    .gallery{
+      border-radius:22px;
+      overflow:hidden;
+      border:1px solid rgba(31,42,61,.85);
+    }
+
     .heroimg{
       height:320px;
       background:
@@ -94,8 +137,9 @@
       grid-template-columns:repeat(4,1fr);
       gap:8px;
       padding:10px;
-      background:rgba(11,15,23,.45)
+      background:rgba(11,15,23,.45);
     }
+
     .th{
       height:72px;
       border-radius:14px;
@@ -107,35 +151,57 @@
       cursor:pointer;
     }
 
-    .h1{margin:0;font-size:24px;line-height:1.2}
+    .h1{margin:0;font-size:28px;line-height:1.2}
     .sub{margin:8px 0 0;color:var(--muted);line-height:1.6}
-    .price{font-size:28px;font-weight:950;margin-top:10px}
+    .price{font-size:30px;font-weight:950;margin-top:10px}
+
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .chip{
       font-size:12px;color:var(--muted);
       border:1px solid rgba(31,42,61,.85);
       padding:6px 9px;border-radius:999px;
-      background:rgba(11,15,23,.45)
+      background:rgba(11,15,23,.45);
     }
 
-    .spec{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .spec{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:12px;
+    }
     @media (max-width:700px){.spec{grid-template-columns:1fr}}
+
     .spec .box{
       border:1px solid rgba(31,42,61,.85);
       background:rgba(11,15,23,.45);
       border-radius:18px;
-      padding:12px
+      padding:12px;
     }
     .spec .k{font-size:12px;color:var(--muted)}
     .spec .v{font-size:16px;font-weight:900;margin-top:3px}
 
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-top:14px;
+    }
     @media (max-width:980px){.grid2{grid-template-columns:1fr}}
 
-    .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .formGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
     @media (max-width:700px){.formGrid{grid-template-columns:1fr}}
 
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+    }
+
     input, textarea{
       width:100%;
       padding:11px 12px;
@@ -146,14 +212,26 @@
     }
     textarea{min-height:110px;resize:vertical}
 
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
     ul{margin:10px 0 0;color:var(--muted);line-height:1.8}
-    footer{padding:22px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:18px}
 
     .toast{
-      position:fixed;right:18px;bottom:18px;max-width:360px;
-      background:rgba(15,22,36,.92);border:1px solid rgba(31,42,61,.9);
-      padding:12px 14px;border-radius:16px;display:none
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      max-width:380px;
+      background:rgba(15,22,36,.92);
+      border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;
+      border-radius:16px;
+      display:none;
+      z-index:999;
     }
 
     .err{
@@ -165,14 +243,19 @@
     .err[hidden]{display:none}
 
     .empty{
-      padding:28px;
+      padding:34px;
       text-align:center;
       color:var(--muted);
     }
 
     .mini{font-size:12px;color:var(--muted)}
 
-    :focus{outline:2px solid var(--accent); outline-offset:2px;}
+    footer{
+      padding:22px 0;
+      color:var(--muted);
+      border-top:1px solid rgba(31,42,61,.6);
+      margin-top:18px;
+    }
   </style>
 </head>
 <body>
@@ -187,6 +270,7 @@
           <div style="font-size:12px;color:var(--muted);font-weight:600">Property • Approved Listing</div>
         </div>
       </div>
+
       <nav>
         <a class="btn small" href="index.html">Home</a>
         <a class="btn small" href="listings.html">⬅ Back to Listings</a>
@@ -197,8 +281,10 @@
 
   <main id="main-content" class="wrap">
     <div id="notFound" class="card empty" hidden>
-      <div style="font-size:22px;font-weight:900;">Property not found</div>
-      <div class="mini" style="margin-top:8px;">This property may be missing, deleted, or not approved for public view.</div>
+      <div style="font-size:24px;font-weight:900;">Property not found</div>
+      <div class="mini" id="notFoundMsg" style="margin-top:8px;">
+        This property may be missing, deleted, or not approved for public view.
+      </div>
       <div class="actions" style="justify-content:center;">
         <a class="btn primary" href="listings.html">Go to Listings</a>
       </div>
@@ -233,14 +319,14 @@
             </div>
           </div>
 
-          <div class="actions" style="margin-top:14px">
+          <div class="actions">
             <button class="btn primary" id="interestBtn" type="button">I'm Interested</button>
             <button class="btn" id="shareBtn" type="button">Share</button>
             <button class="btn ok" id="waBtn" type="button">WhatsApp</button>
           </div>
 
           <p class="sub" style="font-size:13px;margin-top:10px">
-            Approved property. Enquiry will be saved as a lead in the admin dashboard.
+            Only approved properties are visible here. Enquiry form submits into dashboard CRM.
           </p>
         </div>
       </div>
@@ -264,22 +350,26 @@
 
       <section class="card" style="margin-top:14px">
         <h3 style="margin:0 0 8px">Enquiry Form</h3>
+
         <div class="formGrid">
           <div>
             <label for="buyerName">Your Name *</label>
             <input id="buyerName" placeholder="Eg: Arun" />
             <div id="buyerNameErr" class="err" hidden></div>
           </div>
+
           <div>
             <label for="buyerPhone">Phone *</label>
             <input id="buyerPhone" placeholder="Eg: 9876543210" inputmode="numeric" />
             <div id="buyerPhoneErr" class="err" hidden></div>
           </div>
+
           <div>
             <label for="buyerCity">Your City</label>
             <input id="buyerCity" placeholder="Eg: Chennai" />
             <div id="buyerCityErr" class="err" hidden></div>
           </div>
+
           <div>
             <label for="followUpDate">Preferred Follow-up Date</label>
             <input id="followUpDate" type="date" />
@@ -316,7 +406,6 @@
     const SETTINGS_KEY = (window.MEI_KEYS && window.MEI_KEYS.settings) || "mei_settings_v1";
 
     const $ = (id) => document.getElementById(id);
-
     let CURRENT_PROPERTY = null;
 
     function toast(msg){
@@ -342,13 +431,24 @@
       localStorage.setItem(key, JSON.stringify(value));
     }
 
-    function normalizePhone(val){
-      return String(val || "").replace(/[^\d]/g, "");
+    function normalizePhone(v){
+      return String(v || "").replace(/[^\d]/g, "");
+    }
+
+    function isValidPhone(v){
+      const digits = normalizePhone(v);
+      return digits.length === 10 || (digits.length === 12 && digits.startsWith("91"));
+    }
+
+    function parsePriceToNumber(v){
+      if(typeof v === "number") return Number.isFinite(v) ? v : NaN;
+      const digits = String(v || "").replace(/[^\d]/g, "");
+      return digits ? Number(digits) : NaN;
     }
 
     function formatINR(n){
-      const num = Number(n || 0);
-      if(!num) return "Price on request";
+      const num = parsePriceToNumber(n);
+      if(!Number.isFinite(num)) return "Price on request";
       return "₹" + num.toLocaleString("en-IN");
     }
 
@@ -373,12 +473,12 @@
       p.id = String(p.id || "");
       p.title = String(p.title || p.name || "Untitled Property").trim();
       p.city = String(p.city || "").trim();
-      p.area = String(p.area || "").trim();
+      p.area = String(p.area || p.locality || "").trim();
       p.type = normalizeType(p.type);
-      p.price = Number(p.price || 0);
-      p.sqft = Number(p.sqft || 0);
+      p.price = parsePriceToNumber(p.price);
+      p.sqft = parsePriceToNumber(p.sqft || p.areaSqft || p.area_size);
       p.bhk = String(p.bhk || "").trim();
-      p.description = String(p.description || p.desc || "").trim();
+      p.description = String(p.description || p.desc || p.note || "").trim();
       p.image = String(p.image || "").trim();
       p.gallery = Array.isArray(p.gallery) ? p.gallery.filter(Boolean) : [];
       p.sellerName = String(p.sellerName || p.contactName || "").trim();
@@ -391,13 +491,15 @@
     }
 
     function getAllProperties(){
-      if(typeof window.getAllProperties === "function"){
-        return window.getAllProperties().map(normalizeProperty);
-      }
+      try{
+        if(typeof window.getAllProperties === "function"){
+          return window.getAllProperties().map(normalizeProperty);
+        }
+      }catch(e){}
       return getDataSafe(PROPS_KEY, []).map(normalizeProperty);
     }
 
-    function getDemoProperties(){
+    function getFallbackProperties(){
       return [
         {
           id:"demo1",
@@ -414,22 +516,6 @@
           sellerPhone:"9876543210",
           image:"",
           gallery:[]
-        },
-        {
-          id:"demo2",
-          city:"Bangalore",
-          area:"Hoodi",
-          type:"Apartment",
-          price:6900000,
-          sqft:1030,
-          bhk:"2 BHK",
-          title:"2BHK Hoodi main road",
-          description:"Bright 2BHK with family-oriented layout, next to metro and schools.",
-          status:"approved",
-          brokerName:"Karthik",
-          sellerPhone:"9876543211",
-          image:"",
-          gallery:[]
         }
       ].map(normalizeProperty);
     }
@@ -437,7 +523,7 @@
     function getApprovedPropertyById(id){
       const live = getAllProperties().find(p => p.id === id && p.status === "approved");
       if(live) return live;
-      return getDemoProperties().find(p => p.id === id) || null;
+      return getFallbackProperties().find(p => p.id === id) || null;
     }
 
     function setList(id, items){
@@ -453,14 +539,16 @@
     function setChips(property){
       const wrap = $("chips");
       wrap.innerHTML = "";
+
       const chips = [
         "Approved",
         property.type || "Property",
-        property.bhk || "Ready",
         property.area || "Area",
         property.city || "City"
       ];
+      if(property.bhk) chips.push(property.bhk);
       if(property.featured) chips.unshift("Featured");
+
       chips.forEach(t => {
         const span = document.createElement("span");
         span.className = "chip";
@@ -481,30 +569,30 @@
 
       const images = [];
       if(property.image) images.push(property.image);
-      if(Array.isArray(property.gallery)) {
+      if(Array.isArray(property.gallery)){
         property.gallery.forEach(img => {
           if(img && !images.includes(img)) images.push(img);
         });
       }
 
-      hero.style.backgroundImage = property.image ? safeBgImage(images[0]) : "";
-
       thumbs.innerHTML = "";
-      if(images.length === 0){
-        for(let i=0;i<4;i++){
+
+      if(!images.length){
+        hero.style.backgroundImage = "";
+        for(let i = 0; i < 4; i++){
           const th = document.createElement("div");
           th.className = "th";
-          th.setAttribute("aria-label", "Thumbnail " + (i+1));
           thumbs.appendChild(th);
         }
         return;
       }
 
-      images.slice(0,4).forEach((img, idx) => {
+      hero.style.backgroundImage = safeBgImage(images[0]);
+
+      images.slice(0,4).forEach((img) => {
         const th = document.createElement("button");
         th.type = "button";
         th.className = "th";
-        th.setAttribute("aria-label", "Thumbnail " + (idx+1));
         th.style.backgroundImage = safeBgImage(img);
         th.addEventListener("click", () => {
           hero.style.backgroundImage = safeBgImage(img);
@@ -518,10 +606,10 @@
 
       document.title = property.title + " — Property Details";
       $("title").textContent = property.title;
-      $("subtitle").textContent = `${property.area || "Area"}, ${property.city || "City"} • ${property.type || "Property"}${property.sqft ? " • " + property.sqft + " sqft" : ""}`;
+      $("subtitle").textContent = `${property.area || "Area"}, ${property.city || "City"} • ${property.type || "Property"}${Number.isFinite(property.sqft) ? " • " + property.sqft + " sqft" : ""}`;
       $("price").textContent = formatINR(property.price);
       $("ptype").textContent = property.type || "—";
-      $("area").textContent = property.sqft ? property.sqft + " sqft" : "—";
+      $("area").textContent = Number.isFinite(property.sqft) ? property.sqft + " sqft" : "—";
       $("bhk").textContent = property.bhk || "—";
 
       setChips(property);
@@ -529,16 +617,15 @@
 
       const highlights = [];
       if(property.area) highlights.push(property.area + " locality");
-      if(property.sqft) highlights.push(property.sqft + " sqft built-up area");
+      if(Number.isFinite(property.sqft)) highlights.push(property.sqft + " sqft built-up area");
       if(property.bhk) highlights.push(property.bhk + " configuration");
       if(property.type) highlights.push(property.type + " property");
-      if(property.price) highlights.push("Price: " + formatINR(property.price));
-      if(property.sellerPhone) highlights.push("Direct contact available");
+      if(Number.isFinite(property.price)) highlights.push("Price: " + formatINR(property.price));
 
       const trust = [
         "Admin-approved public listing",
         "Visible only after approval",
-        property.brokerName ? ("Broker: " + property.brokerName) : "Broker assignment available",
+        property.brokerName ? ("Broker: " + property.brokerName) : "Broker info available",
         property.sellerName ? ("Seller/Contact: " + property.sellerName) : "Seller details available on request"
       ];
 
@@ -551,25 +638,30 @@
       $("notFound").hidden = true;
     }
 
-    function showNotFound(){
+    function showNotFound(msg){
       $("propertyView").hidden = true;
       $("notFound").hidden = false;
+      if(msg){
+        $("notFoundMsg").textContent = msg;
+      }
     }
 
     function getSettings(){
-      if(typeof window.getSettings === "function"){
-        return window.getSettings();
-      }
+      try{
+        if(typeof window.getSettings === "function"){
+          return window.getSettings();
+        }
+      }catch(e){}
       return getDataSafe(SETTINGS_KEY, {});
     }
 
     function validateLeadForm(){
       let ok = true;
 
-      const buyerName = $("buyerName").value.trim();
-      const buyerPhone = $("buyerPhone").value.trim();
+      const name = $("buyerName").value.trim();
+      const phone = $("buyerPhone").value.trim();
 
-      if(!buyerName){
+      if(!name){
         ok = false;
         $("buyerNameErr").hidden = false;
         $("buyerNameErr").textContent = "Name is required.";
@@ -578,8 +670,7 @@
         $("buyerNameErr").textContent = "";
       }
 
-      const phoneDigits = normalizePhone(buyerPhone);
-      if(!phoneDigits || !(phoneDigits.length === 10 || (phoneDigits.length === 12 && phoneDigits.startsWith("91")))){
+      if(!isValidPhone(phone)){
         ok = false;
         $("buyerPhoneErr").hidden = false;
         $("buyerPhoneErr").textContent = "Enter valid 10-digit phone or 91XXXXXXXXXX.";
@@ -592,27 +683,34 @@
     }
 
     function readLeads(){
-      if(typeof window.getAllLeads === "function"){
-        return window.getAllLeads();
-      }
+      try{
+        if(typeof window.getAllLeads === "function"){
+          return window.getAllLeads();
+        }
+      }catch(e){}
       return getDataSafe(LEADS_KEY, []);
     }
 
     function writeLeads(leads){
-      if(typeof window.saveAllLeads === "function"){
-        window.saveAllLeads(leads);
-        return;
-      }
+      try{
+        if(typeof window.saveAllLeads === "function"){
+          window.saveAllLeads(leads);
+          return;
+        }
+      }catch(e){}
       setDataSafe(LEADS_KEY, leads || []);
     }
 
     function makeLeadId(){
-      if(typeof window.makeId === "function") return window.makeId("LEAD");
+      try{
+        if(typeof window.makeId === "function") return window.makeId("LEAD");
+      }catch(e){}
       return "LEAD_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     }
 
     function submitLead(){
       if(!CURRENT_PROPERTY) return;
+
       const ok = validateLeadForm();
       if(!ok){
         toast("Please fix enquiry form errors");
@@ -698,8 +796,8 @@
         return;
       }
 
-      const msg = `Hello, I am interested in "${CURRENT_PROPERTY.title}" (${CURRENT_PROPERTY.area}, ${CURRENT_PROPERTY.city}). Please share more details.`;
       const finalPhone = phone.length === 10 ? "91" + phone : phone;
+      const msg = `Hello, I am interested in "${CURRENT_PROPERTY.title}" (${CURRENT_PROPERTY.area}, ${CURRENT_PROPERTY.city}). Please share more details.`;
       const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`;
       window.open(url, "_blank", "noopener,noreferrer");
     }
@@ -709,7 +807,7 @@
     $("submitLeadBtn").addEventListener("click", submitLead);
     $("waBtn").addEventListener("click", openWhatsApp);
     $("interestBtn").addEventListener("click", () => {
-      document.getElementById("buyerName").focus();
+      $("buyerName").focus();
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     });
 
@@ -719,14 +817,15 @@
       }
 
       const id = getQueryParam("id");
+
       if(!id){
-        showNotFound();
+        showNotFound("No property ID was provided in the URL. Open this page from Listings.");
         return;
       }
 
       const property = getApprovedPropertyById(id);
       if(!property){
-        showNotFound();
+        showNotFound("This property may be missing, deleted, or not approved for public view.");
         return;
       }
 
