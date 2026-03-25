@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Estate — Property Details</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#0f1624;
+      --text:#e7eefc;
+      --muted:#a8b3c7;
+      --line:#1f2a3d;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+      --okBorder: rgba(0,255,150,.30);
+      --okBg: rgba(0,255,150,.12);
+      --badBorder: rgba(255,0,90,.34);
+      --badBg: rgba(255,0,90,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
+        radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    a{color:inherit;text-decoration:none}
+    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;}
+    .skip-link:focus{position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;}
+    .wrap{max-width:1120px;margin:0 auto;padding:22px}
+
+    header{
+      position:sticky;top:0;
+      background:rgba(11,15,23,.65);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(31,42,61,.6);
+      z-index:10
+    }
+    header .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+    nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.7);
+      cursor:pointer;
+      color:var(--text);
+    }
+    .btn.small{padding:8px 12px;font-size:14px}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
+      border-color:rgba(110,231,255,.35)
+    }
+    .btn.ok{border-color:var(--okBorder);background:var(--okBg)}
+    .btn.ok:hover{background:rgba(0,255,150,.18)}
+
+    .top{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:16px}
+    @media (max-width:980px){.top{grid-template-columns:1fr}}
+
+    .card{
+      background:rgba(15,22,36,.55);
+      border:1px solid rgba(31,42,61,.85);
+      border-radius:22px;
+      padding:16px
+    }
+
+    .gallery{border-radius:22px;overflow:hidden;border:1px solid rgba(31,42,61,.85)}
+    .heroimg{
+      height:320px;
+      background:
+        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18)),
+        radial-gradient(600px 260px at 15% 15%, rgba(110,231,255,.22), transparent 60%),
+        radial-gradient(500px 240px at 70% 25%, rgba(167,139,250,.22), transparent 60%);
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+    }
+
+    .thumbs{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      padding:10px;
+      background:rgba(11,15,23,.45)
+    }
+    .th{
+      height:72px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.75);
+      background:
+        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18));
+      background-size:cover;
+      background-position:center;
+      cursor:pointer;
+    }
+
+    .h1{margin:0;font-size:24px;line-height:1.2}
+    .sub{margin:8px 0 0;color:var(--muted);line-height:1.6}
+    .price{font-size:28px;font-weight:950;margin-top:10px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      font-size:12px;color:var(--muted);
+      border:1px solid rgba(31,42,61,.85);
+      padding:6px 9px;border-radius:999px;
+      background:rgba(11,15,23,.45)
+    }
+
+    .spec{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    @media (max-width:700px){.spec{grid-template-columns:1fr}}
+    .spec .box{
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.45);
+      border-radius:18px;
+      padding:12px
+    }
+    .spec .k{font-size:12px;color:var(--muted)}
+    .spec .v{font-size:16px;font-weight:900;margin-top:3px}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    @media (max-width:980px){.grid2{grid-template-columns:1fr}}
+
+    .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:700px){.formGrid{grid-template-columns:1fr}}
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input, textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.95);
+      background:rgba(11,15,23,.55);
+      color:var(--text);
+    }
+    textarea{min-height:110px;resize:vertical}
+
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    ul{margin:10px 0 0;color:var(--muted);line-height:1.8}
+    footer{padding:22px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:18px}
+
+    .toast{
+      position:fixed;right:18px;bottom:18px;max-width:360px;
+      background:rgba(15,22,36,.92);border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;border-radius:16px;display:none
+    }
+
+    .err{
+      margin-top:6px;
+      color:rgba(255,120,170,.98);
+      font-size:12px;
+      font-weight:900;
+    }
+    .err[hidden]{display:none}
+
+    .empty{
+      padding:28px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+    .mini{font-size:12px;color:var(--muted)}
+
+    :focus{outline:2px solid var(--accent); outline-offset:2px;}
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header>
+    <div class="wrap row">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div>MEI Estate</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Property • Approved Listing</div>
+        </div>
+      </div>
+      <nav>
+        <a class="btn small" href="index.html">Home</a>
+        <a class="btn small" href="listings.html">⬅ Back to Listings</a>
+        <a class="btn primary small" href="dashboard.html">🛡️ Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap">
+    <div id="notFound" class="card empty" hidden>
+      <div style="font-size:22px;font-weight:900;">Property not found</div>
+      <div class="mini" style="margin-top:8px;">This property may be missing, deleted, or not approved for public view.</div>
+      <div class="actions" style="justify-content:center;">
+        <a class="btn primary" href="listings.html">Go to Listings</a>
+      </div>
+    </div>
+
+    <div id="propertyView" hidden>
+      <div class="top">
+        <div class="gallery">
+          <div class="heroimg" id="heroImg" aria-label="Property image"></div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+
+        <div class="card">
+          <div class="h1" id="title">Property</div>
+          <div class="sub" id="subtitle">Locality, City • Type • Area</div>
+          <div class="price" id="price">₹0</div>
+
+          <div class="chips" id="chips"></div>
+
+          <div class="spec">
+            <div class="box">
+              <div class="k">Type</div>
+              <div class="v" id="ptype">—</div>
+            </div>
+            <div class="box">
+              <div class="k">Area</div>
+              <div class="v" id="area">—</div>
+            </div>
+            <div class="box">
+              <div class="k">BHK</div>
+              <div class="v" id="bhk">—</div>
+            </div>
+          </div>
+
+          <div class="actions" style="margin-top:14px">
+            <button class="btn primary" id="interestBtn" type="button">I'm Interested</button>
+            <button class="btn" id="shareBtn" type="button">Share</button>
+            <button class="btn ok" id="waBtn" type="button">WhatsApp</button>
+          </div>
+
+          <p class="sub" style="font-size:13px;margin-top:10px">
+            Approved property. Enquiry will be saved as a lead in the admin dashboard.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <section class="card">
+          <h3 style="margin:0 0 8px">Highlights</h3>
+          <ul id="highlights"></ul>
+        </section>
+
+        <section class="card">
+          <h3 style="margin:0 0 8px">Broker & Trust</h3>
+          <ul id="trust"></ul>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:14px">
+        <h3 style="margin:0 0 8px">Description</h3>
+        <p class="sub" id="desc" style="margin:0">—</p>
+      </section>
+
+      <section class="card" style="margin-top:14px">
+        <h3 style="margin:0 0 8px">Enquiry Form</h3>
+        <div class="formGrid">
+          <div>
+            <label for="buyerName">Your Name *</label>
+            <input id="buyerName" placeholder="Eg: Arun" />
+            <div id="buyerNameErr" class="err" hidden></div>
+          </div>
+          <div>
+            <label for="buyerPhone">Phone *</label>
+            <input id="buyerPhone" placeholder="Eg: 9876543210" inputmode="numeric" />
+            <div id="buyerPhoneErr" class="err" hidden></div>
+          </div>
+          <div>
+            <label for="buyerCity">Your City</label>
+            <input id="buyerCity" placeholder="Eg: Chennai" />
+            <div id="buyerCityErr" class="err" hidden></div>
+          </div>
+          <div>
+            <label for="followUpDate">Preferred Follow-up Date</label>
+            <input id="followUpDate" type="date" />
+            <div id="followUpDateErr" class="err" hidden></div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="message">Message</label>
+          <textarea id="message" placeholder="Interested in site visit this weekend..."></textarea>
+          <div id="messageErr" class="err" hidden></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="submitLeadBtn" type="button">Submit Enquiry</button>
+          <button class="btn" id="copyLinkBtn" type="button">Copy Link</button>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      © <span id="yr"></span> MEI Estate
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+
+    const PROPS_KEY = (window.MEI_KEYS && window.MEI_KEYS.properties) || "mei_properties_v1";
+    const LEADS_KEY = (window.MEI_KEYS && window.MEI_KEYS.leads) || "mei_leads_v1";
+    const SETTINGS_KEY = (window.MEI_KEYS && window.MEI_KEYS.settings) || "mei_settings_v1";
+
+    const $ = (id) => document.getElementById(id);
+
+    let CURRENT_PROPERTY = null;
+
+    function toast(msg){
+      const el = $("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(el._timeout);
+      el._timeout = setTimeout(() => el.style.display = "none", 2600);
+    }
+
+    function getDataSafe(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        if(!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed ?? fallback;
+      }catch(e){
+        return fallback;
+      }
+    }
+
+    function setDataSafe(key, value){
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function normalizePhone(val){
+      return String(val || "").replace(/[^\d]/g, "");
+    }
+
+    function formatINR(n){
+      const num = Number(n || 0);
+      if(!num) return "Price on request";
+      return "₹" + num.toLocaleString("en-IN");
+    }
+
+    function getQueryParam(key){
+      const url = new URL(window.location.href);
+      return url.searchParams.get(key);
+    }
+
+    function normalizeType(type){
+      const t = String(type || "").trim().toLowerCase();
+      if(!t) return "";
+      if(t === "apartment") return "Apartment";
+      if(t === "house") return "House";
+      if(t === "plot") return "Plot";
+      if(t === "commercial") return "Commercial";
+      if(t === "villa") return "Villa";
+      return String(type || "").trim();
+    }
+
+    function normalizeProperty(item){
+      const p = Object.assign({}, item || {});
+      p.id = String(p.id || "");
+      p.title = String(p.title || p.name || "Untitled Property").trim();
+      p.city = String(p.city || "").trim();
+      p.area = String(p.area || "").trim();
+      p.type = normalizeType(p.type);
+      p.price = Number(p.price || 0);
+      p.sqft = Number(p.sqft || 0);
+      p.bhk = String(p.bhk || "").trim();
+      p.description = String(p.description || p.desc || "").trim();
+      p.image = String(p.image || "").trim();
+      p.gallery = Array.isArray(p.gallery) ? p.gallery.filter(Boolean) : [];
+      p.sellerName = String(p.sellerName || p.contactName || "").trim();
+      p.sellerPhone = normalizePhone(p.sellerPhone || p.phone || "");
+      p.brokerName = String(p.brokerName || "").trim();
+      p.status = String(p.status || "").trim().toLowerCase();
+      p.createdAt = p.createdAt || "";
+      p.featured = Boolean(p.featured);
+      return p;
+    }
+
+    function getAllProperties(){
+      if(typeof window.getAllProperties === "function"){
+        return window.getAllProperties().map(normalizeProperty);
+      }
+      return getDataSafe(PROPS_KEY, []).map(normalizeProperty);
+    }
+
+    function getDemoProperties(){
+      return [
+        {
+          id:"demo1",
+          city:"Bangalore",
+          area:"Whitefield",
+          type:"Apartment",
+          price:8200000,
+          sqft:1180,
+          bhk:"2 BHK",
+          title:"2BHK near ITPL",
+          description:"Comfortable 2BHK apartment with easy access to IT corridors and high rental yield.",
+          status:"approved",
+          brokerName:"Raj",
+          sellerPhone:"9876543210",
+          image:"",
+          gallery:[]
+        },
+        {
+          id:"demo2",
+          city:"Bangalore",
+          area:"Hoodi",
+          type:"Apartment",
+          price:6900000,
+          sqft:1030,
+          bhk:"2 BHK",
+          title:"2BHK Hoodi main road",
+          description:"Bright 2BHK with family-oriented layout, next to metro and schools.",
+          status:"approved",
+          brokerName:"Karthik",
+          sellerPhone:"9876543211",
+          image:"",
+          gallery:[]
+        }
+      ].map(normalizeProperty);
+    }
+
+    function getApprovedPropertyById(id){
+      const live = getAllProperties().find(p => p.id === id && p.status === "approved");
+      if(live) return live;
+      return getDemoProperties().find(p => p.id === id) || null;
+    }
+
+    function setList(id, items){
+      const ul = $(id);
+      ul.innerHTML = "";
+      items.forEach(text => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        ul.appendChild(li);
+      });
+    }
+
+    function setChips(property){
+      const wrap = $("chips");
+      wrap.innerHTML = "";
+      const chips = [
+        "Approved",
+        property.type || "Property",
+        property.bhk || "Ready",
+        property.area || "Area",
+        property.city || "City"
+      ];
+      if(property.featured) chips.unshift("Featured");
+      chips.forEach(t => {
+        const span = document.createElement("span");
+        span.className = "chip";
+        span.textContent = t;
+        wrap.appendChild(span);
+      });
+    }
+
+    function safeBgImage(url){
+      const v = String(url || "").trim();
+      if(!v) return "";
+      return `url("${v.replace(/"/g, "%22")}")`;
+    }
+
+    function buildGallery(property){
+      const hero = $("heroImg");
+      const thumbs = $("thumbs");
+
+      const images = [];
+      if(property.image) images.push(property.image);
+      if(Array.isArray(property.gallery)) {
+        property.gallery.forEach(img => {
+          if(img && !images.includes(img)) images.push(img);
+        });
+      }
+
+      hero.style.backgroundImage = property.image ? safeBgImage(images[0]) : "";
+
+      thumbs.innerHTML = "";
+      if(images.length === 0){
+        for(let i=0;i<4;i++){
+          const th = document.createElement("div");
+          th.className = "th";
+          th.setAttribute("aria-label", "Thumbnail " + (i+1));
+          thumbs.appendChild(th);
+        }
+        return;
+      }
+
+      images.slice(0,4).forEach((img, idx) => {
+        const th = document.createElement("button");
+        th.type = "button";
+        th.className = "th";
+        th.setAttribute("aria-label", "Thumbnail " + (idx+1));
+        th.style.backgroundImage = safeBgImage(img);
+        th.addEventListener("click", () => {
+          hero.style.backgroundImage = safeBgImage(img);
+        });
+        thumbs.appendChild(th);
+      });
+    }
+
+    function hydrate(property){
+      CURRENT_PROPERTY = property;
+
+      document.title = property.title + " — Property Details";
+      $("title").textContent = property.title;
+      $("subtitle").textContent = `${property.area || "Area"}, ${property.city || "City"} • ${property.type || "Property"}${property.sqft ? " • " + property.sqft + " sqft" : ""}`;
+      $("price").textContent = formatINR(property.price);
+      $("ptype").textContent = property.type || "—";
+      $("area").textContent = property.sqft ? property.sqft + " sqft" : "—";
+      $("bhk").textContent = property.bhk || "—";
+
+      setChips(property);
+      buildGallery(property);
+
+      const highlights = [];
+      if(property.area) highlights.push(property.area + " locality");
+      if(property.sqft) highlights.push(property.sqft + " sqft built-up area");
+      if(property.bhk) highlights.push(property.bhk + " configuration");
+      if(property.type) highlights.push(property.type + " property");
+      if(property.price) highlights.push("Price: " + formatINR(property.price));
+      if(property.sellerPhone) highlights.push("Direct contact available");
+
+      const trust = [
+        "Admin-approved public listing",
+        "Visible only after approval",
+        property.brokerName ? ("Broker: " + property.brokerName) : "Broker assignment available",
+        property.sellerName ? ("Seller/Contact: " + property.sellerName) : "Seller details available on request"
+      ];
+
+      setList("highlights", highlights);
+      setList("trust", trust);
+
+      $("desc").textContent = property.description || "No description available.";
+
+      $("propertyView").hidden = false;
+      $("notFound").hidden = true;
+    }
+
+    function showNotFound(){
+      $("propertyView").hidden = true;
+      $("notFound").hidden = false;
+    }
+
+    function getSettings(){
+      if(typeof window.getSettings === "function"){
+        return window.getSettings();
+      }
+      return getDataSafe(SETTINGS_KEY, {});
+    }
+
+    function validateLeadForm(){
+      let ok = true;
+
+      const buyerName = $("buyerName").value.trim();
+      const buyerPhone = $("buyerPhone").value.trim();
+
+      if(!buyerName){
+        ok = false;
+        $("buyerNameErr").hidden = false;
+        $("buyerNameErr").textContent = "Name is required.";
+      }else{
+        $("buyerNameErr").hidden = true;
+        $("buyerNameErr").textContent = "";
+      }
+
+      const phoneDigits = normalizePhone(buyerPhone);
+      if(!phoneDigits || !(phoneDigits.length === 10 || (phoneDigits.length === 12 && phoneDigits.startsWith("91")))){
+        ok = false;
+        $("buyerPhoneErr").hidden = false;
+        $("buyerPhoneErr").textContent = "Enter valid 10-digit phone or 91XXXXXXXXXX.";
+      }else{
+        $("buyerPhoneErr").hidden = true;
+        $("buyerPhoneErr").textContent = "";
+      }
+
+      return ok;
+    }
+
+    function readLeads(){
+      if(typeof window.getAllLeads === "function"){
+        return window.getAllLeads();
+      }
+      return getDataSafe(LEADS_KEY, []);
+    }
+
+    function writeLeads(leads){
+      if(typeof window.saveAllLeads === "function"){
+        window.saveAllLeads(leads);
+        return;
+      }
+      setDataSafe(LEADS_KEY, leads || []);
+    }
+
+    function makeLeadId(){
+      if(typeof window.makeId === "function") return window.makeId("LEAD");
+      return "LEAD_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    }
+
+    function submitLead(){
+      if(!CURRENT_PROPERTY) return;
+      const ok = validateLeadForm();
+      if(!ok){
+        toast("Please fix enquiry form errors");
+        return;
+      }
+
+      const leads = readLeads();
+      const lead = {
+        id: makeLeadId(),
+        propertyId: CURRENT_PROPERTY.id,
+        propertyTitle: CURRENT_PROPERTY.title,
+        listingId: CURRENT_PROPERTY.id,
+        listingTitle: CURRENT_PROPERTY.title,
+        buyerName: $("buyerName").value.trim(),
+        buyerPhone: normalizePhone($("buyerPhone").value),
+        buyerCity: $("buyerCity").value.trim(),
+        message: $("message").value.trim(),
+        source: "website",
+        status: "NEW",
+        assignedBrokerId: "",
+        assignedBrokerName: CURRENT_PROPERTY.brokerName || "",
+        assignedTo: CURRENT_PROPERTY.brokerName || "",
+        followUp: $("followUpDate").value || "",
+        followUpDate: $("followUpDate").value || "",
+        notes: "",
+        createdAt: new Date().toISOString(),
+        updatedAt: ""
+      };
+
+      leads.unshift(lead);
+      writeLeads(leads);
+
+      $("buyerName").value = "";
+      $("buyerPhone").value = "";
+      $("buyerCity").value = "";
+      $("followUpDate").value = "";
+      $("message").value = "";
+
+      toast("Enquiry submitted successfully ✅");
+    }
+
+    async function copyLink(){
+      try{
+        if(navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(window.location.href);
+        }else{
+          const ta = document.createElement("textarea");
+          ta.value = window.location.href;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        toast("Link copied ✅");
+      }catch(e){
+        toast("Unable to copy link");
+      }
+    }
+
+    async function shareProperty(){
+      const shareData = { title: document.title, url: window.location.href };
+      try{
+        if(navigator.share){
+          await navigator.share(shareData);
+        }else{
+          await copyLink();
+        }
+      }catch(e){
+        toast("Unable to share");
+      }
+    }
+
+    function openWhatsApp(){
+      if(!CURRENT_PROPERTY) return;
+
+      const settings = getSettings();
+      const sellerPhone = CURRENT_PROPERTY.sellerPhone || "";
+      const settingsWa = normalizePhone(settings.whatsappNumber || "");
+      const phone = sellerPhone || settingsWa;
+
+      if(!phone){
+        toast("No WhatsApp number available");
+        return;
+      }
+
+      const msg = `Hello, I am interested in "${CURRENT_PROPERTY.title}" (${CURRENT_PROPERTY.area}, ${CURRENT_PROPERTY.city}). Please share more details.`;
+      const finalPhone = phone.length === 10 ? "91" + phone : phone;
+      const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    $("shareBtn").addEventListener("click", shareProperty);
+    $("copyLinkBtn").addEventListener("click", copyLink);
+    $("submitLeadBtn").addEventListener("click", submitLead);
+    $("waBtn").addEventListener("click", openWhatsApp);
+    $("interestBtn").addEventListener("click", () => {
+      document.getElementById("buyerName").focus();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if(typeof window.seedData === "function"){
+        window.seedData();
+      }
+
+      const id = getQueryParam("id");
+      if(!id){
+        showNotFound();
+        return;
+      }
+
+      const property = getApprovedPropertyById(id);
+      if(!property){
+        showNotFound();
+        return;
+      }
+
+      hydrate(property);
+    });
+  </script>
+</body>
+</html>
