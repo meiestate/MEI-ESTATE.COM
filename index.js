@@ -1,8 +1,6 @@
 (() => {
   const PROPS_KEY = (window.MEI_KEYS && window.MEI_KEYS.properties) || "mei_properties_v1";
   const LEADS_KEY = (window.MEI_KEYS && window.MEI_KEYS.leads) || "mei_leads_v1";
-  const SESSION_KEY = (window.MEI_KEYS && window.MEI_KEYS.session) || "mei_session_v1";
-  const BROKERS_KEY = (window.MEI_KEYS && window.MEI_KEYS.brokers) || "mei_brokers_v1";
 
   const DRAFTS = {
     landing: "mei_home_draft_landing_v1",
@@ -37,6 +35,16 @@
       TOAST_FN = null;
     }, timeout);
   }
+
+  $("toastAct").addEventListener("click", () => {
+    if (typeof TOAST_FN === "function") {
+      const fn = TOAST_FN;
+      $("toast").hidden = true;
+      $("toastAct").hidden = true;
+      TOAST_FN = null;
+      try { fn(); } catch (e) {}
+    }
+  });
 
   function readJSON(key, fallback) {
     try {
@@ -116,24 +124,6 @@
       }
     } catch (e) {}
     return readJSON(PROPS_KEY, []).map(normalizeProperty);
-  }
-
-  function getAllLeadsSafe() {
-    try {
-      if (typeof window.getAllLeads === "function") {
-        return window.getAllLeads();
-      }
-    } catch (e) {}
-    return readJSON(LEADS_KEY, []);
-  }
-
-  function getAllBrokersSafe() {
-    try {
-      if (typeof window.getAllBrokers === "function") {
-        return window.getAllBrokers();
-      }
-    } catch (e) {}
-    return readJSON(BROKERS_KEY, []);
   }
 
   function getApprovedProperties() {
@@ -462,7 +452,6 @@
     toast("Lead submitted ✅");
     $("landingLeadForm").reset();
     renderLandingLeadPreview();
-    updateSmartStats();
   }
 
   function buildBrokerPayload() {
@@ -570,384 +559,6 @@
     toast("Broker request submitted ✅");
     $("brokerJoinForm").reset();
     renderBrokerPreview();
-    updateSmartStats();
-  }
-
-  function getSession() {
-    try {
-      if (typeof window.getSession === "function") {
-        return window.getSession();
-      }
-    } catch (e) {}
-    return readJSON(SESSION_KEY, null);
-  }
-
-  function clearSession() {
-    try {
-      if (typeof window.clearSession === "function") {
-        window.clearSession();
-        return;
-      }
-    } catch (e) {}
-    localStorage.removeItem(SESSION_KEY);
-  }
-
-  function countApproved() {
-    return getApprovedProperties().length;
-  }
-
-  function countLeads() {
-    return getAllLeadsSafe().length;
-  }
-
-  function countBrokers() {
-    return getAllBrokersSafe().length;
-  }
-
-  function updateSmartStats() {
-    const s1 = $("smartStat1Value");
-    const s2 = $("smartStat2Value");
-    const s3 = $("smartStat3Value");
-
-    if (!s1 || !s2 || !s3) return;
-
-    s1.textContent = String(countApproved());
-    s2.textContent = String(countLeads());
-    s3.textContent = String(countBrokers());
-  }
-
-  function setHeroForPublic() {
-    $("heroBadge").textContent = "Real Estate Operating Layer";
-    $("heroTitle").innerHTML = "Trust-first Real Estate.<br />Approved listings. Serious leads.";
-    $("heroText").textContent = "Browse admin-approved listings, connect with verified brokers, post serious buyer or seller enquiries, and grow inventory through a clean real-estate pipeline.";
-    $("publicBenefits").hidden = false;
-    $("publicHeroActions").hidden = false;
-    $("welcomePanel").hidden = true;
-    $("smart-workspace").hidden = true;
-    $("quickActionText").textContent = "Choose the path that matches your role in the property journey.";
-  }
-
-  function setQuickActionsForRole(role) {
-    const grid = $("quickActionGrid");
-    const text = $("quickActionText");
-
-    if (role === "ADMIN") {
-      text.textContent = "Your homepage now acts like a live control tower for approvals, CRM and operations.";
-      grid.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">🛡️</div>
-          <div class="titleText">Admin Dashboard</div>
-          <div class="desc">Open the command center for approvals, counts and oversight.</div>
-          <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📇</div>
-          <div class="titleText">CRM Queue</div>
-          <div class="desc">Move leads, update follow-ups and keep the pipeline alive.</div>
-          <a class="btn small primary" href="crm.html">Open CRM</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Add Property</div>
-          <div class="desc">Create a property entry directly from your logged-in workspace.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">🤝</div>
-          <div class="titleText">Broker Network</div>
-          <div class="desc">Review broker-side movement and build co-broking momentum.</div>
-          <a class="btn small primary" href="broker-network.html">Open Network</a>
-        </article>
-      `;
-    } else if (role === "SELLER") {
-      text.textContent = "Your homepage now focuses on property publishing and seller-side movement.";
-      grid.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">🏷️</div>
-          <div class="titleText">Seller Dashboard</div>
-          <div class="desc">Open your workspace and track your property journey.</div>
-          <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Post Property</div>
-          <div class="desc">Add a new property and send it into the approval flow.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📋</div>
-          <div class="titleText">View Listings</div>
-          <div class="desc">Browse live listings and compare how approved entries appear.</div>
-          <a class="btn small primary" href="listings.html">Open Listings</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📩</div>
-          <div class="titleText">Post Requirement</div>
-          <div class="desc">Send a lead or update requirement directly from the homepage.</div>
-          <a class="btn small primary" href="#lead">Post Lead</a>
-        </article>
-      `;
-    } else {
-      text.textContent = "Your homepage now acts like a fast broker entry point for leads, listings and network flow.";
-      grid.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">📇</div>
-          <div class="titleText">CRM Workspace</div>
-          <div class="desc">Track enquiries, follow-ups and active conversations.</div>
-          <a class="btn small primary" href="crm.html">Open CRM</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Add Property</div>
-          <div class="desc">Push a fresh inventory entry into the system in one move.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">🤝</div>
-          <div class="titleText">Broker Network</div>
-          <div class="desc">Open network-side collaboration and co-broking opportunities.</div>
-          <a class="btn small primary" href="broker-network.html">Open Network</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📋</div>
-          <div class="titleText">All Listings</div>
-          <div class="desc">Review live listings and move into property-level actions quickly.</div>
-          <a class="btn small primary" href="listings.html">Open Listings</a>
-        </article>
-      `;
-    }
-  }
-
-  function setWorkspaceForRole(role) {
-    const sub = $("workspaceSubtext");
-    const cards = $("workspaceCards");
-
-    if (role === "ADMIN") {
-      sub.textContent = "Admin-first shortcuts for approvals, CRM and network-level monitoring.";
-      cards.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">🛡️</div>
-          <div class="titleText">Dashboard</div>
-          <div class="desc">Monitor listings, leads, brokers and daily flow from one screen.</div>
-          <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📇</div>
-          <div class="titleText">CRM</div>
-          <div class="desc">Take action on buyer and seller enquiries without losing momentum.</div>
-          <a class="btn small primary" href="crm.html">Open CRM</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Property Intake</div>
-          <div class="desc">Add fresh inventory or correct a listing entry instantly.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">🤝</div>
-          <div class="titleText">Broker Network</div>
-          <div class="desc">Keep the broker graph healthy and responsive.</div>
-          <a class="btn small primary" href="broker-network.html">Open Network</a>
-        </article>
-      `;
-    } else if (role === "SELLER") {
-      sub.textContent = "Seller-first shortcuts for posting property and tracking visibility.";
-      cards.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">🏷️</div>
-          <div class="titleText">Seller Dashboard</div>
-          <div class="desc">Jump into your private space and track listing activity.</div>
-          <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Add Property</div>
-          <div class="desc">Submit another property and move it into the approval layer.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📋</div>
-          <div class="titleText">Live Listings</div>
-          <div class="desc">See how public approved properties are being shown.</div>
-          <a class="btn small primary" href="listings.html">View Listings</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📩</div>
-          <div class="titleText">Send Requirement</div>
-          <div class="desc">Use the homepage itself to push a new requirement into the system.</div>
-          <a class="btn small primary" href="#lead">Post Lead</a>
-        </article>
-      `;
-    } else {
-      sub.textContent = "Broker-first shortcuts for leads, listings and network movement.";
-      cards.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">📇</div>
-          <div class="titleText">CRM</div>
-          <div class="desc">Keep follow-up motion alive and move hot leads faster.</div>
-          <a class="btn small primary" href="crm.html">Open CRM</a>
-        </article>
-
-        <article class="quickIcon"> </article>
-      `;
-      cards.innerHTML = `
-        <article class="quickCard">
-          <div class="quickIcon">📇</div>
-          <div class="titleText">CRM</div>
-          <div class="desc">Keep follow-up motion alive and move hot leads faster.</div>
-          <a class="btn small primary" href="crm.html">Open CRM</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">➕</div>
-          <div class="titleText">Add Property</div>
-          <div class="desc">Capture fresh inventory directly into your workspace.</div>
-          <a class="btn small primary" href="add-property.html">Add Property</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">🤝</div>
-          <div class="titleText">Broker Network</div>
-          <div class="desc">Move into co-broking and collaboration quickly.</div>
-          <a class="btn small primary" href="broker-network.html">Open Network</a>
-        </article>
-
-        <article class="quickCard">
-          <div class="quickIcon">📋</div>
-          <div class="titleText">Listings</div>
-          <div class="desc">Scan live inventory and jump into opportunity mode.</div>
-          <a class="btn small primary" href="listings.html">Open Listings</a>
-        </article>
-      `;
-    }
-  }
-
-  function applyRoleNavigation() {
-    const session = getSession();
-
-    const publicNav = $("publicNav");
-    const privateNav = $("privateNav");
-    const logoutBtn = $("logoutBtn");
-    const navDashboard = $("navDashboard");
-    const navCRM = $("navCRM");
-    const navAddProperty = $("navAddProperty");
-    const navListings = $("navListings");
-    const navBrokerNetwork = $("navBrokerNetwork");
-    const navSellerPage = $("navSellerPage");
-    const navLoginAs = $("navLoginAs");
-
-    if (!session || !session.role) {
-      publicNav.hidden = false;
-      privateNav.hidden = true;
-      setHeroForPublic();
-      return;
-    }
-
-    publicNav.hidden = true;
-    privateNav.hidden = false;
-
-    const role = String(session.role || "").toUpperCase();
-    const name = String(session.name || session.fullName || session.username || "User").trim();
-
-    navLoginAs.textContent = `👤 ${name} (${role})`;
-
-    navDashboard.hidden = false;
-    navCRM.hidden = false;
-    navAddProperty.hidden = false;
-    navListings.hidden = false;
-    navBrokerNetwork.hidden = false;
-    navSellerPage.hidden = false;
-
-    if (role === "ADMIN") {
-      navDashboard.href = "dashboard.html";
-      navCRM.href = "crm.html";
-      navAddProperty.href = "add-property.html";
-      navBrokerNetwork.href = "broker-network.html";
-      navSellerPage.href = "seller.html";
-    } else if (role === "BROKER") {
-      navDashboard.href = "dashboard.html";
-      navCRM.href = "crm.html";
-      navAddProperty.href = "add-property.html";
-      navBrokerNetwork.href = "broker-network.html";
-      navSellerPage.hidden = true;
-    } else if (role === "SELLER") {
-      navDashboard.href = "dashboard.html";
-      navCRM.hidden = true;
-      navAddProperty.href = "add-property.html";
-      navBrokerNetwork.hidden = true;
-      navSellerPage.href = "seller.html";
-    }
-
-    $("heroBadge").textContent = `${role} Workspace Ready`;
-    $("heroTitle").innerHTML = `Welcome back, ${name}.<br />Your private workspace is live.`;
-    $("heroText").textContent = "This homepage now works as a smart entry layer. Jump into the most relevant workflow for your role and continue the day without friction.";
-    $("publicBenefits").hidden = true;
-    $("publicHeroActions").hidden = true;
-
-    $("welcomePanel").hidden = false;
-    $("smart-workspace").hidden = false;
-    $("welcomeTitle").textContent = `Welcome back, ${name} 👋`;
-    $("welcomeText").textContent = `Logged in as ${role}. Your next best actions are now surfaced right on the homepage.`;
-    $("rolePill").textContent = role;
-
-    updateSmartStats();
-    setQuickActionsForRole(role);
-    setWorkspaceForRole(role);
-
-    if (role === "ADMIN") {
-      $("smartStat1Label").textContent = "Approved Listings";
-      $("smartStat2Label").textContent = "CRM Leads";
-      $("smartStat3Label").textContent = "Brokers";
-      $("smartAction1").textContent = "Open Dashboard";
-      $("smartAction1").href = "dashboard.html";
-      $("smartAction2").textContent = "Open CRM";
-      $("smartAction2").href = "crm.html";
-      $("smartAction3").textContent = "Broker Network";
-      $("smartAction3").href = "broker-network.html";
-    } else if (role === "SELLER") {
-      $("smartStat1Label").textContent = "Approved Listings";
-      $("smartStat2Label").textContent = "CRM Leads";
-      $("smartStat3Label").textContent = "Brokers";
-      $("smartAction1").textContent = "Seller Dashboard";
-      $("smartAction1").href = "dashboard.html";
-      $("smartAction2").textContent = "Add Property";
-      $("smartAction2").href = "add-property.html";
-      $("smartAction3").textContent = "View Listings";
-      $("smartAction3").href = "listings.html";
-    } else {
-      $("smartStat1Label").textContent = "Approved Listings";
-      $("smartStat2Label").textContent = "CRM Leads";
-      $("smartStat3Label").textContent = "Brokers";
-      $("smartAction1").textContent = "Open CRM";
-      $("smartAction1").href = "crm.html";
-      $("smartAction2").textContent = "Add Property";
-      $("smartAction2").href = "add-property.html";
-      $("smartAction3").textContent = "Broker Network";
-      $("smartAction3").href = "broker-network.html";
-    }
-
-    logoutBtn.onclick = () => {
-      clearSession();
-      toast("Logged out successfully");
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 500);
-    };
   }
 
   document.addEventListener("click", (e) => {
@@ -964,16 +575,6 @@
       toast("Listings refreshed");
     }
     if (act === "clearFilters") resetListingFilters();
-  });
-
-  $("toastAct").addEventListener("click", () => {
-    if (typeof TOAST_FN === "function") {
-      const fn = TOAST_FN;
-      $("toast").hidden = true;
-      $("toastAct").hidden = true;
-      TOAST_FN = null;
-      try { fn(); } catch (e) {}
-    }
   });
 
   $("landingLeadForm").addEventListener("submit", submitLandingLead);
@@ -1013,5 +614,4 @@
   renderLandingLeadPreview();
   renderBrokerPreview();
   refreshListings();
-  applyRoleNavigation();
 })();

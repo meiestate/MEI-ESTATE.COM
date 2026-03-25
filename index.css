@@ -155,9 +155,7 @@ nav{
   transform:none;
 }
 
-.pill,
-.rolePill,
-.heroBadge{
+.pill{
   display:inline-flex;
   align-items:center;
   gap:8px;
@@ -168,16 +166,6 @@ nav{
   color:var(--muted);
   font-size:12px;
   font-weight:900;
-}
-
-.rolePill{
-  color:var(--text);
-  border-color:rgba(110,231,255,.28);
-  background:linear-gradient(135deg, rgba(110,231,255,.12), rgba(167,139,250,.12));
-}
-
-.heroBadge{
-  margin-bottom:12px;
 }
 
 main{padding-bottom:20px}
@@ -225,72 +213,11 @@ section{
   font-weight:800;
 }
 
-.heroActions,
-.smartActions{
+.heroActions{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   margin-top:14px;
-}
-
-.welcomePanel{
-  margin-top:18px;
-  padding:18px;
-  border-radius:20px;
-  border:1px solid rgba(110,231,255,.18);
-  background:
-    radial-gradient(500px 180px at 10% 0%, rgba(110,231,255,.08), transparent 60%),
-    radial-gradient(400px 180px at 90% 10%, rgba(167,139,250,.08), transparent 60%),
-    rgba(15,22,36,.55);
-  box-shadow:var(--shadow);
-}
-
-.welcomeHead{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.welcomeTitle{
-  font-size:22px;
-  font-weight:1000;
-}
-
-.welcomeText{
-  margin-top:6px;
-  color:var(--muted);
-  line-height:1.6;
-}
-
-.statGrid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-  margin-top:16px;
-}
-@media (max-width:700px){
-  .statGrid{grid-template-columns:1fr}
-}
-
-.statCard{
-  padding:16px;
-  border-radius:18px;
-  border:1px solid rgba(31,42,61,.85);
-  background:rgba(11,15,23,.3);
-}
-.statValue{
-  font-size:28px;
-  font-weight:1000;
-  line-height:1;
-}
-.statLabel{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1.5;
-  font-weight:800;
 }
 
 .card{
@@ -313,14 +240,6 @@ section{
 }
 @media (max-width:520px){
   .row2{grid-template-columns:1fr}
-}
-
-.sectionTop{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  flex-wrap:wrap;
 }
 
 .quickCards{
@@ -435,6 +354,14 @@ textarea{
   font-size:12px;
   color:rgba(232,238,252,.88);
   line-height:1.5;
+}
+
+.listingsTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
 }
 
 .filterBar{
