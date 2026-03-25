@@ -1,239 +1,472 @@
 <!doctype html>
 <html lang="ta">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>MEI — Today Follow-ups</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI — Today Follow-ups</title>
+  <style>
+    :root{ --bg:#0b1220; --card:#121b2f; --line:rgba(255,255,255,.10); --txt:#e8eefc; --pill:rgba(255,255,255,.08); }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--txt)}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .h1{font-size:24px;font-weight:900}
+    .muted{opacity:.75}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    a.link{color:var(--txt);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+    button{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--txt);cursor:pointer;font-weight:700}
+    button:hover{background:rgba(255,255,255,.10)}
+    .ok{border-color:rgba(0,255,150,.25);background:rgba(0,255,150,.10)}
+    .warn{border-color:rgba(255,200,0,.25);background:rgba(255,200,0,.10)}
+    .danger{border-color:rgba(255,0,90,.25);background:rgba(255,0,90,.10)}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;background:var(--pill);border:1px solid var(--line)}
+    .mini{font-size:12px;opacity:.75}
+    .title{font-weight:900}
+    .nowrap{white-space:nowrap}
 
-<style>
-:root{
-  --bg:#0b1220;
-  --card:#121b2f;
-  --line:rgba(255,255,255,.10);
-  --txt:#e8eefc;
-  --pill:rgba(255,255,255,.08);
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--txt)}
-.wrap{max-width:1150px;margin:0 auto;padding:20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.h1{font-size:24px;font-weight:900}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-a.link{color:var(--txt);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:10px}
-button{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt);cursor:pointer}
-button:hover{background:rgba(255,255,255,.1)}
-.ok{border-color:rgba(0,255,150,.3);background:rgba(0,255,150,.12)}
-.warn{border-color:rgba(255,200,0,.3);background:rgba(255,200,0,.12)}
-.danger{border-color:rgba(255,0,90,.3);background:rgba(255,0,90,.12)}
-.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;background:var(--pill);border:1px solid var(--line)}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid var(--line);background:#0b1220;color:var(--txt)}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{padding:10px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
-.overdueRow{background:rgba(255,0,90,.08)}
-.toast{display:none;margin-top:10px;padding:8px;border-radius:10px;border:1px solid rgba(0,255,150,.3);background:rgba(0,255,150,.15)}
-</style>
+    input, select, textarea{
+      width:100%; padding:10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12); background:#0b1220; color:var(--txt); outline:none;
+    }
+    textarea{resize:vertical}
+
+    .bar{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr .8fr .8fr .7fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    @media (max-width:1100px){ .bar{grid-template-columns:1fr 1fr;} }
+    @media (max-width:560px){ .bar{grid-template-columns:1fr;} }
+
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
+    thead th{opacity:.85;text-align:left;border-bottom:1px solid rgba(255,255,255,.12)}
+    .overdueRow{background:linear-gradient(90deg, rgba(255,0,90,.10), transparent 45%); outline:1px solid rgba(255,0,90,.18); outline-offset:-1px;}
+    .toast{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,255,150,.22);background:rgba(0,255,150,.10)}
+  </style>
 </head>
-
 <body>
 <div class="wrap">
+  <div class="card">
+    <div class="top">
+      <div>
+        <div class="h1">MEI — Today Follow-ups</div>
+        <div class="muted">Today + Overdue leads only (broker execution)</div>
+      </div>
+      <div class="row">
+        <a class="link" href="dashboard.html">🏠 Dashboard</a>
+        <button onclick="refresh()">🔄 Refresh</button>
+      </div>
+    </div>
 
-<div class="card">
-<div class="top">
-<div>
-<div class="h1">Today Follow-ups</div>
-<div style="opacity:.7;font-size:13px">Today + Overdue execution view</div>
-</div>
-<div class="row">
-<a class="link" href="dashboard.html">Dashboard</a>
-<button onclick="refresh()">Refresh</button>
-</div>
-</div>
+    <div id="toast" class="toast">✅ Updated</div>
 
-<div class="row" style="margin-top:10px">
-<input id="search" placeholder="Search buyer / listing / phone / notes..." oninput="refresh()">
-<button class="ok" onclick="markAllDone()">Mark All Done</button>
-</div>
+    <div class="bar">
+      <input id="q" placeholder="Search buyer / listing / phone / notes..." oninput="refresh()">
 
-<div class="row" style="margin-top:10px">
-<span class="pill">Total: <b id="count">0</b></span>
-<span class="pill">Overdue: <b id="overdueCount">0</b></span>
-</div>
+      <select id="brokerFilter" onchange="refresh()">
+        <option value="ALL">All Brokers</option>
+        <option value="__UNASSIGNED__">Unassigned</option>
+      </select>
 
-<div id="toast" class="toast">Updated</div>
-</div>
+      <select id="scope" onchange="refresh()">
+        <option value="TODAY_OVERDUE">Today + Overdue</option>
+        <option value="TODAY_ONLY">Today only</option>
+        <option value="OVERDUE_ONLY">Overdue only</option>
+      </select>
 
-<div class="card">
-<table>
-<thead>
-<tr>
-<th>Follow-up</th>
-<th>Listing</th>
-<th>Buyer</th>
-<th>Phone</th>
-<th>Status</th>
-<th>Notes</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="body"></tbody>
-</table>
-</div>
+      <select id="status" onchange="refresh()">
+        <option value="ACTIVE">Active (not closed/archived)</option>
+        <option value="ALL">All</option>
+      </select>
 
+      <button class="ok" onclick="markAllDone()">✅ Mark All Done (tomorrow)</button>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <span class="pill">Showing: <b id="count">0</b></span>
+      <span class="pill">Overdue: <b id="odCount">0</b></span>
+      <span class="pill">Today: <b id="todayCount">0</b></span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <div style="overflow:auto;">
+      <table style="min-width:1600px;">
+        <thead>
+          <tr>
+            <th class="nowrap">Follow-up</th>
+            <th>Listing</th>
+            <th>Buyer</th>
+            <th class="nowrap">Phone</th>
+            <th class="nowrap">Assigned</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th class="nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
-const LEADS_KEY="mei_leads_v1";
-const WA_TEMPLATE_KEY="mei_whatsapp_template_v1";
+  const LEADS_KEY="mei_leads_v1";
+  const WA_TEMPLATE_KEY="mei_whatsapp_template_v1";
+  const BROKERS_KEY="mei_brokers_v1";
 
-const $=id=>document.getElementById(id);
+  const $=id=>document.getElementById(id);
 
-function toast(msg){
-  const el=$("toast");
-  el.textContent=msg;
-  el.style.display="block";
-  setTimeout(()=>el.style.display="none",1200);
-}
+  function toast(msg="✅ Updated"){
+    const el=$("toast");
+    el.textContent=msg;
+    el.style.display="block";
+    setTimeout(()=>el.style.display="none",1100);
+  }
+  function escapeHtml(str){
+    return String(str ?? "").replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[s]));
+  }
 
-function todayYMD(){
-  const d=new Date();
-  return d.toISOString().slice(0,10);
-}
-function tomorrowYMD(){
-  const d=new Date();
-  d.setDate(d.getDate()+1);
-  return d.toISOString().slice(0,10);
-}
+  function todayYMD(){
+    const d=new Date();
+    const yyyy=d.getFullYear();
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const dd=String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function addDaysYMD(days){
+    const d=new Date();
+    d.setDate(d.getDate()+Number(days||0));
+    const yyyy=d.getFullYear();
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const dd=String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
-function getLeads(){return JSON.parse(localStorage.getItem(LEADS_KEY)||"[]")}
-function saveLeads(l){localStorage.setItem(LEADS_KEY,JSON.stringify(l))}
+  function getLeads(){ return JSON.parse(localStorage.getItem(LEADS_KEY)||"[]"); }
+  function saveLeads(list){ localStorage.setItem(LEADS_KEY, JSON.stringify(list)); }
+  function migrate(l){
+    if(l.notes==null) l.notes="";
+    if(l.followUp==null) l.followUp="";
+    if(l.status==null) l.status="NEW";
+    if(l.assignedTo==null) l.assignedTo="";
+    if(l.updatedAt==null) l.updatedAt="";
+    if(l.lastContactedAt==null) l.lastContactedAt="";
+    return l;
+  }
 
-function migrate(l){
-  if(!l.notes)l.notes="";
-  if(!l.followUp)l.followUp="";
-  if(!l.status)l.status="NEW";
-  return l;
-}
+  function getBrokers(){ return JSON.parse(localStorage.getItem(BROKERS_KEY) || "[]"); }
+  function syncBrokerFilter(){
+    const bf=$("brokerFilter");
+    const current = bf.value || "ALL";
+    bf.innerHTML = `
+      <option value="ALL">All Brokers</option>
+      <option value="__UNASSIGNED__">Unassigned</option>
+      ${getBrokers().map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join("")}
+    `;
+    bf.value = (Array.from(bf.options).some(o => o.value === current)) ? current : "ALL";
+  }
 
-function isOverdue(l){
-  if(["CLOSED","ARCHIVED"].includes((l.status||"").toUpperCase()))return false;
-  return l.followUp && l.followUp<todayYMD();
-}
+  function isOverdue(l){
+    const s=(l.status||"").toUpperCase();
+    if(["CLOSED","ARCHIVED"].includes(s)) return false;
+    if(!l.followUp) return false;
+    return l.followUp < todayYMD();
+  }
+  function isToday(l){
+    const s=(l.status||"").toUpperCase();
+    if(["CLOSED","ARCHIVED"].includes(s)) return false;
+    return (l.followUp||"") === todayYMD();
+  }
+  function badge(status){
+    const s=(status||"NEW").toUpperCase();
+    return `<span class="pill">${escapeHtml(s)}</span>`;
+  }
 
-function buildMessage(l){
-  const tpl=localStorage.getItem(WA_TEMPLATE_KEY)||"Hello {buyer}, regarding \"{listing}\".";
-  return tpl
-  .replaceAll("{buyer}",l.buyerName||"")
-  .replaceAll("{listing}",l.listingTitle||"property");
-}
+  // Template
+  function defaultWATemplate(){
+    return `Hello {buyer},
 
-function autoLog(id,text){
-  const leads=getLeads().map(migrate);
-  const i=leads.findIndex(x=>x.id===id);
-  if(i===-1)return;
-  const line=`[${new Date().toLocaleString()}] ${text}`;
-  leads[i].notes=leads[i].notes?leads[i].notes+"\n"+line:line;
-  leads[i].status="CONTACTED";
-  leads[i].lastContactedAt=new Date().toISOString();
-  leads[i].updatedAt=new Date().toISOString();
-  saveLeads(leads);
-}
+Thanks for your interest in "{listing}".
 
-function openWA(id){
-  const leads=getLeads().map(migrate);
-  const l=leads.find(x=>x.id===id);
-  if(!l||!l.buyerPhone)return alert("No phone");
-  const msg=encodeURIComponent(buildMessage(l));
-  window.open(`https://wa.me/91${l.buyerPhone}?text=${msg}`,"_blank");
-  autoLog(id,"WhatsApp sent");
-  toast("WhatsApp opened + logged");
-  refresh();
-}
+This is MEI Realty. Please share your preferred time to discuss today.
 
-async function copyMsg(id){
-  const leads=getLeads().map(migrate);
-  const l=leads.find(x=>x.id===id);
-  if(!l)return;
-  const ok=await navigator.clipboard.writeText(buildMessage(l));
-  if(ok!==false){
-    autoLog(id,"Message copied");
-    toast("Copied + logged");
+- MEI`;
+  }
+  function getWATemplate(){
+    return localStorage.getItem(WA_TEMPLATE_KEY) || defaultWATemplate();
+  }
+  function applyTemplate(tpl, lead){
+    const dateStr = new Date().toLocaleDateString();
+    return String(tpl||"")
+      .replaceAll("{buyer}", lead.buyerName || "")
+      .replaceAll("{listing}", lead.listingTitle || "property")
+      .replaceAll("{phone}", lead.buyerPhone || "")
+      .replaceAll("{date}", dateStr);
+  }
+
+  function cleanPhoneForWA(phone){
+    const clean = String(phone||"").replace(/[^\d]/g,"");
+    if(clean.length === 10) return "91"+clean;
+    return clean;
+  }
+
+  async function copyToClipboard(text){
+    const t=String(text||"");
+    if(!t.trim()){ alert("Nothing to copy"); return false; }
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(t);
+        return true;
+      }
+    }catch(e){}
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=t; ta.style.position="fixed"; ta.style.left="-9999px"; ta.style.top="-9999px";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand("copy"); ta.remove(); return ok;
+    }catch(e){ return false; }
+  }
+
+  function autoLog(id, text){
+    const leads=getLeads().map(migrate);
+    const idx=leads.findIndex(x=>x.id===id);
+    if(idx===-1) return;
+    const now=new Date();
+    const line=`[${now.toLocaleString()}] ${text}`;
+    const existing=(leads[idx].notes||"").trim();
+    leads[idx].notes = existing ? (existing+"\n"+line) : line;
+
+    leads[idx].status="CONTACTED";
+    leads[idx].lastContactedAt = now.toISOString();
+    leads[idx].updatedAt = now.toISOString();
+
+    if(!leads[idx].followUp) leads[idx].followUp = addDaysYMD(1);
+    saveLeads(leads);
+  }
+
+  function setAssigned(id, broker){
+    const leads=getLeads().map(migrate);
+    const idx=leads.findIndex(x=>x.id===id);
+    if(idx===-1) return;
+    leads[idx].assignedTo = String(broker||"").trim();
+    leads[idx].updatedAt = new Date().toISOString();
+    saveLeads(leads);
+    toast("👤 Assigned updated");
     refresh();
   }
-}
 
-function markDone(id){
-  const leads=getLeads().map(migrate);
-  const i=leads.findIndex(x=>x.id===id);
-  if(i===-1)return;
-  leads[i].followUp=tomorrowYMD();
-  autoLog(id,"Done → moved to tomorrow");
-  saveLeads(leads);
-  refresh();
-}
-
-function snoozeLead(id,days){
-  const leads=getLeads().map(migrate);
-  const i=leads.findIndex(x=>x.id===id);
-  if(i===-1)return;
-  const d=new Date();
-  d.setDate(d.getDate()+days);
-  const newDate=d.toISOString().slice(0,10);
-  leads[i].followUp=newDate;
-  autoLog(id,`Snoozed +${days} days`);
-  saveLeads(leads);
-  toast(`Snoozed to ${newDate}`);
-  refresh();
-}
-
-function markAllDone(){
-  const rows=document.querySelectorAll("[data-id]");
-  rows.forEach(r=>markDone(r.dataset.id));
-  toast("All moved to tomorrow");
-}
-
-function refresh(){
-  const all=getLeads().map(migrate);
-  const q=($("search").value||"").toLowerCase();
-  const list=all.filter(l=>{
-    const active=!["CLOSED","ARCHIVED"].includes((l.status||"").toUpperCase());
-    const scope=(l.followUp===todayYMD()||isOverdue(l));
-    const match=[l.buyerName,l.listingTitle,l.buyerPhone,l.notes].join(" ").toLowerCase().includes(q);
-    return active&&scope&&match;
-  });
-
-  $("count").textContent=list.length;
-  $("overdueCount").textContent=list.filter(isOverdue).length;
-
-  const body=$("body");
-  if(!list.length){
-    body.innerHTML="<tr><td colspan='7' style='opacity:.6'>No follow-ups</td></tr>";
-    return;
+  function buildMsg(l){
+    return applyTemplate(getWATemplate(), {
+      buyerName: l.buyerName,
+      buyerPhone: l.buyerPhone,
+      listingTitle: l.listingTitle
+    });
   }
 
-  body.innerHTML=list.map(l=>{
-    return `
-<tr class="${isOverdue(l)?"overdueRow":""}" data-id="${l.id}">
-<td>${l.followUp||"-"}</td>
-<td>${l.listingTitle||"-"}</td>
-<td>${l.buyerName||"-"}</td>
-<td>${l.buyerPhone||"-"}</td>
-<td><span class="pill">${l.status}</span></td>
-<td style="max-width:300px;white-space:pre-wrap">${l.notes||"-"}</td>
-<td class="row">
-<a class="link" href="tel:${l.buyerPhone||""}">Call</a>
-<button onclick="openWA('${l.id}')">WA</button>
-<button onclick="copyMsg('${l.id}')">Copy</button>
-<button class="warn" onclick="markDone('${l.id}')">Done</button>
-<button onclick="snoozeLead('${l.id}',2)">+2d</button>
-<button onclick="snoozeLead('${l.id}',7)">+7d</button>
-</td>
-</tr>
-`;
-  }).join("");
-}
+  function openWA(id){
+    const leads=getLeads().map(migrate);
+    const l=leads.find(x=>x.id===id);
+    if(!l || !l.buyerPhone){ alert("No phone number"); return; }
 
-document.addEventListener("DOMContentLoaded",refresh);
+    const msg=buildMsg(l);
+    window.open(`https://wa.me/${cleanPhoneForWA(l.buyerPhone)}?text=${encodeURIComponent(msg)}`, "_blank");
+    autoLog(id,"WhatsApp message sent");
+    toast("💬 WhatsApp opened + Logged");
+    refresh();
+  }
+
+  async function copyMsg(id){
+    const leads=getLeads().map(migrate);
+    const l=leads.find(x=>x.id===id);
+    if(!l) return;
+
+    const ok=await copyToClipboard(buildMsg(l));
+    if(ok){
+      autoLog(id,"Message copied");
+      toast("📋 Copied + Logged");
+      refresh();
+    }else{
+      alert("Copy failed.");
+    }
+  }
+
+  function markDone(id){
+    const leads=getLeads().map(migrate);
+    const idx=leads.findIndex(x=>x.id===id);
+    if(idx===-1) return;
+
+    leads[idx].followUp = addDaysYMD(1);
+    saveLeads(leads);
+    autoLog(id, "Follow-up done → moved to tomorrow");
+    toast("✅ Done → Tomorrow");
+    refresh();
+  }
+
+  function snoozeLead(id, days){
+    const leads=getLeads().map(migrate);
+    const idx=leads.findIndex(x=>x.id===id);
+    if(idx===-1) return;
+
+    const newFU = addDaysYMD(days);
+    leads[idx].followUp = newFU;
+    saveLeads(leads);
+    autoLog(id, `Snoozed +${days} days → ${newFU}`);
+    toast(`⏰ Snoozed to ${newFU}`);
+    refresh();
+  }
+
+  function markAllDone(){
+    if(!confirm("Mark all shown leads as done and move follow-up to tomorrow?")) return;
+    const ids = Array.from(document.querySelectorAll("[data-lead-id]"))
+      .map(el => el.getAttribute("data-lead-id"))
+      .filter(Boolean);
+    if(ids.length===0){ alert("No leads to mark."); return; }
+
+    const leads=getLeads().map(migrate);
+    const now=new Date();
+    ids.forEach(id=>{
+      const idx=leads.findIndex(x=>x.id===id);
+      if(idx===-1) return;
+      leads[idx].followUp = addDaysYMD(1);
+      const line=`[${now.toLocaleString()}] Bulk done → moved to tomorrow`;
+      const existing=(leads[idx].notes||"").trim();
+      leads[idx].notes = existing ? (existing+"\n"+line) : line;
+      leads[idx].status="CONTACTED";
+      leads[idx].lastContactedAt=now.toISOString();
+      leads[idx].updatedAt=now.toISOString();
+    });
+    saveLeads(leads);
+    toast("✅ Bulk done saved");
+    refresh();
+  }
+
+  function matchesQ(l, q){
+    if(!q) return true;
+    const hay=[l.listingTitle,l.listingId,l.buyerName,l.buyerPhone,l.notes,l.message,l.assignedTo].join(" ").toLowerCase();
+    return hay.includes(q);
+  }
+
+  function renderAssignSelect(l){
+    const brokers=getBrokers();
+    const cur=(l.assignedTo||"").trim();
+    return `
+      <select onchange="setAssigned('${escapeHtml(l.id)}', this.value)" style="min-width:160px">
+        <option value="" ${cur===""?"selected":""}>Unassigned</option>
+        ${brokers.map(b => `<option value="${escapeHtml(b)}" ${cur===b?"selected":""}>${escapeHtml(b)}</option>`).join("")}
+      </select>
+    `;
+  }
+
+  function refresh(){
+    syncBrokerFilter();
+
+    const all=getLeads().map(migrate);
+    saveLeads(all);
+
+    const q=($("q").value||"").trim().toLowerCase();
+    const scope=$("scope").value || "TODAY_OVERDUE";
+    const status=$("status").value || "ACTIVE";
+    const brokerF=$("brokerFilter").value || "ALL";
+
+    const activeFilter = (l)=>{
+      if(status==="ALL") return true;
+      const s=(l.status||"").toUpperCase();
+      return !["CLOSED","ARCHIVED"].includes(s);
+    };
+
+    const scopeFilter = (l)=>{
+      const fu=l.followUp||"";
+      const od=isOverdue(l);
+      const isT=(fu===todayYMD());
+      if(scope==="TODAY_OVERDUE") return isT || od;
+      if(scope==="TODAY_ONLY") return isT;
+      if(scope==="OVERDUE_ONLY") return od;
+      return true;
+    };
+
+    const brokerFilter = (l)=>{
+      if(brokerF==="ALL") return true;
+      if(brokerF==="__UNASSIGNED__") return !(l.assignedTo||"").trim();
+      return (l.assignedTo||"") === brokerF;
+    };
+
+    let list = all
+      .filter(activeFilter)
+      .filter(scopeFilter)
+      .filter(brokerFilter)
+      .filter(l => matchesQ(l, q));
+
+    // sort: overdue first, then follow-up date
+    list.sort((a,b)=>{
+      const ao = isOverdue(a) ? 0 : 1;
+      const bo = isOverdue(b) ? 0 : 1;
+      if(ao!==bo) return ao-bo;
+      const af=a.followUp||"9999-99-99";
+      const bf=b.followUp||"9999-99-99";
+      return af.localeCompare(bf);
+    });
+
+    $("count").textContent=list.length;
+    $("odCount").textContent=list.filter(isOverdue).length;
+    $("todayCount").textContent=list.filter(isToday).length;
+
+    const body=$("body");
+    if(list.length===0){
+      body.innerHTML=`<tr><td colspan="8" style="padding:14px;opacity:.75;">No follow-ups for this filter.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = list.map(l=>{
+      const rowClass = isOverdue(l) ? "overdueRow" : "";
+      const notesShow = (l.notes||"").trim() ? escapeHtml(l.notes.trim()) : "—";
+      const fu = l.followUp ? escapeHtml(l.followUp) : "—";
+
+      return `
+        <tr class="${rowClass}" data-lead-id="${escapeHtml(l.id)}">
+          <td class="nowrap">
+            <div class="title">${fu}</div>
+            ${isOverdue(l) ? `<div class="mini" style="color:rgba(255,0,90,.95);font-weight:900;">⚠ OVERDUE</div>` : `<div class="mini">Today task</div>`}
+          </td>
+          <td>
+            <div class="title">${escapeHtml(l.listingTitle||"Listing")}</div>
+            <div class="mini">ID: ${escapeHtml(l.listingId||"-")}</div>
+          </td>
+          <td>${escapeHtml(l.buyerName||"-")}</td>
+          <td class="nowrap">${escapeHtml(l.buyerPhone||"-")}</td>
+          <td class="nowrap">${renderAssignSelect(l)}</td>
+          <td>${badge(l.status)}</td>
+          <td style="max-width:460px; white-space:pre-wrap;">${notesShow}</td>
+          <td class="nowrap">
+            <div class="row">
+              <a class="link" style="padding:6px 10px;" href="tel:${encodeURIComponent(l.buyerPhone||"")}">📞 Call</a>
+              <button onclick="openWA('${escapeHtml(l.id)}')">💬 WhatsApp</button>
+              <button class="ok" onclick="copyMsg('${escapeHtml(l.id)}')">📋 Copy</button>
+              <button class="warn" onclick="markDone('${escapeHtml(l.id)}')">✅ Done</button>
+              <button onclick="snoozeLead('${escapeHtml(l.id)}', 2)">⏰ +2d</button>
+              <button onclick="snoozeLead('${escapeHtml(l.id)}', 7)">🗓️ +7d</button>
+            </div>
+          </td>
+        </tr>
+
+        ${(l.message && l.message.trim()) ? `
+          <tr class="${rowClass}">
+            <td></td>
+            <td colspan="7" style="opacity:.88; border-top:1px dashed rgba(255,255,255,.10);">
+              📝 ${escapeHtml(l.message)}
+            </td>
+          </tr>` : ""}
+      `;
+    }).join("");
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    syncBrokerFilter();
+    refresh();
+  });
 </script>
 </body>
 </html>
