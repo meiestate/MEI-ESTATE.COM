@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Estate — Verified Listings</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#0f1624;
+      --text:#e7eefc;
+      --muted:#a8b3c7;
+      --line:#1f2a3d;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
+        radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
+        var(--bg);
+      color:var(--text)
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1150px;margin:0 auto;padding:22px}
+    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;}
+    .skip-link:focus{position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;}
+
+    header{
+      position:sticky;top:0;
+      background:rgba(11,15,23,.65);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(31,42,61,.6);
+      z-index:10
+    }
+    header .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2))
+    }
+    nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.7);
+      cursor:pointer;
+      color:var(--text);
+    }
+    .btn.small{padding:8px 12px;font-size:14px}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
+      border-color:rgba(110,231,255,.35)
+    }
+
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:16px
+    }
+    h1{margin:0;font-size:26px}
+    .sub{margin:6px 0 0;color:var(--muted);line-height:1.6}
+
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-top:16px}
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+
+    .card{
+      background:rgba(15,22,36,.55);
+      border:1px solid rgba(31,42,61,.85);
+      border-radius:22px;
+      padding:16px
+    }
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input,select{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.95);
+      background:rgba(11,15,23,.55);
+      color:var(--text);
+    }
+
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:650px){.grid{grid-template-columns:1fr}}
+
+    .p{
+      background:rgba(15,22,36,.45);
+      border:1px solid rgba(31,42,61,.85);
+      border-radius:20px;
+      overflow:hidden
+    }
+
+    .img{
+      height:180px;
+      background:
+        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18)),
+        radial-gradient(300px 140px at 20% 20%, rgba(110,231,255,.20), transparent 55%),
+        radial-gradient(300px 140px at 70% 30%, rgba(167,139,250,.20), transparent 55%);
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+    }
+
+    .body{padding:14px}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(31,42,61,.85);
+      padding:6px 9px;
+      border-radius:999px;
+      background:rgba(11,15,23,.45)
+    }
+    .price{font-size:18px;font-weight:900;margin:2px 0 0}
+    .addr{color:var(--muted);margin-top:6px;line-height:1.4}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .small{padding:8px 12px;border-radius:12px;font-size:14px}
+    .rowline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .count{color:var(--muted);font-size:13px}
+    footer{padding:22px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:18px}
+
+    .toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      max-width:360px;
+      background:rgba(15,22,36,.92);
+      border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;
+      border-radius:16px;
+      display:none
+    }
+
+    .empty{
+      padding:26px;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed rgba(31,42,61,.9);
+      border-radius:18px;
+      background:rgba(11,15,23,.25);
+    }
+
+    .mini{font-size:12px;color:var(--muted)}
+
+    :focus{outline:2px solid var(--accent); outline-offset:2px;}
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <header>
+    <div class="wrap row">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div>MEI Estate</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Approved Public Listings</div>
+        </div>
+      </div>
+      <nav>
+        <a class="btn small" href="index.html">⬅ Home</a>
+        <a class="btn small" href="add-property.html">➕ Add Property</a>
+        <a class="btn primary small" href="dashboard.html">🛡️ Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <div class="top">
+      <div>
+        <h1>Verified Listings</h1>
+        <p class="sub">Approved properties only. Filters update instantly. Public page should never show pending listings.</p>
+      </div>
+      <div class="count" id="count">0 results</div>
+    </div>
+
+    <div class="layout">
+      <aside class="card">
+        <div class="rowline">
+          <div style="font-weight:800">Filters</div>
+          <button class="btn small" id="resetBtn" type="button">Reset</button>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="search">Search</label>
+          <input id="search" name="search" placeholder="Title / area / city / type..." />
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="city">City</label>
+          <select id="city" name="city">
+            <option value="">All Cities</option>
+          </select>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="locality">Locality</label>
+          <select id="locality" name="locality">
+            <option value="">Any</option>
+          </select>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="ptype">Property Type</label>
+          <select id="ptype" name="ptype">
+            <option value="">Any</option>
+          </select>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="bhk">BHK</label>
+          <select id="bhk" name="bhk">
+            <option value="">Any</option>
+          </select>
+        </div>
+
+        <div class="frow" style="margin-top:10px">
+          <div>
+            <label for="bmin">Budget Min (₹)</label>
+            <input id="bmin" name="bmin" type="number" min="0" placeholder="5000000" inputmode="numeric" />
+          </div>
+          <div>
+            <label for="bmax">Budget Max (₹)</label>
+            <input id="bmax" name="bmax" type="number" min="0" placeholder="9000000" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label for="sort">Sort</label>
+          <select id="sort" name="sort">
+            <option value="new">Newest</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+            <option value="area_desc">Largest Area</option>
+          </select>
+        </div>
+
+        <div class="actions" style="margin-top:12px">
+          <button class="btn primary" id="applyBtn" type="button">Apply</button>
+          <button class="btn" id="refreshBtn" type="button">Refresh Data</button>
+        </div>
+
+        <p class="sub" style="margin-top:10px;font-size:13px">
+          Demo fallback exists only if no approved properties are found locally.
+        </p>
+      </aside>
+
+      <section class="card">
+        <div id="grid" class="grid" tabindex="0"></div>
+      </section>
+    </div>
+
+    <footer>
+      © <span id="yr"></span> MEI Estate
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+
+    const PROPS_KEY = (window.MEI_KEYS && window.MEI_KEYS.properties) || "mei_properties_v1";
+
+    const $ = (id) => document.getElementById(id);
+
+    const toast = msg => {
+      const el = $("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(el._timeout);
+      el._timeout = setTimeout(()=> el.style.display = "none", 2600);
+    };
+
+    function getDataSafe(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        if(!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed ?? fallback;
+      }catch(e){
+        return fallback;
+      }
+    }
+
+    function normalizeType(type){
+      const t = String(type || "").trim().toLowerCase();
+      if(!t) return "";
+      if(t === "apartment") return "Apartment";
+      if(t === "house") return "House";
+      if(t === "plot") return "Plot";
+      if(t === "commercial") return "Commercial";
+      if(t === "villa") return "Villa";
+      return String(type || "").trim();
+    }
+
+    function normalizeProperty(p){
+      const out = Object.assign({}, p || {});
+      out.id = String(out.id || "");
+      out.title = String(out.title || out.name || "Untitled Listing").trim();
+      out.city = String(out.city || "").trim();
+      out.area = String(out.area || "").trim();
+      out.type = normalizeType(out.type);
+      out.bhk = String(out.bhk || "").trim();
+      out.price = Number(out.price || 0);
+      out.sqft = Number(out.sqft || out.areaSqft || 0);
+      out.description = String(out.description || out.desc || "").trim();
+      out.image = String(out.image || "").trim();
+      out.status = String(out.status || "").trim().toLowerCase();
+      out.createdAt = out.createdAt || "";
+      out.featured = Boolean(out.featured);
+      return out;
+    }
+
+    function getAllProperties(){
+      if(typeof window.getAllProperties === "function"){
+        return window.getAllProperties().map(normalizeProperty);
+      }
+      return getDataSafe(PROPS_KEY, []).map(normalizeProperty);
+    }
+
+    function getApprovedProperties(){
+      const props = getAllProperties().filter(p => p.status === "approved");
+
+      if(props.length) return props;
+
+      return [
+        { id:"demo1", city:"Bangalore", area:"Whitefield", type:"Apartment", price:8200000, sqft:1180, bhk:"2 BHK", title:"2BHK near ITPL", description:"Gated • Lift • Parking", status:"approved", image:"" },
+        { id:"demo2", city:"Bangalore", area:"Hoodi", type:"Apartment", price:6900000, sqft:1030, bhk:"2 BHK", title:"2BHK Hoodi", description:"Near Metro • Good rental", status:"approved", image:"" },
+        { id:"demo3", city:"Bangalore", area:"ITPL", type:"Commercial", price:15500000, sqft:920, bhk:"", title:"Office near ITPL", description:"High footfall • Clinic suitable", status:"approved", image:"" },
+        { id:"demo4", city:"Bangalore", area:"Whitefield", type:"Villa", price:26500000, sqft:2400, bhk:"4 BHK", title:"4BHK Villa Whitefield", description:"Premium layout • Calm street", status:"approved", image:"" }
+      ].map(normalizeProperty);
+    }
+
+    function formatINR(n){
+      const num = Number(n || 0);
+      if(!num) return "Price on request";
+      return "₹" + num.toLocaleString("en-IN");
+    }
+
+    function safeBgImage(url){
+      const v = String(url || "").trim();
+      if(!v) return "";
+      return `background-image:url("${v.replace(/"/g, "%22")}");`;
+    }
+
+    function createCard(item){
+      const cardDiv = document.createElement("div");
+      cardDiv.className = "p";
+
+      const imgDiv = document.createElement("div");
+      imgDiv.className = "img";
+      if(item.image){
+        imgDiv.style.cssText += safeBgImage(item.image);
+      }
+
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "body";
+
+      const priceDiv = document.createElement("div");
+      priceDiv.className = "price";
+      priceDiv.textContent = formatINR(item.price);
+
+      const titleDiv = document.createElement("div");
+      titleDiv.style.fontWeight = "900";
+      titleDiv.style.margin = "6px 0 0";
+      titleDiv.textContent = item.title;
+
+      const addrDiv = document.createElement("div");
+      addrDiv.className = "addr";
+      addrDiv.textContent = `${item.area || "Area"}, ${item.city || "City"} • ${item.type || "Property"}${item.bhk ? " • " + item.bhk : ""}${item.sqft ? " • " + item.sqft + " sqft" : ""}`;
+
+      const metaDiv = document.createElement("div");
+      metaDiv.className = "meta";
+      ["Approved", item.type || "Property", item.featured ? "Featured" : "Live"].forEach(t => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = t;
+        metaDiv.appendChild(chip);
+      });
+
+      const noteDiv = document.createElement("div");
+      noteDiv.className = "addr";
+      noteDiv.textContent = item.description || "Verified listing";
+
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "actions";
+
+      const viewLink = document.createElement("a");
+      viewLink.className = "btn small";
+      viewLink.href = `property.html?id=${encodeURIComponent(item.id)}`;
+      viewLink.textContent = "View";
+
+      const leadLink = document.createElement("a");
+      leadLink.className = "btn primary small";
+      leadLink.href = `property.html?id=${encodeURIComponent(item.id)}`;
+      leadLink.textContent = "I'm Interested";
+
+      actionsDiv.appendChild(viewLink);
+      actionsDiv.appendChild(leadLink);
+
+      bodyDiv.appendChild(priceDiv);
+      bodyDiv.appendChild(titleDiv);
+      bodyDiv.appendChild(addrDiv);
+      bodyDiv.appendChild(metaDiv);
+      bodyDiv.appendChild(noteDiv);
+      bodyDiv.appendChild(actionsDiv);
+
+      cardDiv.appendChild(imgDiv);
+      cardDiv.appendChild(bodyDiv);
+
+      return cardDiv;
+    }
+
+    function fillSelectOptions(){
+      const data = getApprovedProperties();
+
+      const citySelect = $("city");
+      const localitySelect = $("locality");
+      const ptypeSelect = $("ptype");
+      const bhkSelect = $("bhk");
+
+      const currentCity = citySelect.value || "";
+      const currentLocality = localitySelect.value || "";
+      const currentType = ptypeSelect.value || "";
+      const currentBhk = bhkSelect.value || "";
+
+      const cities = [...new Set(data.map(x => x.city).filter(Boolean))].sort();
+      const localities = [...new Set(data.map(x => x.area).filter(Boolean))].sort();
+      const types = [...new Set(data.map(x => x.type).filter(Boolean))].sort();
+      const bhks = [...new Set(data.map(x => x.bhk).filter(Boolean))].sort();
+
+      citySelect.innerHTML = `<option value="">All Cities</option>`;
+      localitySelect.innerHTML = `<option value="">Any</option>`;
+      ptypeSelect.innerHTML = `<option value="">Any</option>`;
+      bhkSelect.innerHTML = `<option value="">Any</option>`;
+
+      cities.forEach(v => citySelect.appendChild(new Option(v, v)));
+      localities.forEach(v => localitySelect.appendChild(new Option(v, v)));
+      types.forEach(v => ptypeSelect.appendChild(new Option(v, v)));
+      bhks.forEach(v => bhkSelect.appendChild(new Option(v, v)));
+
+      if([...citySelect.options].some(o => o.value === currentCity)) citySelect.value = currentCity;
+      if([...localitySelect.options].some(o => o.value === currentLocality)) localitySelect.value = currentLocality;
+      if([...ptypeSelect.options].some(o => o.value === currentType)) ptypeSelect.value = currentType;
+      if([...bhkSelect.options].some(o => o.value === currentBhk)) bhkSelect.value = currentBhk;
+    }
+
+    function applyFilters(){
+      const source = getApprovedProperties();
+
+      const q = $("search").value.trim().toLowerCase();
+      const city = $("city").value;
+      const locality = $("locality").value;
+      const ptype = $("ptype").value;
+      const bhk = $("bhk").value;
+      const bmin = Number($("bmin").value) || 0;
+      const bmax = Number($("bmax").value) || 0;
+      const sort = $("sort").value;
+
+      let results = source.filter(item => item.status === "approved");
+
+      if(q){
+        results = results.filter(item => {
+          const hay = [
+            item.title,
+            item.city,
+            item.area,
+            item.type,
+            item.bhk,
+            item.description
+          ].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      if(city) results = results.filter(item => item.city === city);
+      if(locality) results = results.filter(item => item.area === locality);
+      if(ptype) results = results.filter(item => item.type === ptype);
+      if(bhk) results = results.filter(item => item.bhk === bhk);
+      if(bmin) results = results.filter(item => item.price >= bmin);
+      if(bmax) results = results.filter(item => item.price <= bmax);
+
+      if(sort === "price_asc") results.sort((a,b)=>a.price - b.price);
+      if(sort === "price_desc") results.sort((a,b)=>b.price - a.price);
+      if(sort === "area_desc") results.sort((a,b)=>b.sqft - a.sqft);
+      if(sort === "new"){
+        results.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      }
+
+      const grid = $("grid");
+      grid.innerHTML = "";
+
+      if(results.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.style.gridColumn = "1 / -1";
+        empty.innerHTML = `
+          <div style="font-weight:900;font-size:18px;">No listings found</div>
+          <div class="mini" style="margin-top:8px;">Try changing city, locality, budget, or property type filters.</div>
+        `;
+        grid.appendChild(empty);
+      }else{
+        results.forEach(item => grid.appendChild(createCard(item)));
+      }
+
+      $("count").textContent = `${results.length} result${results.length === 1 ? "" : "s"}`;
+    }
+
+    function resetFilters(){
+      $("search").value = "";
+      $("city").value = "";
+      $("locality").value = "";
+      $("ptype").value = "";
+      $("bhk").value = "";
+      $("bmin").value = "";
+      $("bmax").value = "";
+      $("sort").value = "new";
+      applyFilters();
+    }
+
+    $("applyBtn").addEventListener("click", applyFilters);
+    $("refreshBtn").addEventListener("click", () => {
+      fillSelectOptions();
+      applyFilters();
+      toast("Listings refreshed");
+    });
+    $("resetBtn").addEventListener("click", resetFilters);
+
+    ["search","city","locality","ptype","bhk","sort"].forEach(id => {
+      $(id).addEventListener("input", applyFilters);
+      $(id).addEventListener("change", applyFilters);
+    });
+
+    ["bmin","bmax"].forEach(id => {
+      $(id).addEventListener("keypress", e => {
+        if(e.key === "Enter") applyFilters();
+      });
+      $(id).addEventListener("change", applyFilters);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if(typeof window.seedData === "function"){
+        window.seedData();
+      }
+      fillSelectOptions();
+      applyFilters();
+    });
+  </script>
+</body>
+</html>
