@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Affordability Calculator | MEI Estate</title>
+  <link rel="stylesheet" href="affordability.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">MEI Estate</div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="mortgage.html">Mortgage</a>
+      <a href="affordability.html" class="active">Affordability</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Affordability Calculator</h1>
+      <p>
+        Know how much home you can afford based on your income, obligations,
+        interest rate, and down payment.
+      </p>
+    </section>
+
+    <section class="calculator-grid">
+      <div class="card form-card">
+        <h2>Enter Your Details</h2>
+
+        <div class="field">
+          <label for="monthlyIncome">Monthly Income (₹)</label>
+          <input type="number" id="monthlyIncome" placeholder="e.g. 80000" />
+        </div>
+
+        <div class="field">
+          <label for="existingEmi">Existing EMI / Loans (₹)</label>
+          <input type="number" id="existingEmi" placeholder="e.g. 10000" />
+        </div>
+
+        <div class="field">
+          <label for="otherExpenses">Other Monthly Obligations (₹)</label>
+          <input type="number" id="otherExpenses" placeholder="e.g. 5000" />
+        </div>
+
+        <div class="field">
+          <label for="downPayment">Down Payment (₹)</label>
+          <input type="number" id="downPayment" placeholder="e.g. 500000" />
+        </div>
+
+        <div class="field">
+          <label for="interestRate">Interest Rate (%)</label>
+          <input type="number" id="interestRate" step="0.1" placeholder="e.g. 8.5" />
+        </div>
+
+        <div class="field">
+          <label for="loanTenure">Loan Tenure (Years)</label>
+          <input type="number" id="loanTenure" placeholder="e.g. 20" />
+        </div>
+
+        <div class="field">
+          <label for="foir">FOIR / EMI Eligibility Ratio (%)</label>
+          <input type="number" id="foir" value="50" />
+        </div>
+
+        <div class="actions">
+          <button id="calculateBtn">Calculate</button>
+          <button id="resetBtn" class="secondary">Reset</button>
+        </div>
+      </div>
+
+      <div class="card result-card">
+        <h2>Results</h2>
+
+        <div class="result-box">
+          <span>Eligible EMI</span>
+          <strong id="eligibleEmi">₹ 0</strong>
+        </div>
+
+        <div class="result-box">
+          <span>Estimated Loan Amount</span>
+          <strong id="loanAmount">₹ 0</strong>
+        </div>
+
+        <div class="result-box highlight">
+          <span>Affordable Property Value</span>
+          <strong id="propertyValue">₹ 0</strong>
+        </div>
+
+        <div class="note">
+          <p>
+            This is an approximate estimate. Final eligibility depends on lender rules,
+            credit score, age, employment type, and documentation.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="affordability.js"></script>
+</body>
+</html>
