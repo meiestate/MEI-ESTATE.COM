@@ -220,6 +220,24 @@ section{
   margin-top:14px;
 }
 
+.welcomeBar{
+  margin-top:16px;
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(110,231,255,.22);
+  background:linear-gradient(135deg, rgba(110,231,255,.10), rgba(167,139,250,.10));
+}
+.welcomeTitle{
+  font-size:16px;
+  font-weight:1000;
+}
+.welcomeText{
+  margin-top:6px;
+  color:var(--muted);
+  line-height:1.5;
+  font-size:14px;
+}
+
 .card{
   background:rgba(15,22,36,.55);
   border:1px solid rgba(31,42,61,.85);

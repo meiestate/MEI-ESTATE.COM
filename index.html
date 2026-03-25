@@ -10,10 +10,8 @@
     name="description"
     content="MEI Estate — browse approved listings, post buyer and seller leads, list property for sale, and join as a broker."
   />
-
   <link rel="stylesheet" href="index.css" />
 </head>
-
 <body>
   <a class="skipLink" href="#main">Skip to content</a>
 
@@ -27,7 +25,9 @@
         </div>
       </div>
 
-      <nav aria-label="Primary navigation">
+      <!-- PUBLIC NAV -->
+      <nav id="publicNav" aria-label="Public navigation">
+        <a class="btn small" href="index.html">Home</a>
         <a class="btn small" href="#features">Features</a>
         <a class="btn small" href="#how">How it works</a>
         <a class="btn small" href="#quick-actions">Explore</a>
@@ -35,9 +35,21 @@
         <a class="btn primary small" href="#lead">Post Lead</a>
         <a class="btn small" href="seller.html">🏷 Sell Property</a>
         <a class="btn small" href="#broker">Join Broker</a>
-        <a class="btn small" href="dashboard.html">🛡️ Dashboard</a>
-        <a class="btn small" href="add-property.html">➕ Add Property</a>
-        <a class="btn small" href="listings.html">📋 All Listings</a>
+        <a class="btn small" href="login.html">🔐 Login</a>
+        <a class="btn small" href="register.html">📝 Register</a>
+      </nav>
+
+      <!-- PRIVATE NAV -->
+      <nav id="privateNav" aria-label="Private navigation" hidden>
+        <a class="btn small" href="index.html">Home</a>
+        <a class="btn small" id="navDashboard" href="dashboard.html">🛡️ Dashboard</a>
+        <a class="btn small" id="navCRM" href="crm.html">📇 CRM</a>
+        <a class="btn small" id="navAddProperty" href="add-property.html">➕ Add Property</a>
+        <a class="btn small" id="navListings" href="listings.html">📋 All Listings</a>
+        <a class="btn small" id="navBrokerNetwork" href="broker-network.html">🤝 Broker Network</a>
+        <a class="btn small" id="navSellerPage" href="seller.html">🏷 Seller Page</a>
+        <a class="btn small" id="navUserLabel" href="javascript:void(0)">👤 User</a>
+        <button class="btn danger small" type="button" id="logoutBtn">🚪 Logout</button>
       </nav>
     </div>
   </header>
@@ -65,6 +77,11 @@
             <a class="btn" href="#lead">Post a Lead</a>
             <a class="btn" href="seller.html">Sell Property</a>
             <a class="btn" href="#broker">Join as Broker</a>
+          </div>
+
+          <div id="welcomeBar" class="welcomeBar" hidden>
+            <div class="welcomeTitle">Welcome back 👋</div>
+            <div class="welcomeText" id="welcomeText">You are logged in.</div>
           </div>
         </div>
 
