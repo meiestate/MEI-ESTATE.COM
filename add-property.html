@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Estate — Add Property</title>
+  <meta name="description" content="Add a new property to MEI Estate. Listings are saved as pending and can later be approved from dashboard." />
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#0f1624;
+      --card2:rgba(255,255,255,.03);
+      --text:#e7eefc;
+      --muted:#a8b3c7;
+      --line:#1f2a3d;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+      --gold:#d6a94f;
+      --gold2:#f0c975;
+      --okBorder:rgba(0,255,150,.30);
+      --okBg:rgba(0,255,150,.12);
+      --warnBorder:rgba(255,200,0,.30);
+      --warnBg:rgba(255,200,0,.10);
+      --badBorder:rgba(255,0,90,.34);
+      --badBg:rgba(255,0,90,.12);
+      --shadow:0 18px 40px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
+        radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    a{color:inherit;text-decoration:none}
+    :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+    .skip-link{
+      position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;
+    }
+    .skip-link:focus{
+      position:static;width:auto;height:auto;background:var(--accent);color:#000;padding:8px;
+    }
+
+    .wrap{max-width:1180px;margin:0 auto;padding:22px}
+
+    header{
+      position:sticky;
+      top:0;
+      background:rgba(11,15,23,.68);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(31,42,61,.6);
+      z-index:10;
+    }
+    header .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .logo{
+      width:36px;height:36px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 35px rgba(110,231,255,.18);
+      flex:0 0 auto;
+    }
+
+    nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.7);
+      cursor:pointer;
+      color:var(--text);
+      min-height:40px;
+      font-weight:800;
+    }
+    .btn.small{padding:8px 12px;font-size:14px;min-height:36px}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
+      border-color:rgba(110,231,255,.35);
+    }
+    .btn.gold{
+      background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#17120a;
+      border-color:rgba(214,169,79,.35);
+    }
+    .btn.ok{border-color:var(--okBorder);background:var(--okBg)}
+    .btn.warn{border-color:var(--warnBorder);background:var(--warnBg)}
+    .btn.danger{border-color:var(--badBorder);background:var(--badBg)}
+    .btn:hover{filter:brightness(1.05)}
+    .btn:active{transform:translateY(1px)}
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.08fr .92fr;
+      gap:16px;
+      margin-top:18px;
+    }
+    @media (max-width:980px){.hero{grid-template-columns:1fr}}
+
+    .card{
+      background:rgba(15,22,36,.55);
+      border:1px solid rgba(31,42,61,.85);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .h1{font-size:32px;font-weight:1000;line-height:1.1;margin:0 0 10px}
+    .h2{font-size:20px;font-weight:900;margin:0 0 10px}
+    .muted{color:var(--muted);line-height:1.65}
+    .mini{font-size:12px;color:var(--muted)}
+    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .chip{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.45);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:16px;
+      margin-top:18px;
+    }
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+
+    .formGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width:680px){.formGrid{grid-template-columns:1fr}}
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+      font-weight:800;
+    }
+
+    input,select,textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.95);
+      background:rgba(11,15,23,.55);
+      color:var(--text);
+      outline:none;
+      min-height:42px;
+    }
+    textarea{min-height:110px;resize:vertical}
+    input::placeholder,textarea::placeholder{color:rgba(168,179,199,.78)}
+
+    .full{grid-column:1 / -1}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
+      margin-top:6px;
+    }
+
+    .err{
+      margin-top:6px;
+      color:rgba(255,120,170,.98);
+      font-size:12px;
+      font-weight:900;
+    }
+    .err[hidden]{display:none}
+
+    .previewBox{
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.35);
+      border-radius:18px;
+      overflow:hidden;
+    }
+
+    .previewImg{
+      height:220px;
+      background:
+        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18)),
+        radial-gradient(300px 140px at 20% 20%, rgba(110,231,255,.20), transparent 55%),
+        radial-gradient(300px 140px at 70% 30%, rgba(167,139,250,.20), transparent 55%);
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+    }
+
+    .previewBody{padding:14px}
+    .previewTitle{font-size:20px;font-weight:1000;line-height:1.3}
+    .previewPrice{font-size:22px;font-weight:1000;margin-top:8px}
+    .previewMeta{margin-top:8px;color:var(--muted);line-height:1.5}
+    .previewDesc{margin-top:10px;color:var(--muted);line-height:1.6}
+
+    .statusBanner{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid var(--warnBorder);
+      background:var(--warnBg);
+      color:#ffe6a3;
+      font-weight:800;
+    }
+
+    .toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      max-width:420px;
+      background:rgba(15,22,36,.94);
+      border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;
+      border-radius:16px;
+      display:none;
+      z-index:999;
+    }
+
+    footer{
+      padding:22px 0;
+      color:var(--muted);
+      border-top:1px solid rgba(31,42,61,.6);
+      margin-top:20px;
+    }
+
+    .footerRow{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .footerLinks{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header>
+    <div class="wrap row">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div>MEI Estate</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Add Property • Pending Approval Flow</div>
+        </div>
+      </div>
+
+      <nav>
+        <a class="btn small" href="index.html">Home</a>
+        <a class="btn small" href="listings.html">Listings</a>
+        <a class="btn small" href="seller.html">Sell Property</a>
+        <a class="btn small" href="dashboard.html">🛡️ Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap">
+    <section class="hero">
+      <div class="card">
+        <h1 class="h1">Add a new property to the MEI pipeline</h1>
+        <p class="muted">
+          Submit listing details here. New properties are saved as <b>pending</b> by default,
+          and they become public only after approval from the dashboard.
+        </p>
+
+        <div class="chips">
+          <span class="chip">Pending by default</span>
+          <span class="chip">Dashboard approval flow</span>
+          <span class="chip">Broker assign support</span>
+          <span class="chip">Gallery URL support</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="h2">How this works</h2>
+        <div class="muted">
+          1. Add property details<br />
+          2. Save into local system via shared app.js<br />
+          3. Property appears in dashboard pending list<br />
+          4. Admin approves<br />
+          5. Listing becomes public on listings and property pages
+        </div>
+
+        <div class="statusBanner">
+          Every listing created here is stored safely with <b>status: pending</b>.
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card">
+        <h2 class="h2">Property Form</h2>
+
+        <form id="propertyForm" novalidate>
+          <div class="formGrid">
+            <div>
+              <label for="title">Listing Title *</label>
+              <input id="title" placeholder="e.g. 2BHK Apartment in Whitefield" />
+              <div id="titleErr" class="err" hidden></div>
+            </div>
+
+            <div>
+              <label for="type">Property Type *</label>
+              <select id="type">
+                <option value="">Select type</option>
+                <option>Apartment</option>
+                <option>House</option>
+                <option>Plot</option>
+                <option>Commercial</option>
+                <option>Villa</option>
+              </select>
+              <div id="typeErr" class="err" hidden></div>
+            </div>
+
+            <div>
+              <label for="city">City *</label>
+              <input id="city" placeholder="e.g. Bangalore" />
+              <div id="cityErr" class="err" hidden></div>
+            </div>
+
+            <div>
+              <label for="area">Area / Locality *</label>
+              <input id="area" placeholder="e.g. Whitefield" />
+              <div id="areaErr" class="err" hidden></div>
+            </div>
+
+            <div>
+              <label for="bhk">BHK</label>
+              <input id="bhk" placeholder="e.g. 2 BHK" />
+            </div>
+
+            <div>
+              <label for="sqft">Area Size (sqft)</label>
+              <input id="sqft" type="number" min="0" placeholder="e.g. 1200" />
+            </div>
+
+            <div>
+              <label for="price">Price (₹) *</label>
+              <input id="price" type="number" min="0" placeholder="e.g. 6500000" />
+              <div id="priceErr" class="err" hidden></div>
+            </div>
+
+            <div>
+              <label for="brokerName">Broker</label>
+              <select id="brokerName">
+                <option value="">Select broker</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="sellerName">Seller / Contact Name</label>
+              <input id="sellerName" placeholder="e.g. Ramesh" />
+            </div>
+
+            <div>
+              <label for="sellerPhone">Seller / Contact Phone</label>
+              <input id="sellerPhone" placeholder="e.g. 9876543210" inputmode="numeric" />
+            </div>
+
+            <div class="full">
+              <label for="image">Main Image URL</label>
+              <input id="image" placeholder="https://example.com/image.jpg" />
+              <div class="hint">Optional. If empty, gradient preview will be shown.</div>
+            </div>
+
+            <div class="full">
+              <label for="gallery">Gallery Image URLs</label>
+              <textarea id="gallery" placeholder="One image URL per line"></textarea>
+              <div class="hint">Optional. Add multiple image URLs, one per line.</div>
+            </div>
+
+            <div class="full">
+              <label for="description">Description</label>
+              <textarea id="description" placeholder="Explain highlights, location benefits, documents, parking, metro access, rental potential..."></textarea>
+            </div>
+
+            <div class="full">
+              <label style="display:flex;gap:10px;align-items:flex-start;">
+                <input id="featured" type="checkbox" style="width:18px;height:18px;min-height:auto;margin-top:2px" />
+                <span>Mark as featured listing</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn gold" type="submit">Save Property</button>
+            <button class="btn" type="button" id="saveDraftBtn">💾 Save Draft</button>
+            <button class="btn warn" type="button" id="clearBtn">🧽 Clear</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 class="h2">Live Preview</h2>
+
+        <div class="previewBox">
+          <div class="previewImg" id="previewImg"></div>
+          <div class="previewBody">
+            <div class="previewTitle" id="previewTitle">Untitled Property</div>
+            <div class="previewPrice" id="previewPrice">Price on request</div>
+            <div class="previewMeta" id="previewMeta">Area, City • Type • BHK • sqft</div>
+            <div class="previewDesc" id="previewDesc">Description preview will appear here.</div>
+          </div>
+        </div>
+
+        <div class="statusBanner" style="margin-top:14px;">
+          Save செய்த உடனே இது public page-ல் தெரியாது.  
+          முதலில் <b>dashboard.html</b> → pending approvals-ல் வரும்.
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footerRow">
+        <div>© <span id="yr"></span> MEI Estate</div>
+        <div class="footerLinks">
+          <a href="index.html">Home</a>
+          <a href="listings.html">Listings</a>
+          <a href="seller.html">Sell Property</a>
+          <a href="dashboard.html">Dashboard</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="app.js"></script>
+  <script>
+    const DRAFT_KEY = "mei_add_property_draft_v1";
+    const $ = (id) => document.getElementById(id);
+
+    document.getElementById("yr").textContent = new Date().getFullYear();
+
+    function toast(msg){
+      const el = $("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(el._timeout);
+      el._timeout = setTimeout(() => el.style.display = "none", 2400);
+    }
+
+    function formatINR(v){
+      const num = cleanNumber(v);
+      return num ? "₹" + num.toLocaleString("en-IN") : "Price on request";
+    }
+
+    function safeBg(url){
+      const v = String(url || "").trim();
+      return v ? `url("${v.replace(/"/g, "%22")}")` : "";
+    }
+
+    function getGalleryLines(){
+      return $("gallery").value
+        .split("\n")
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
+
+    function fillBrokerOptions(){
+      const brokerSelect = $("brokerName");
+      const current = brokerSelect.value || "";
+      brokerSelect.innerHTML = `<option value="">Select broker</option>`;
+      getAllBrokers().forEach(b => {
+        const op = document.createElement("option");
+        op.value = b.name;
+        op.textContent = b.name;
+        brokerSelect.appendChild(op);
+      });
+      if ([...brokerSelect.options].some(o => o.value === current)) {
+        brokerSelect.value = current;
+      }
+    }
+
+    function renderPreview(){
+      const title = $("title").value.trim() || "Untitled Property";
+      const city = $("city").value.trim() || "City";
+      const area = $("area").value.trim() || "Area";
+      const type = $("type").value || "Property";
+      const bhk = $("bhk").value.trim();
+      const sqft = cleanNumber($("sqft").value);
+      const price = $("price").value;
+      const desc = $("description").value.trim() || "Description preview will appear here.";
+      const image = $("image").value.trim();
+
+      $("previewTitle").textContent = title;
+      $("previewPrice").textContent = formatINR(price);
+      $("previewMeta").textContent =
+        `${area}, ${city} • ${type}${bhk ? " • " + bhk : ""}${sqft ? " • " + sqft + " sqft" : ""}`;
+      $("previewDesc").textContent = desc;
+
+      const previewImg = $("previewImg");
+      previewImg.style.backgroundImage = image ? safeBg(image) : "";
+    }
+
+    function clearErrors(){
+      ["titleErr","typeErr","cityErr","areaErr","priceErr"].forEach(id => {
+        $(id).hidden = true;
+        $(id).textContent = "";
+      });
+    }
+
+    function validateForm(){
+      clearErrors();
+      let ok = true;
+
+      if (!$("title").value.trim()) {
+        $("titleErr").textContent = "Listing title is required.";
+        $("titleErr").hidden = false;
+        ok = false;
+      }
+
+      if (!$("type").value.trim()) {
+        $("typeErr").textContent = "Property type is required.";
+        $("typeErr").hidden = false;
+        ok = false;
+      }
+
+      if (!$("city").value.trim()) {
+        $("cityErr").textContent = "City is required.";
+        $("cityErr").hidden = false;
+        ok = false;
+      }
+
+      if (!$("area").value.trim()) {
+        $("areaErr").textContent = "Area / locality is required.";
+        $("areaErr").hidden = false;
+        ok = false;
+      }
+
+      if (!cleanNumber($("price").value)) {
+        $("priceErr").textContent = "Valid price is required.";
+        $("priceErr").hidden = false;
+        ok = false;
+      }
+
+      return ok;
+    }
+
+    function buildPayload(existingId = ""){
+      const broker = getAllBrokers().find(x => x.name === $("brokerName").value) || null;
+
+      return {
+        id: existingId || makeId("PROP"),
+        title: $("title").value.trim(),
+        city: $("city").value.trim(),
+        area: $("area").value.trim(),
+        type: $("type").value.trim(),
+        bhk: $("bhk").value.trim(),
+        price: cleanNumber($("price").value),
+        sqft: cleanNumber($("sqft").value),
+        description: $("description").value.trim(),
+        image: $("image").value.trim(),
+        gallery: getGalleryLines(),
+        sellerName: $("sellerName").value.trim(),
+        sellerPhone: normalizePhone($("sellerPhone").value),
+        brokerName: broker ? broker.name : "",
+        brokerId: broker ? broker.id : "",
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        approvedAt: "",
+        featured: $("featured").checked
+      };
+    }
+
+    function saveDraft(){
+      writeJSON(DRAFT_KEY, {
+        title: $("title").value,
+        city: $("city").value,
+        area: $("area").value,
+        type: $("type").value,
+        bhk: $("bhk").value,
+        price: $("price").value,
+        sqft: $("sqft").value,
+        description: $("description").value,
+        image: $("image").value,
+        gallery: $("gallery").value,
+        sellerName: $("sellerName").value,
+        sellerPhone: $("sellerPhone").value,
+        brokerName: $("brokerName").value,
+        featured: $("featured").checked
+      });
+      toast("Draft saved");
+    }
+
+    function loadDraft(){
+      const d = readJSON(DRAFT_KEY, null);
+      if (!d) return;
+
+      $("title").value = d.title || "";
+      $("city").value = d.city || "";
+      $("area").value = d.area || "";
+      $("type").value = d.type || "";
+      $("bhk").value = d.bhk || "";
+      $("price").value = d.price || "";
+      $("sqft").value = d.sqft || "";
+      $("description").value = d.description || "";
+      $("image").value = d.image || "";
+      $("gallery").value = d.gallery || "";
+      $("sellerName").value = d.sellerName || "";
+      $("sellerPhone").value = d.sellerPhone || "";
+      $("brokerName").value = d.brokerName || "";
+      $("featured").checked = !!d.featured;
+    }
+
+    function clearForm(){
+      document.getElementById("propertyForm").reset();
+      clearErrors();
+      renderPreview();
+    }
+
+    function submitProperty(e){
+      e.preventDefault();
+
+      if (!validateForm()) {
+        toast("Please fix form errors");
+        return;
+      }
+
+      const payload = buildPayload();
+      upsertProperty(payload);
+      localStorage.removeItem(DRAFT_KEY);
+
+      toast("Property saved as pending ✅");
+      clearForm();
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 700);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      seedData();
+      fillBrokerOptions();
+      loadDraft();
+      renderPreview();
+
+      [
+        "title","city","area","type","bhk","price","sqft",
+        "description","image","gallery","sellerName","sellerPhone",
+        "brokerName","featured"
+      ].forEach(id => {
+        $(id).addEventListener("input", renderPreview);
+        $(id).addEventListener("change", renderPreview);
+      });
+
+      $("propertyForm").addEventListener("submit", submitProperty);
+      $("saveDraftBtn").addEventListener("click", saveDraft);
+      $("clearBtn").addEventListener("click", clearForm);
+    });
+  </script>
+</body>
+</html>
