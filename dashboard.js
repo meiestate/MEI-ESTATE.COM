@@ -83,11 +83,15 @@
 
   function showToast(msg, type = "success") {
     const stack = $("toastStack");
+    if (!stack) return;
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     el.textContent = msg;
     stack.appendChild(el);
-    setTimeout(() => { el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 2200);
+    setTimeout(() => {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(6px)";
+    }, 2200);
     setTimeout(() => el.remove(), 2700);
   }
 
@@ -101,12 +105,21 @@ This is MEI Estate. Please share your preferred time to discuss today.
 - MEI`;
   }
 
-  function getTemplate() { return localStorage.getItem(WA_TEMPLATE_KEY) || defaultTemplate(); }
-  function setTemplate(v) { localStorage.setItem(WA_TEMPLATE_KEY, v); }
+  function getTemplate() {
+    return localStorage.getItem(WA_TEMPLATE_KEY) || defaultTemplate();
+  }
+
+  function setTemplate(v) {
+    localStorage.setItem(WA_TEMPLATE_KEY, v);
+  }
 
   function updateTemplatePreview() {
-    const tpl = $("waTemplate").value.trim() || defaultTemplate();
-    $("waPreview").textContent = tpl
+    const ta = $("waTemplate");
+    const preview = $("waPreview");
+    if (!ta || !preview) return;
+
+    const tpl = ta.value.trim() || defaultTemplate();
+    preview.textContent = tpl
       .replaceAll("{buyer}", "Arun")
       .replaceAll("{listing}", "2BHK Whitefield")
       .replaceAll("{phone}", "9876543210")
@@ -114,8 +127,12 @@ This is MEI Estate. Please share your preferred time to discuss today.
   }
 
   async function copyText(text) {
-    try { await navigator.clipboard.writeText(text); return true; }
-    catch (_) { return false; }
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function statusPill(status) {
@@ -126,13 +143,19 @@ This is MEI Estate. Please share your preferred time to discuss today.
   function openSection(key) {
     $$(".section").forEach(x => x.classList.remove("active"));
     $$(".navBtn[data-section]").forEach(x => x.classList.remove("active"));
-    $(`section-${key}`)?.classList.add("active");
+    document.getElementById(`section-${key}`)?.classList.add("active");
     document.querySelector(`.navBtn[data-section="${key}"]`)?.classList.add("active");
   }
 
   function propertyBits(p) {
-    return [p.city, p.area, p.type, p.bhk, p.sqft ? `${p.sqft} sqft` : "", p.price ? `₹${Number(cleanNumber(p.price)).toLocaleString("en-IN")}` : ""]
-      .filter(Boolean).join(" • ");
+    return [
+      p.city,
+      p.area,
+      p.type,
+      p.bhk,
+      p.sqft ? `${p.sqft} sqft` : "",
+      p.price ? `₹${Number(cleanNumber(p.price)).toLocaleString("en-IN")}` : ""
+    ].filter(Boolean).join(" • ");
   }
 
   function isBuyerOverdue(lead) {
@@ -159,14 +182,17 @@ This is MEI Estate. Please share your preferred time to discuss today.
   }
 
   function renderSidebarCounts() {
-    $("navPendingCount").textContent = `${CACHE.properties.filter(x => x.status === "pending").length} pending`;
-    $("navBuyerCount").textContent = `${CACHE.buyer.length} leads`;
-    $("navSellerCount").textContent = `${CACHE.seller.length} leads`;
-    $("navMaterialCount").textContent = `${CACHE.material.length} leads`;
-    $("navServiceCount").textContent = `${CACHE.service.length} leads`;
+    if ($("navPendingCount")) $("navPendingCount").textContent = `${CACHE.properties.filter(x => x.status === "pending").length} pending`;
+    if ($("navBuyerCount")) $("navBuyerCount").textContent = `${CACHE.buyer.length} leads`;
+    if ($("navSellerCount")) $("navSellerCount").textContent = `${CACHE.seller.length} leads`;
+    if ($("navMaterialCount")) $("navMaterialCount").textContent = `${CACHE.material.length} leads`;
+    if ($("navServiceCount")) $("navServiceCount").textContent = `${CACHE.service.length} leads`;
   }
 
   function renderKpis() {
+    const grid = $("kpiGrid");
+    if (!grid) return;
+
     const kpis = [
       { label: "Pending Properties", value: CACHE.properties.filter(x => x.status === "pending").length, hint: "Need moderation" },
       { label: "Approved Properties", value: CACHE.properties.filter(x => x.status === "approved").length, hint: "Public live" },
@@ -176,71 +202,127 @@ This is MEI Estate. Please share your preferred time to discuss today.
       { label: "Service Leads", value: CACHE.service.length, hint: "Vendor funnel" }
     ];
 
-    $("kpiGrid").innerHTML = kpis.map(k => `
+    grid.innerHTML = kpis.map(k => `
       <div class="card statCard">
-        <div class="statTop"><div class="statLabel">${esc(k.label)}</div><span class="delta">${esc(k.hint)}</span></div>
+        <div class="statTop">
+          <div class="statLabel">${esc(k.label)}</div>
+          <span class="delta">${esc(k.hint)}</span>
+        </div>
         <div class="statValue">${esc(k.value)}</div>
       </div>
     `).join("");
   }
 
   function renderDashboard() {
-    const pending = CACHE.properties.filter(x => x.status === "pending").slice(0, 6);
-    $("dashPendingPill").textContent = CACHE.properties.filter(x => x.status === "pending").length;
-    $("dashPendingBody").innerHTML = pending.length ? pending.map(p => `
-      <tr>
-        <td><div class="rowTitle">${esc(p.title || "Listing")}</div><div class="rowMeta">${esc(propertyBits(p) || "—")}</div></td>
-        <td>${statusPill(p.status || "pending")}</td>
-        <td><div class="rowActions"><button class="btn small success" data-approve-prop="${esc(p.id)}">Approve</button><button class="btn small warn" data-archive-prop="${esc(p.id)}">Archive</button></div></td>
-      </tr>
-    `).join("") : `<tr><td colspan="3" class="empty">No pending approvals.</td></tr>`;
+    const dashPendingBody = $("dashPendingBody");
+    const dashOverdueBody = $("dashOverdueBody");
+    const dashPendingPill = $("dashPendingPill");
+    const healthList = $("healthList");
+    const brokerAllocation = $("brokerAllocation");
 
-    const overdue = CACHE.buyer.filter(isBuyerOverdue).slice(0, 6);
-    $("dashOverdueBody").innerHTML = overdue.length ? overdue.map(l => `
-      <tr>
-        <td><div class="rowTitle">${esc(l.buyerName || "-")}</div><div class="rowMeta">${esc(l.buyerPhone || "-")}</div></td>
-        <td>${esc(l.listingTitle || "-")}</td>
-        <td>${esc(l.followUp || "—")}</td>
-        <td><div class="rowActions"><button class="btn small" data-edit-buyer="${esc(l.id)}">Edit</button><button class="btn small success" data-wa-buyer="${esc(l.id)}">WhatsApp</button></div></td>
-      </tr>
-    `).join("") : `<tr><td colspan="4" class="empty">No overdue follow-ups.</td></tr>`;
+    if (dashPendingPill) {
+      dashPendingPill.textContent = CACHE.properties.filter(x => x.status === "pending").length;
+    }
 
-    const health = [
-      ["Live brokers", CACHE.brokers.length],
-      ["Unassigned buyer leads", CACHE.buyer.filter(x => !x.assignedTo).length],
-      ["Approval queue load", CACHE.properties.filter(x => x.status === "pending").length],
-      ["Closed buyer leads", CACHE.buyer.filter(x => normalizeStatus(x.status) === "CLOSED").length],
-      ["Doc pending sellers", CACHE.seller.filter(x => normalizeStatus(x.status) === "DOCUMENT_PENDING").length],
-    ];
+    if (dashPendingBody) {
+      const pending = CACHE.properties.filter(x => x.status === "pending").slice(0, 6);
+      dashPendingBody.innerHTML = pending.length ? pending.map(p => `
+        <tr>
+          <td><div class="rowTitle">${esc(p.title || "Listing")}</div><div class="rowMeta">${esc(propertyBits(p) || "—")}</div></td>
+          <td>${statusPill(p.status || "pending")}</td>
+          <td>
+            <div class="rowActions">
+              <button class="btn small success" data-approve-prop="${esc(p.id)}">Approve</button>
+              <button class="btn small warn" data-archive-prop="${esc(p.id)}">Archive</button>
+            </div>
+          </td>
+        </tr>
+      `).join("") : `<tr><td colspan="3" class="empty">No pending approvals.</td></tr>`;
+    }
 
-    $("healthList").innerHTML = health.map(([label, value]) => `<div class="kpiRow"><div class="kpiLabel">${esc(label)}</div><div class="kpiValue">${esc(value)}</div></div>`).join("");
+    if (dashOverdueBody) {
+      const overdue = CACHE.buyer.filter(isBuyerOverdue).slice(0, 6);
+      dashOverdueBody.innerHTML = overdue.length ? overdue.map(l => `
+        <tr>
+          <td><div class="rowTitle">${esc(l.buyerName || "-")}</div><div class="rowMeta">${esc(l.buyerPhone || "-")}</div></td>
+          <td>${esc(l.listingTitle || "-")}</td>
+          <td>${esc(l.followUp || "—")}</td>
+          <td>
+            <div class="rowActions">
+              <button class="btn small" data-edit-buyer="${esc(l.id)}">Edit</button>
+              <button class="btn small success" data-wa-buyer="${esc(l.id)}">WhatsApp</button>
+            </div>
+          </td>
+        </tr>
+      `).join("") : `<tr><td colspan="4" class="empty">No overdue follow-ups.</td></tr>`;
+    }
 
-    const alloc = CACHE.brokers.map(b => ({ name: b.name, count: CACHE.buyer.filter(x => x.assignedTo === b.name).length }));
-    $("brokerAllocation").innerHTML = alloc.length ? alloc.map(x => `<div class="kpiRow"><div class="kpiLabel">${esc(x.name)}</div><div class="kpiValue">${esc(x.count)} leads</div></div>`).join("") : `<div class="empty">No brokers added yet.</div>`;
+    if (healthList) {
+      const health = [
+        ["Live brokers", CACHE.brokers.length],
+        ["Unassigned buyer leads", CACHE.buyer.filter(x => !x.assignedTo).length],
+        ["Approval queue load", CACHE.properties.filter(x => x.status === "pending").length],
+        ["Closed buyer leads", CACHE.buyer.filter(x => normalizeStatus(x.status) === "CLOSED").length],
+        ["Doc pending sellers", CACHE.seller.filter(x => normalizeStatus(x.status) === "DOCUMENT_PENDING").length],
+      ];
+
+      healthList.innerHTML = health.map(([label, value]) => `
+        <div class="kpiRow">
+          <div class="kpiLabel">${esc(label)}</div>
+          <div class="kpiValue">${esc(value)}</div>
+        </div>
+      `).join("");
+    }
+
+    if (brokerAllocation) {
+      const alloc = CACHE.brokers.map(b => ({
+        name: b.name,
+        count: CACHE.buyer.filter(x => x.assignedTo === b.name).length
+      }));
+
+      brokerAllocation.innerHTML = alloc.length ? alloc.map(x => `
+        <div class="kpiRow">
+          <div class="kpiLabel">${esc(x.name)}</div>
+          <div class="kpiValue">${esc(x.count)} leads</div>
+        </div>
+      `).join("") : `<div class="empty">No brokers added yet.</div>`;
+    }
   }
 
   function populatePropertyCityFilter() {
-    const cities = [...new Set(CACHE.properties.map(x => x.city).filter(Boolean))];
     const sel = $("propertyCityFilter");
+    if (!sel) return;
+
+    const cities = [...new Set(CACHE.properties.map(x => x.city).filter(Boolean))];
     const current = sel.value || "ALL";
     sel.innerHTML = `<option value="ALL">All Cities</option>` + cities.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
     if ([...sel.options].some(o => o.value === current)) sel.value = current;
   }
 
   function renderProperties() {
-    populatePropertyCityFilter();
-    const q = $("propertySearch").value.trim().toLowerCase();
-    const s = $("propertyStatusFilter").value;
-    const city = $("propertyCityFilter").value;
+    const body = $("propertiesBody");
+    if (!body) return;
 
-    let rows = CACHE.properties.filter(p => [p.title, p.city, p.area, p.type, p.brokerName, p.sellerName, p.sellerPhone].join(" ").toLowerCase().includes(q));
+    populatePropertyCityFilter();
+
+    const q = $("propertySearch")?.value.trim().toLowerCase() || "";
+    const s = $("propertyStatusFilter")?.value || "ALL";
+    const city = $("propertyCityFilter")?.value || "ALL";
+
+    let rows = CACHE.properties.filter(p =>
+      [p.title, p.city, p.area, p.type, p.brokerName, p.sellerName, p.sellerPhone]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+
     if (s !== "ALL") rows = rows.filter(p => String(p.status) === s);
     if (city !== "ALL") rows = rows.filter(p => p.city === city);
 
-    $("propertiesPendingCount").textContent = CACHE.properties.filter(x => x.status === "pending").length;
-    $("propertiesApprovedCount").textContent = CACHE.properties.filter(x => x.status === "approved").length;
+    if ($("propertiesPendingCount")) $("propertiesPendingCount").textContent = CACHE.properties.filter(x => x.status === "pending").length;
+    if ($("propertiesApprovedCount")) $("propertiesApprovedCount").textContent = CACHE.properties.filter(x => x.status === "approved").length;
 
-    $("propertiesBody").innerHTML = rows.length ? rows.map(p => `
+    body.innerHTML = rows.length ? rows.map(p => `
       <tr>
         <td>
           <div class="rowTitle">${esc(p.title || "Listing")}</div>
@@ -267,40 +349,62 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
   function syncBrokerOptions() {
     const brokerFilter = $("buyerBrokerFilter");
-    const current = brokerFilter.value || "ALL";
-    brokerFilter.innerHTML = `<option value="ALL">All Brokers</option><option value="__UNASSIGNED__">Unassigned</option>` + CACHE.brokers.map(b => `<option value="${esc(b.name)}">${esc(b.name)}</option>`).join("");
-    if ([...brokerFilter.options].some(o => o.value === current)) brokerFilter.value = current;
+    if (brokerFilter) {
+      const current = brokerFilter.value || "ALL";
+      brokerFilter.innerHTML =
+        `<option value="ALL">All Brokers</option><option value="__UNASSIGNED__">Unassigned</option>` +
+        CACHE.brokers.map(b => `<option value="${esc(b.name)}">${esc(b.name)}</option>`).join("");
+      if ([...brokerFilter.options].some(o => o.value === current)) brokerFilter.value = current;
+    }
 
     const assigned = $("mAssigned");
-    const currentAssigned = assigned.value || "";
-    assigned.innerHTML = `<option value="">Unassigned</option>` + CACHE.brokers.map(b => `<option value="${esc(b.name)}">${esc(b.name)}</option>`).join("");
-    if ([...assigned.options].some(o => o.value === currentAssigned)) assigned.value = currentAssigned;
+    if (assigned) {
+      const currentAssigned = assigned.value || "";
+      assigned.innerHTML =
+        `<option value="">Unassigned</option>` +
+        CACHE.brokers.map(b => `<option value="${esc(b.name)}">${esc(b.name)}</option>`).join("");
+      if ([...assigned.options].some(o => o.value === currentAssigned)) assigned.value = currentAssigned;
+    }
   }
 
   function renderBrokers() {
-    $("brokerChips").innerHTML = CACHE.brokers.length ? CACHE.brokers.map(b => `
+    const chips = $("brokerChips");
+    if (!chips) return;
+
+    chips.innerHTML = CACHE.brokers.length ? CACHE.brokers.map(b => `
       <span class="chip">
         <span>${esc(b.name)}</span>
         <span class="rowMeta">${esc([b.city, b.area].filter(Boolean).join(" • "))}</span>
         <button class="btn small danger" data-delete-broker="${esc(b.name)}">✕</button>
       </span>
     `).join("") : `<div class="empty">No brokers added yet.</div>`;
+
     syncBrokerOptions();
   }
 
   function renderBuyerLeads() {
-    const q = $("buyerSearch").value.trim().toLowerCase();
-    const broker = $("buyerBrokerFilter").value;
-    const status = $("buyerStatusFilter").value;
-    const overdue = $("buyerOverdueFilter").value;
+    const body = $("buyerLeadsBody");
+    if (!body) return;
 
-    let rows = CACHE.buyer.filter(l => [l.listingTitle, l.listingId, l.buyerName, l.buyerPhone, l.notes, l.message, l.assignedTo].join(" ").toLowerCase().includes(q));
+    const q = $("buyerSearch")?.value.trim().toLowerCase() || "";
+    const broker = $("buyerBrokerFilter")?.value || "ALL";
+    const status = $("buyerStatusFilter")?.value || "ALL";
+    const overdue = $("buyerOverdueFilter")?.value || "ALL";
+
+    let rows = CACHE.buyer.filter(l =>
+      [l.listingTitle, l.listingId, l.buyerName, l.buyerPhone, l.notes, l.message, l.assignedTo]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+
     rows = rows.filter(l => broker === "ALL" ? true : broker === "__UNASSIGNED__" ? !l.assignedTo : l.assignedTo === broker);
     rows = rows.filter(l => status === "ALL" ? true : normalizeStatus(l.status) === status);
     rows = rows.filter(l => overdue === "ALL" ? true : overdue === "OVERDUE" ? isBuyerOverdue(l) : !isBuyerOverdue(l));
-    $("buyerLeadCount").textContent = rows.length;
 
-    $("buyerLeadsBody").innerHTML = rows.length ? rows.map(l => {
+    if ($("buyerLeadCount")) $("buyerLeadCount").textContent = rows.length;
+
+    body.innerHTML = rows.length ? rows.map(l => {
       const assignOptions = [`<option value="">Unassigned</option>`]
         .concat(CACHE.brokers.map(b => `<option value="${esc(b.name)}" ${l.assignedTo === b.name ? "selected" : ""}>${esc(b.name)}</option>`))
         .join("");
@@ -335,26 +439,41 @@ This is MEI Estate. Please share your preferred time to discuss today.
   }
 
   function renderSellerFilters() {
+    const sellerTypeFilter = $("sellerTypeFilter");
+    const sellerPropertyTypeFilter = $("sellerPropertyTypeFilter");
+    if (!sellerTypeFilter || !sellerPropertyTypeFilter) return;
+
     const sellerTypes = [...new Set(CACHE.seller.map(x => x.sellerType).filter(Boolean))];
     const propertyTypes = [...new Set(CACHE.seller.map(x => x.propertyType).filter(Boolean))];
-    $("sellerTypeFilter").innerHTML = buildSelectOptions(sellerTypes, "All Seller Types");
-    $("sellerPropertyTypeFilter").innerHTML = buildSelectOptions(propertyTypes, "All Property Types");
+    sellerTypeFilter.innerHTML = buildSelectOptions(sellerTypes, "All Seller Types");
+    sellerPropertyTypeFilter.innerHTML = buildSelectOptions(propertyTypes, "All Property Types");
   }
 
   function renderSellerLeads() {
-    renderSellerFilters();
-    const q = $("sellerSearch").value.trim().toLowerCase();
-    const s = $("sellerStatusFilter").value;
-    const st = $("sellerTypeFilter").value;
-    const pt = $("sellerPropertyTypeFilter").value;
+    const body = $("sellerLeadsBody");
+    if (!body) return;
 
-    let rows = CACHE.seller.filter(x => [x.sellerName, x.phone, x.sellerType, x.propertyType, x.listingTitle, x.city, x.area, x.notes, x.expectedPrice].join(" ").toLowerCase().includes(q));
+    renderSellerFilters();
+
+    const q = $("sellerSearch")?.value.trim().toLowerCase() || "";
+    const s = $("sellerStatusFilter")?.value || "ALL";
+    const st = $("sellerTypeFilter")?.value || "ALL";
+    const pt = $("sellerPropertyTypeFilter")?.value || "ALL";
+
+    let rows = CACHE.seller.filter(x =>
+      [x.sellerName, x.phone, x.sellerType, x.propertyType, x.listingTitle, x.city, x.area, x.notes, x.expectedPrice]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+
     rows = rows.filter(x => s === "ALL" ? true : normalizeStatus(x.status) === s);
     rows = rows.filter(x => st === "ALL" ? true : x.sellerType === st);
     rows = rows.filter(x => pt === "ALL" ? true : x.propertyType === pt);
 
-    $("sellerLeadCount").textContent = rows.length;
-    $("sellerLeadsBody").innerHTML = rows.length ? rows.map(x => `
+    if ($("sellerLeadCount")) $("sellerLeadCount").textContent = rows.length;
+
+    body.innerHTML = rows.length ? rows.map(x => `
       <tr>
         <td>${esc(fmtDate(x.createdAt))}</td>
         <td><div class="rowTitle">${esc(x.sellerName || "-")}</div><div class="rowMeta">${esc(x.sellerType || "")}</div></td>
@@ -382,24 +501,46 @@ This is MEI Estate. Please share your preferred time to discuss today.
   }
 
   function renderMaterialFilters() {
-    $("materialTypeFilter").innerHTML = buildSelectOptions([...new Set(CACHE.material.map(x => x.materialType).filter(Boolean))], "All Materials");
-    $("materialCustomerFilter").innerHTML = buildSelectOptions([...new Set(CACHE.material.map(x => x.customerType).filter(Boolean))], "All Customer Types");
+    if ($("materialTypeFilter")) {
+      $("materialTypeFilter").innerHTML = buildSelectOptions(
+        [...new Set(CACHE.material.map(x => x.materialType).filter(Boolean))],
+        "All Materials"
+      );
+    }
+
+    if ($("materialCustomerFilter")) {
+      $("materialCustomerFilter").innerHTML = buildSelectOptions(
+        [...new Set(CACHE.material.map(x => x.customerType).filter(Boolean))],
+        "All Customer Types"
+      );
+    }
   }
 
   function renderMaterialLeads() {
-    renderMaterialFilters();
-    const q = $("materialSearch").value.trim().toLowerCase();
-    const s = $("materialStatusFilter").value;
-    const t = $("materialTypeFilter").value;
-    const c = $("materialCustomerFilter").value;
+    const body = $("materialLeadsBody");
+    if (!body) return;
 
-    let rows = CACHE.material.filter(x => [x.name, x.phone, x.materialType, x.location, x.notes, x.quantity, x.budget].join(" ").toLowerCase().includes(q));
+    renderMaterialFilters();
+
+    const q = $("materialSearch")?.value.trim().toLowerCase() || "";
+    const s = $("materialStatusFilter")?.value || "ALL";
+    const t = $("materialTypeFilter")?.value || "ALL";
+    const c = $("materialCustomerFilter")?.value || "ALL";
+
+    let rows = CACHE.material.filter(x =>
+      [x.name, x.phone, x.materialType, x.location, x.notes, x.quantity, x.budget]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+
     rows = rows.filter(x => s === "ALL" ? true : normalizeStatus(x.status) === s);
     rows = rows.filter(x => t === "ALL" ? true : x.materialType === t);
     rows = rows.filter(x => c === "ALL" ? true : x.customerType === c);
 
-    $("materialLeadCount").textContent = rows.length;
-    $("materialLeadsBody").innerHTML = rows.length ? rows.map(x => `
+    if ($("materialLeadCount")) $("materialLeadCount").textContent = rows.length;
+
+    body.innerHTML = rows.length ? rows.map(x => `
       <tr>
         <td>${esc(fmtDate(x.createdAt))}</td>
         <td><div class="rowTitle">${esc(x.name || "-")}</div><div class="rowMeta">${esc(x.customerType || "")}</div></td>
@@ -409,31 +550,61 @@ This is MEI Estate. Please share your preferred time to discuss today.
         <td>${esc(x.location || "-")}</td>
         <td>${esc(x.budget || "—")}</td>
         <td>${statusPill(x.status || "NEW")}</td>
-        <td><div class="rowActions"><a class="btn small" href="tel:${encodeURIComponent(x.phone || "")}">📞 Call</a><a class="btn small success" href="https://wa.me/${formatWA(x.phone)}" target="_blank">💬 WA</a><button class="btn small warn" data-status-material="${esc(x.id)}" data-next="CONTACTED">Contacted</button><button class="btn small success" data-status-material="${esc(x.id)}" data-next="CLOSED">Close</button><button class="btn small danger" data-status-material="${esc(x.id)}" data-next="ARCHIVED">Archive</button></div></td>
+        <td>
+          <div class="rowActions">
+            <a class="btn small" href="tel:${encodeURIComponent(x.phone || "")}">📞 Call</a>
+            <a class="btn small success" href="https://wa.me/${formatWA(x.phone)}" target="_blank">💬 WA</a>
+            <button class="btn small warn" data-status-material="${esc(x.id)}" data-next="CONTACTED">Contacted</button>
+            <button class="btn small success" data-status-material="${esc(x.id)}" data-next="CLOSED">Close</button>
+            <button class="btn small danger" data-status-material="${esc(x.id)}" data-next="ARCHIVED">Archive</button>
+          </div>
+        </td>
       </tr>
       ${x.notes ? `<tr><td></td><td colspan="8" class="rowMeta">📝 ${esc(x.notes)}</td></tr>` : ""}
     `).join("") : `<tr><td colspan="9" class="empty">No material leads match your filters.</td></tr>`;
   }
 
   function renderServiceFilters() {
-    $("serviceTypeFilter").innerHTML = buildSelectOptions([...new Set(CACHE.service.map(x => x.serviceType).filter(Boolean))], "All Services");
-    $("serviceCustomerFilter").innerHTML = buildSelectOptions([...new Set(CACHE.service.map(x => x.customerType).filter(Boolean))], "All Customer Types");
+    if ($("serviceTypeFilter")) {
+      $("serviceTypeFilter").innerHTML = buildSelectOptions(
+        [...new Set(CACHE.service.map(x => x.serviceType).filter(Boolean))],
+        "All Services"
+      );
+    }
+
+    if ($("serviceCustomerFilter")) {
+      $("serviceCustomerFilter").innerHTML = buildSelectOptions(
+        [...new Set(CACHE.service.map(x => x.customerType).filter(Boolean))],
+        "All Customer Types"
+      );
+    }
   }
 
   function renderServiceLeads() {
-    renderServiceFilters();
-    const q = $("serviceSearch").value.trim().toLowerCase();
-    const s = $("serviceStatusFilter").value;
-    const t = $("serviceTypeFilter").value;
-    const c = $("serviceCustomerFilter").value;
+    const body = $("serviceLeadsBody");
+    if (!body) return;
 
-    let rows = CACHE.service.filter(x => [x.name, x.phone, x.serviceType, x.location, x.notes, x.propertyType, x.budget].join(" ").toLowerCase().includes(q));
+    renderServiceFilters();
+
+    const q = $("serviceSearch")?.value.trim().toLowerCase() || "";
+    const s = $("serviceStatusFilter")?.value || "ALL";
+    const t = $("serviceTypeFilter")?.value || "ALL";
+    const c = $("serviceCustomerFilter")?.value || "ALL";
+
+    let rows = CACHE.service.filter(x =>
+      [x.name, x.phone, x.serviceType, x.location, x.notes, x.propertyType, x.budget]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+
     rows = rows.filter(x => s === "ALL" ? true : normalizeStatus(x.status) === s);
     rows = rows.filter(x => t === "ALL" ? true : x.serviceType === t);
     rows = rows.filter(x => c === "ALL" ? true : x.customerType === c);
 
-    $("serviceLeadCount").textContent = rows.length;
-    $("serviceLeadsBody").innerHTML = rows.length ? rows.map(x => `
+    if ($("serviceLeadCount")) $("serviceLeadCount").textContent = rows.length;
+
+    body.innerHTML = rows.length ? rows.map(x => `
       <tr>
         <td>${esc(fmtDate(x.createdAt))}</td>
         <td><div class="rowTitle">${esc(x.name || "-")}</div><div class="rowMeta">${esc(x.customerType || "")}</div></td>
@@ -443,7 +614,15 @@ This is MEI Estate. Please share your preferred time to discuss today.
         <td>${esc(x.location || "-")}</td>
         <td>${esc(x.budget || "—")}</td>
         <td>${statusPill(x.status || "NEW")}</td>
-        <td><div class="rowActions"><a class="btn small" href="tel:${encodeURIComponent(x.phone || "")}">📞 Call</a><a class="btn small success" href="https://wa.me/${formatWA(x.phone)}" target="_blank">💬 WA</a><button class="btn small warn" data-status-service="${esc(x.id)}" data-next="CONTACTED">Contacted</button><button class="btn small success" data-status-service="${esc(x.id)}" data-next="CLOSED">Close</button><button class="btn small danger" data-status-service="${esc(x.id)}" data-next="ARCHIVED">Archive</button></div></td>
+        <td>
+          <div class="rowActions">
+            <a class="btn small" href="tel:${encodeURIComponent(x.phone || "")}">📞 Call</a>
+            <a class="btn small success" href="https://wa.me/${formatWA(x.phone)}" target="_blank">💬 WA</a>
+            <button class="btn small warn" data-status-service="${esc(x.id)}" data-next="CONTACTED">Contacted</button>
+            <button class="btn small success" data-status-service="${esc(x.id)}" data-next="CLOSED">Close</button>
+            <button class="btn small danger" data-status-service="${esc(x.id)}" data-next="ARCHIVED">Archive</button>
+          </div>
+        </td>
       </tr>
       ${x.notes ? `<tr><td></td><td colspan="8" class="rowMeta">📝 ${esc(x.notes)}</td></tr>` : ""}
     `).join("") : `<tr><td colspan="9" class="empty">No service leads match your filters.</td></tr>`;
@@ -459,17 +638,22 @@ This is MEI Estate. Please share your preferred time to discuss today.
     renderSellerLeads();
     renderMaterialLeads();
     renderServiceLeads();
-    $("waTemplate").value = getTemplate();
-    updateTemplatePreview();
+
+    if ($("waTemplate")) {
+      $("waTemplate").value = getTemplate();
+      updateTemplatePreview();
+    }
   }
 
   async function savePropertyStatus(id, status) {
     const list = [...CACHE.properties];
     const idx = list.findIndex(x => String(x.id) === String(id));
     if (idx === -1) return;
+
     list[idx].status = status;
     list[idx].updatedAt = new Date().toISOString();
     if (status === "approved") list[idx].approvedAt = new Date().toISOString();
+
     await api.saveProperties(list);
     await refresh();
     showToast(`Property ${status}`, status === "approved" ? "success" : "warn");
@@ -487,6 +671,7 @@ This is MEI Estate. Please share your preferred time to discuss today.
     const list = [...CACHE.buyer];
     const idx = list.findIndex(x => String(x.id) === String(id));
     if (idx === -1) return;
+
     list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
     await api.saveBuyerLeads(list);
     await refresh();
@@ -497,6 +682,7 @@ This is MEI Estate. Please share your preferred time to discuss today.
     const list = [...CACHE.seller];
     const idx = list.findIndex(x => String(x.id) === String(id));
     if (idx === -1) return;
+
     list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
     await api.saveSellerLeads(list);
     await refresh();
@@ -507,6 +693,7 @@ This is MEI Estate. Please share your preferred time to discuss today.
     const list = [...CACHE.material];
     const idx = list.findIndex(x => String(x.id) === String(id));
     if (idx === -1) return;
+
     list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
     await api.saveMaterialLeads(list);
     await refresh();
@@ -517,6 +704,7 @@ This is MEI Estate. Please share your preferred time to discuss today.
     const list = [...CACHE.service];
     const idx = list.findIndex(x => String(x.id) === String(id));
     if (idx === -1) return;
+
     list[idx] = { ...list[idx], ...patch, updatedAt: new Date().toISOString() };
     await api.saveServiceLeads(list);
     await refresh();
@@ -526,38 +714,45 @@ This is MEI Estate. Please share your preferred time to discuss today.
   function openLeadModal(id) {
     const lead = CACHE.buyer.find(x => String(x.id) === String(id));
     if (!lead) return;
+
     MODAL_LEAD_ID = id;
     syncBrokerOptions();
-    $("modalLeadMeta").textContent = `${lead.listingTitle || "Listing"} • ${lead.buyerName || "-"} • ${lead.buyerPhone || "-"}`;
-    $("mFollowUp").value = lead.followUp || "";
-    $("mAssigned").value = lead.assignedTo || "";
-    $("mStatus").value = normalizeStatus(lead.status, "NEW");
-    $("mNotes").value = lead.notes || "";
-    $("leadModalBack").hidden = false;
+
+    if ($("modalLeadMeta")) {
+      $("modalLeadMeta").textContent = `${lead.listingTitle || "Listing"} • ${lead.buyerName || "-"} • ${lead.buyerPhone || "-"}`;
+    }
+
+    if ($("mFollowUp")) $("mFollowUp").value = lead.followUp || "";
+    if ($("mAssigned")) $("mAssigned").value = lead.assignedTo || "";
+    if ($("mStatus")) $("mStatus").value = normalizeStatus(lead.status, "NEW");
+    if ($("mNotes")) $("mNotes").value = lead.notes || "";
+    if ($("leadModalBack")) $("leadModalBack").hidden = false;
   }
 
   function closeLeadModal() {
     MODAL_LEAD_ID = null;
-    $("leadModalBack").hidden = true;
+    if ($("leadModalBack")) $("leadModalBack").hidden = true;
   }
 
   async function addBrokerAction() {
     const payload = {
-      name: $("brokerName").value.trim(),
-      city: $("brokerCity").value.trim(),
-      area: $("brokerArea").value.trim(),
-      company: $("brokerCompany").value.trim() || "MEI Associate"
+      name: $("brokerName")?.value.trim() || "",
+      city: $("brokerCity")?.value.trim() || "",
+      area: $("brokerArea")?.value.trim() || "",
+      company: $("brokerCompany")?.value.trim() || "MEI Associate"
     };
+
     if (!payload.name) {
       alert("Broker name enter பண்ணுங்கள்");
       return;
     }
+
     try {
       await api.addBroker(payload);
-      $("brokerName").value = "";
-      $("brokerCity").value = "";
-      $("brokerArea").value = "";
-      $("brokerCompany").value = "";
+      if ($("brokerName")) $("brokerName").value = "";
+      if ($("brokerCity")) $("brokerCity").value = "";
+      if ($("brokerArea")) $("brokerArea").value = "";
+      if ($("brokerCompany")) $("brokerCompany").value = "";
       await refresh();
       showToast("Broker added");
     } catch (err) {
@@ -567,19 +762,32 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
   async function deleteBrokerAction(name) {
     if (!confirm(`Delete broker "${name}"?`)) return;
+
     const next = CACHE.brokers.filter(x => x.name !== name);
     await api.saveBrokers(next);
-    const buyers = CACHE.buyer.map(l => l.assignedTo === name ? { ...l, assignedTo: "", assignedBrokerName: "" } : l);
+
+    const buyers = CACHE.buyer.map(l =>
+      l.assignedTo === name ? { ...l, assignedTo: "", assignedBrokerName: "" } : l
+    );
+
     await api.saveBuyerLeads(buyers);
     await refresh();
     showToast("Broker removed", "warn");
   }
 
   function exportCSV(filename, rows, mapper) {
-    if (!rows.length) { alert("Export செய்ய data இல்லை"); return; }
+    if (!rows.length) {
+      alert("Export செய்ய data இல்லை");
+      return;
+    }
+
     const mapped = rows.map(mapper);
     const headers = Object.keys(mapped[0]);
-    const csv = [headers.join(","), ...mapped.map(obj => headers.map(h => `"${String(obj[h] ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const csv = [
+      headers.join(","),
+      ...mapped.map(obj => headers.map(h => `"${String(obj[h] ?? "").replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -589,6 +797,7 @@ This is MEI Estate. Please share your preferred time to discuss today.
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+
     showToast(`CSV exported: ${filename}`);
   }
 
@@ -603,15 +812,39 @@ This is MEI Estate. Please share your preferred time to discuss today.
   }
 
   function bindInputs() {
-    ["propertySearch", "propertyStatusFilter", "propertyCityFilter"].forEach(id => $(id).addEventListener("input", renderProperties));
-    ["buyerSearch", "buyerBrokerFilter", "buyerStatusFilter", "buyerOverdueFilter"].forEach(id => $(id).addEventListener("input", renderBuyerLeads));
-    ["sellerSearch", "sellerStatusFilter", "sellerTypeFilter", "sellerPropertyTypeFilter"].forEach(id => $(id).addEventListener("input", renderSellerLeads));
-    ["materialSearch", "materialStatusFilter", "materialTypeFilter", "materialCustomerFilter"].forEach(id => $(id).addEventListener("input", renderMaterialLeads));
-    ["serviceSearch", "serviceStatusFilter", "serviceTypeFilter", "serviceCustomerFilter"].forEach(id => $(id).addEventListener("input", renderServiceLeads));
-    $("waTemplate").addEventListener("input", updateTemplatePreview);
+    ["propertySearch", "propertyStatusFilter", "propertyCityFilter"].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener("input", renderProperties);
+    });
+
+    ["buyerSearch", "buyerBrokerFilter", "buyerStatusFilter", "buyerOverdueFilter"].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener("input", renderBuyerLeads);
+    });
+
+    ["sellerSearch", "sellerStatusFilter", "sellerTypeFilter", "sellerPropertyTypeFilter"].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener("input", renderSellerLeads);
+    });
+
+    ["materialSearch", "materialStatusFilter", "materialTypeFilter", "materialCustomerFilter"].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener("input", renderMaterialLeads);
+    });
+
+    ["serviceSearch", "serviceStatusFilter", "serviceTypeFilter", "serviceCustomerFilter"].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener("input", renderServiceLeads);
+    });
+
+    if ($("waTemplate")) {
+      $("waTemplate").addEventListener("input", updateTemplatePreview);
+    }
 
     $$("[data-insert]").forEach(btn => btn.addEventListener("click", () => {
       const ta = $("waTemplate");
+      if (!ta) return;
+
       const insert = btn.dataset.insert;
       const start = ta.selectionStart ?? ta.value.length;
       const end = ta.selectionEnd ?? ta.value.length;
@@ -621,21 +854,26 @@ This is MEI Estate. Please share your preferred time to discuss today.
       updateTemplatePreview();
     }));
 
-    $("brokerName").addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        addBrokerAction();
-      }
-    });
+    if ($("brokerName")) {
+      $("brokerName").addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addBrokerAction();
+        }
+      });
+    }
 
-    $("leadModalBack").addEventListener("mousedown", e => {
-      if (e.target === $("leadModalBack")) closeLeadModal();
-    });
+    if ($("leadModalBack")) {
+      $("leadModalBack").addEventListener("mousedown", e => {
+        if (e.target === $("leadModalBack")) closeLeadModal();
+      });
+    }
   }
 
   function bindActions() {
     document.addEventListener("click", async e => {
       const action = e.target.closest("[data-action]")?.dataset.action;
+
       if (action) {
         if (action === "refresh") await refresh();
 
@@ -674,8 +912,11 @@ This is MEI Estate. Please share your preferred time to discuss today.
         if (action === "addBroker") await addBrokerAction();
 
         if (action === "saveTemplate") {
-          const val = $("waTemplate").value.trim();
-          if (!val) return alert("Template empty ஆக இருக்கக்கூடாது");
+          const val = $("waTemplate")?.value.trim() || "";
+          if (!val) {
+            alert("Template empty ஆக இருக்கக்கூடாது");
+            return;
+          }
           setTemplate(val);
           updateTemplatePreview();
           showToast("Template saved");
@@ -683,13 +924,13 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
         if (action === "resetTemplate") {
           setTemplate(defaultTemplate());
-          $("waTemplate").value = getTemplate();
+          if ($("waTemplate")) $("waTemplate").value = getTemplate();
           updateTemplatePreview();
           showToast("Template reset", "warn");
         }
 
         if (action === "copyTemplatePreview") {
-          const ok = await copyText($("waPreview").textContent || "");
+          const ok = await copyText($("waPreview")?.textContent || "");
           showToast(ok ? "Preview copied" : "Copy failed", ok ? "success" : "danger");
         }
 
@@ -697,43 +938,99 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
         if (action === "saveLeadModal" && MODAL_LEAD_ID) {
           await saveBuyerLead(MODAL_LEAD_ID, {
-            followUp: $("mFollowUp").value || "",
-            followUpDate: $("mFollowUp").value || "",
-            assignedTo: $("mAssigned").value || "",
-            assignedBrokerName: $("mAssigned").value || "",
-            status: $("mStatus").value || "NEW",
-            notes: $("mNotes").value.trim()
+            followUp: $("mFollowUp")?.value || "",
+            followUpDate: $("mFollowUp")?.value || "",
+            assignedTo: $("mAssigned")?.value || "",
+            assignedBrokerName: $("mAssigned")?.value || "",
+            status: $("mStatus")?.value || "NEW",
+            notes: $("mNotes")?.value.trim() || ""
           });
           closeLeadModal();
         }
 
-        if (action === "exportBuyer") exportCSV("MEI_Buyer_Leads.csv", CACHE.buyer, x => ({
-          createdAt: fmtDate(x.createdAt), listingTitle: x.listingTitle, listingId: x.listingId, buyerName: x.buyerName,
-          buyerPhone: x.buyerPhone, assignedTo: x.assignedTo, status: x.status, followUp: x.followUp, notes: x.notes, message: x.message
-        }));
+        if (action === "exportBuyer") {
+          exportCSV("MEI_Buyer_Leads.csv", CACHE.buyer, x => ({
+            createdAt: fmtDate(x.createdAt),
+            listingTitle: x.listingTitle,
+            listingId: x.listingId,
+            buyerName: x.buyerName,
+            buyerPhone: x.buyerPhone,
+            assignedTo: x.assignedTo,
+            status: x.status,
+            followUp: x.followUp,
+            notes: x.notes,
+            message: x.message
+          }));
+        }
 
-        if (action === "exportSeller") exportCSV("MEI_Seller_Leads.csv", CACHE.seller, x => ({
-          createdAt: fmtDate(x.createdAt), sellerName: x.sellerName, phone: x.phone, sellerType: x.sellerType, propertyType: x.propertyType,
-          listingTitle: x.listingTitle, city: x.city, area: x.area, expectedPrice: x.expectedPrice, urgency: x.urgency,
-          documentsReady: x.documentsReady, status: x.status, notes: x.notes
-        }));
+        if (action === "exportSeller") {
+          exportCSV("MEI_Seller_Leads.csv", CACHE.seller, x => ({
+            createdAt: fmtDate(x.createdAt),
+            sellerName: x.sellerName,
+            phone: x.phone,
+            sellerType: x.sellerType,
+            propertyType: x.propertyType,
+            listingTitle: x.listingTitle,
+            city: x.city,
+            area: x.area,
+            expectedPrice: x.expectedPrice,
+            urgency: x.urgency,
+            documentsReady: x.documentsReady,
+            status: x.status,
+            notes: x.notes
+          }));
+        }
 
-        if (action === "exportMaterial") exportCSV("MEI_Material_Leads.csv", CACHE.material, x => ({
-          createdAt: fmtDate(x.createdAt), name: x.name, phone: x.phone, materialType: x.materialType, quantity: x.quantity,
-          unit: x.unit, location: x.location, budget: x.budget, customerType: x.customerType, status: x.status, notes: x.notes
-        }));
+        if (action === "exportMaterial") {
+          exportCSV("MEI_Material_Leads.csv", CACHE.material, x => ({
+            createdAt: fmtDate(x.createdAt),
+            name: x.name,
+            phone: x.phone,
+            materialType: x.materialType,
+            quantity: x.quantity,
+            unit: x.unit,
+            location: x.location,
+            budget: x.budget,
+            customerType: x.customerType,
+            status: x.status,
+            notes: x.notes
+          }));
+        }
 
-        if (action === "exportService") exportCSV("MEI_Service_Leads.csv", CACHE.service, x => ({
-          createdAt: fmtDate(x.createdAt), name: x.name, phone: x.phone, serviceType: x.serviceType, propertyType: x.propertyType,
-          location: x.location, budget: x.budget, customerType: x.customerType, preferredDate: x.preferredDate,
-          priority: x.priority, status: x.status, notes: x.notes
-        }));
+        if (action === "exportService") {
+          exportCSV("MEI_Service_Leads.csv", CACHE.service, x => ({
+            createdAt: fmtDate(x.createdAt),
+            name: x.name,
+            phone: x.phone,
+            serviceType: x.serviceType,
+            propertyType: x.propertyType,
+            location: x.location,
+            budget: x.budget,
+            customerType: x.customerType,
+            preferredDate: x.preferredDate,
+            priority: x.priority,
+            status: x.status,
+            notes: x.notes
+          }));
+        }
 
-        if (action === "exportProperties") exportCSV("MEI_Properties.csv", CACHE.properties, x => ({
-          createdAt: fmtDate(x.createdAt), id: x.id, title: x.title, city: x.city, area: x.area, type: x.type,
-          bhk: x.bhk, sqft: x.sqft, price: x.price, brokerName: x.brokerName, sellerPhone: x.sellerPhone,
-          status: x.status, approvedAt: fmtDate(x.approvedAt)
-        }));
+        if (action === "exportProperties") {
+          exportCSV("MEI_Properties.csv", CACHE.properties, x => ({
+            createdAt: fmtDate(x.createdAt),
+            id: x.id,
+            title: x.title,
+            city: x.city,
+            area: x.area,
+            type: x.type,
+            bhk: x.bhk,
+            sqft: x.sqft,
+            price: x.price,
+            brokerName: x.brokerName,
+            sellerPhone: x.sellerPhone,
+            status: x.status,
+            approvedAt: fmtDate(x.approvedAt)
+          }));
+        }
 
         if (action === "bulkTodayFollowup") {
           const unplanned = CACHE.buyer
@@ -748,10 +1045,16 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
         if (action === "createPropertyFromSeller") {
           const lead = CACHE.seller.find(x => normalizeStatus(x.status) === "APPROVED");
-          if (!lead) { alert("முதல் approved seller lead ஒன்று இருக்க வேண்டும்"); return; }
+          if (!lead) {
+            alert("முதல் approved seller lead ஒன்று இருக்க வேண்டும்");
+            return;
+          }
 
           const exists = CACHE.properties.some(p => p.sellerLeadId === lead.id);
-          if (exists) { alert("இந்த seller lead-க்கு property already create ஆகி விட்டது"); return; }
+          if (exists) {
+            alert("இந்த seller lead-க்கு property already create ஆகி விட்டது");
+            return;
+          }
 
           const next = [...CACHE.properties, {
             id: "PROP-" + Date.now(),
@@ -777,13 +1080,19 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
         if (action === "markMaterialContacted") {
           const target = CACHE.material.find(x => normalizeStatus(x.status) === "NEW");
-          if (!target) return alert("NEW material lead இல்லை");
+          if (!target) {
+            alert("NEW material lead இல்லை");
+            return;
+          }
           await saveMaterialLead(target.id, { status: "CONTACTED" });
         }
 
         if (action === "markServiceContacted") {
           const target = CACHE.service.find(x => normalizeStatus(x.status) === "NEW");
-          if (!target) return alert("NEW service lead இல்லை");
+          if (!target) {
+            alert("NEW service lead இல்லை");
+            return;
+          }
           await saveServiceLead(target.id, { status: "CONTACTED" });
         }
       }
@@ -856,10 +1165,22 @@ This is MEI Estate. Please share your preferred time to discuss today.
       $("currentUserText").textContent = `${currentUser.name} • ${currentUser.role}`;
     }
 
+    const logoutBtn = $("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        if (typeof logoutUser === "function") {
+          logoutUser();
+        } else {
+          alert("logoutUser function கிடைக்கவில்லை. auth.js load ஆகியிருக்கிறதா check பண்ணுங்கள்.");
+        }
+      });
+    }
+
     bindNav();
     bindInputs();
     bindActions();
     await refresh();
   });
 })();
+
 
