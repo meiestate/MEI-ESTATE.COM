@@ -1,11 +1,9 @@
 const $ = (id) => document.getElementById(id);
 const LOCAL_PROPS_KEY = "mei_properties_v1";
 
-let ALL_APPROVED = [];
-let CURRENT_PROPERTY = null;
-
 document.addEventListener("DOMContentLoaded", async () => {
-  $("yr").textContent = new Date().getFullYear();
+  const yr = $("yr");
+  if (yr) yr.textContent = new Date().getFullYear();
   setModeBanner();
   await initPage();
 });
@@ -52,28 +50,13 @@ function formatINR(n) {
   return num ? "₹" + num.toLocaleString("en-IN") : "Price on request";
 }
 
-function normalizeType(type) {
-  const t = String(type || "").trim().toLowerCase();
-  if (!t) return "";
-  if (t === "apartment") return "Apartment";
-  if (t === "house") return "House";
-  if (t === "plot") return "Plot";
-  if (t === "commercial") return "Commercial";
-  if (t === "villa") return "Villa";
-  if (t === "office") return "Office";
-  if (t === "warehouse") return "Warehouse";
-  if (t === "shop") return "Shop";
-  if (t === "pg") return "Pg";
-  return String(type || "").trim();
-}
-
 function normalizeProperty(p) {
   return {
     id: String(p.id || "").trim(),
     title: String(p.title || p.name || "Untitled Listing").trim(),
     city: String(p.city || "").trim(),
     area: String(p.area || p.locality || "").trim(),
-    type: normalizeType(p.type),
+    type: String(p.type || "").trim(),
     bhk: String(p.bhk || "").trim(),
     price: cleanNumber(p.price),
     sqft: cleanNumber(p.sqft || p.areaSqft || p.area_size),
@@ -136,30 +119,33 @@ async function fetchPropertyById(id) {
   }
 
   const rows = readJSON(LOCAL_PROPS_KEY, []).map(normalizeProperty);
-  const match = rows.find(p => String(p.id) === String(id) && p.status === "approved");
-  return match || null;
+  return rows.find(p => String(p.id) === String(id) && p.status === "approved") || null;
 }
 
 function getLatestProperty(items) {
-  return [...items].sort((a, b) => {
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-  })[0] || null;
+  return [...items].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] || null;
 }
 
 async function initPage() {
   const root = $("propertyRoot");
-  root.innerHTML = skeletonHtml();
+  root.innerHTML = `
+    <section class="hero">
+      <div class="mediaPane"><div class="noImage">Loading...</div></div>
+      <div class="detailPane">
+        <div class="badgeRow"><span class="badge">Loading</span></div>
+        <h2 class="propTitle">Loading property details...</h2>
+        <div class="propPrice">Please wait</div>
+        <div class="propLocation">Fetching live data</div>
+      </div>
+    </section>
+  `;
 
   try {
     const urlId = getUrlId();
+    const allApproved = await fetchApprovedProperties();
 
-    ALL_APPROVED = await fetchApprovedProperties();
-
-    if (!ALL_APPROVED.length) {
-      renderEmpty(
-        "No approved property found",
-        "Dashboard-ல் approved property add செய்த பிறகு இந்த page வேலை செய்யும்."
-      );
+    if (!allApproved.length) {
+      renderEmpty("No approved property found", "Approved property data இல்லை.");
       return;
     }
 
@@ -170,47 +156,26 @@ async function initPage() {
     }
 
     if (!selected) {
-      selected = getLatestProperty(ALL_APPROVED);
+      selected = getLatestProperty(allApproved);
 
       if (!urlId) {
         showInfo("Property ID இல்லாததால் latest approved property load செய்யப்பட்டது.");
       } else {
-        showInfo("இந்த property public view-ல் கிடைக்கவில்லை. Latest approved property காட்டப்படுகிறது.");
+        showInfo("இந்த property கிடைக்கவில்லை. Latest approved property காட்டப்படுகிறது.");
       }
 
-      if (selected?.id) replaceUrlId(selected.id);
+      if (selected && selected.id) replaceUrlId(selected.id);
     }
 
-    CURRENT_PROPERTY = selected;
-    renderProperty(CURRENT_PROPERTY, ALL_APPROVED);
+    renderProperty(selected);
   } catch (err) {
     console.error(err);
-    renderEmpty(
-      "Unable to load property",
-      String(err.message || "Please check your data source configuration.")
-    );
+    renderEmpty("Unable to load property", err.message || "Unknown error");
   }
 }
 
-function skeletonHtml() {
-  return `
-    <section class="hero">
-      <div class="mediaPane"><div class="noImage">Loading...</div></div>
-      <div class="detailPane">
-        <div class="badgeRow">
-          <span class="badge">Loading</span>
-        </div>
-        <h2 class="propTitle">Loading property details...</h2>
-        <div class="propPrice">Please wait</div>
-        <div class="propLocation">Fetching live data</div>
-      </div>
-    </section>
-  `;
-}
-
 function renderEmpty(title, text) {
-  const root = $("propertyRoot");
-  root.innerHTML = `
+  $("propertyRoot").innerHTML = `
     <section class="emptyState">
       <h2>${escapeHtml(title)}</h2>
       <p>${escapeHtml(text)}</p>
@@ -219,24 +184,18 @@ function renderEmpty(title, text) {
   `;
 }
 
-function renderProperty(item, approvedList) {
-  const root = $("propertyRoot");
+function renderProperty(item) {
   if (!item) {
-    renderEmpty("Property not found", "This property may be missing or not approved for public view.");
+    renderEmpty("Property not found", "This property may be missing or not approved.");
     return;
   }
 
-  const related = approvedList
-    .filter(p => p.id !== item.id)
-    .sort((a, b) => Number(b.featured) - Number(a.featured) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 3);
-
-  root.innerHTML = `
+  $("propertyRoot").innerHTML = `
     <section class="hero">
       <div class="mediaPane">
         ${
           item.image
-            ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" onerror="this.parentNode.innerHTML='<div class=&quot;noImage&quot;>No Image</div>';">`
+            ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}">`
             : `<div class="noImage">No Image</div>`
         }
       </div>
@@ -250,7 +209,7 @@ function renderProperty(item, approvedList) {
 
         <h2 class="propTitle">${escapeHtml(item.title)}</h2>
         <div class="propPrice">${formatINR(item.price)}</div>
-        <div class="propLocation">${escapeHtml(buildLocation(item))}</div>
+        <div class="propLocation">${escapeHtml([item.area, item.city].filter(Boolean).join(", ") || "Location not specified")}</div>
 
         <div class="chipGrid">
           ${item.bhk ? `<span class="chip">${escapeHtml(item.bhk)}</span>` : ""}
@@ -265,10 +224,9 @@ function renderProperty(item, approvedList) {
         <div class="contactCard">
           <h3>Contact Details</h3>
           <div class="contactList">
-            ${item.brokerName ? `<div class="contactItem"><b>Broker:</b> <span>${escapeHtml(item.brokerName)}</span></div>` : ""}
-            ${item.sellerName ? `<div class="contactItem"><b>Seller:</b> <span>${escapeHtml(item.sellerName)}</span></div>` : ""}
-            ${item.mobile ? `<div class="contactItem"><b>Contact:</b> <span>${escapeHtml(item.mobile)}</span></div>` : ""}
-            ${!item.brokerName && !item.sellerName && !item.mobile ? `<div class="contactItem"><span>Contact details not added yet.</span></div>` : ""}
+            ${item.brokerName ? `<div><b>Broker:</b> ${escapeHtml(item.brokerName)}</div>` : ""}
+            ${item.sellerName ? `<div><b>Seller:</b> ${escapeHtml(item.sellerName)}</div>` : ""}
+            ${item.mobile ? `<div><b>Contact:</b> ${escapeHtml(item.mobile)}</div>` : ""}
           </div>
         </div>
 
@@ -283,68 +241,15 @@ function renderProperty(item, approvedList) {
       <div class="sectionCard">
         <h3 class="sectionTitle">Property Overview</h3>
         <div class="metaGrid">
-          ${metaItem("Property ID", item.id || "Not available")}
-          ${metaItem("Type", item.type || "Not specified")}
-          ${metaItem("Price", formatINR(item.price))}
-          ${metaItem("Area", item.sqft ? item.sqft + " sqft" : "Not specified")}
-          ${metaItem("BHK", item.bhk || "Not specified")}
-          ${metaItem("Purpose", item.purpose || "Not specified")}
-          ${metaItem("Facing", item.facing || "Not specified")}
-          ${metaItem("Furnishing", item.furnishing || "Not specified")}
-          ${metaItem("City", item.city || "Not specified")}
-          ${metaItem("Locality", item.area || "Not specified")}
+          <div class="metaItem"><div class="metaLabel">Property ID</div><div class="metaValue">${escapeHtml(item.id || "Not available")}</div></div>
+          <div class="metaItem"><div class="metaLabel">Type</div><div class="metaValue">${escapeHtml(item.type || "Not specified")}</div></div>
+          <div class="metaItem"><div class="metaLabel">Price</div><div class="metaValue">${escapeHtml(formatINR(item.price))}</div></div>
+          <div class="metaItem"><div class="metaLabel">Area</div><div class="metaValue">${escapeHtml(item.sqft ? item.sqft + " sqft" : "Not specified")}</div></div>
+          <div class="metaItem"><div class="metaLabel">BHK</div><div class="metaValue">${escapeHtml(item.bhk || "Not specified")}</div></div>
+          <div class="metaItem"><div class="metaLabel">Purpose</div><div class="metaValue">${escapeHtml(item.purpose || "Not specified")}</div></div>
         </div>
       </div>
     </section>
-
-    ${
-      related.length ? `
-      <section class="section">
-        <div class="sectionCard">
-          <h3 class="sectionTitle">Related Properties</h3>
-          <div class="relatedGrid">
-            ${related.map(renderRelatedCard).join("")}
-          </div>
-        </div>
-      </section>` : ""
-    }
-  `;
-}
-
-function buildLocation(item) {
-  const parts = [item.area, item.city].filter(Boolean);
-  return parts.length ? parts.join(", ") : "Location not specified";
-}
-
-function metaItem(label, value) {
-  return `
-    <div class="metaItem">
-      <div class="metaLabel">${escapeHtml(label)}</div>
-      <div class="metaValue">${escapeHtml(value)}</div>
-    </div>
-  `;
-}
-
-function renderRelatedCard(item) {
-  return `
-    <article class="relatedCard">
-      <div class="relatedThumb">
-        ${
-          item.image
-            ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" onerror="this.parentNode.innerHTML='No Image';">`
-            : `No Image`
-        }
-      </div>
-      <div class="relatedBody">
-        <div class="relatedTitle">${escapeHtml(item.title)}</div>
-        <div class="relatedPrice">${formatINR(item.price)}</div>
-        <div class="relatedMeta">
-          ${escapeHtml(buildLocation(item))}
-          ${item.sqft ? ` • ${item.sqft} sqft` : ""}
-        </div>
-        <a class="btn small primary" href="property.html?id=${encodeURIComponent(item.id)}">View Property</a>
-      </div>
-    </article>
   `;
 }
 
