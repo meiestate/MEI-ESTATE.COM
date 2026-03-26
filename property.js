@@ -2,6 +2,7 @@
   "use strict";
 
   const LOCAL_PROPS_KEY = "mei_properties_v1";
+  const DEFAULT_WHATSAPP_NUMBER = "919876543210";
   const $ = (id) => document.getElementById(id);
 
   document.addEventListener("DOMContentLoaded", init);
@@ -47,6 +48,7 @@
     }
 
     renderProperty(selected, approved);
+    bindStickyBar(selected);
   }
 
   function setModeBanner() {
@@ -102,6 +104,13 @@
     return map[t] || String(type || "").trim();
   }
 
+  function normalizePhone(phone) {
+    const digits = String(phone || "").replace(/[^\d]/g, "");
+    if (!digits) return "";
+    if (digits.length === 10) return "91" + digits;
+    return digits;
+  }
+
   function normalizeProperty(p) {
     return {
       id: String(p.id || "").trim(),
@@ -122,7 +131,8 @@
       facing: String(p.facing || "").trim(),
       furnishing: String(p.furnishing || "").trim(),
       purpose: String(p.purpose || "").trim(),
-      mobile: String(p.mobile || p.phone || "").trim()
+      mobile: String(p.mobile || p.phone || "").trim(),
+      whatsapp: normalizePhone(p.whatsapp || p.mobile || p.phone || "")
     };
   }
 
@@ -137,11 +147,80 @@
     return [item.area, item.city].filter(Boolean).join(", ") || "Location not specified";
   }
 
+  function buildMapsUrl(item) {
+    const query = [item.area, item.city].filter(Boolean).join(", ");
+    if (!query) return "#";
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
+  }
+
+  function buildWhatsAppUrl(item) {
+    const number = item.whatsapp || DEFAULT_WHATSAPP_NUMBER;
+    const msg = [
+      "Hi, I’m interested in this property.",
+      "Title: " + (item.title || "-"),
+      "Property ID: " + (item.id || "-"),
+      "Location: " + buildLocation(item),
+      "Price: " + formatINR(item.price),
+      "Link: " + window.location.href
+    ].join("\n");
+    return "https://wa.me/" + encodeURIComponent(number) + "?text=" + encodeURIComponent(msg);
+  }
+
+  function copyCurrentLink() {
+    const text = window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "absolute";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function shareProperty(item) {
+    const data = {
+      title: item.title || "MEI Estate Property",
+      text: "Check this property on MEI Estate",
+      url: window.location.href
+    };
+
+    if (navigator.share) {
+      navigator.share(data).catch(() => {});
+      return;
+    }
+
+    copyCurrentLink()
+      .then(() => showInfo("Property link copied successfully."))
+      .catch(() => showInfo("Unable to copy link. Please copy it manually."));
+  }
+
   function metaItem(label, value) {
     return `
       <div class="metaItem">
         <div class="metaLabel">${escapeHtml(label)}</div>
         <div class="metaValue">${escapeHtml(value)}</div>
+      </div>
+    `;
+  }
+
+  function highlightItem(label, value) {
+    return `
+      <div class="highlightCard">
+        <div class="highlightLabel">${escapeHtml(label)}</div>
+        <div class="highlightValue">${escapeHtml(value)}</div>
       </div>
     `;
   }
@@ -204,20 +283,21 @@
 
           <p class="desc">${escapeHtml(item.description || "No detailed description added yet.")}</p>
 
-          <div class="contactCard">
-            <h3>Contact Details</h3>
-            <div class="contactList">
-              ${item.brokerName ? `<div class="contactItem"><b>Broker:</b> <span>${escapeHtml(item.brokerName)}</span></div>` : ""}
-              ${item.sellerName ? `<div class="contactItem"><b>Seller:</b> <span>${escapeHtml(item.sellerName)}</span></div>` : ""}
-              ${item.mobile ? `<div class="contactItem"><b>Contact:</b> <span>${escapeHtml(item.mobile)}</span></div>` : ""}
-              ${!item.brokerName && !item.sellerName && !item.mobile ? `<div class="contactItem"><span>Contact details not added yet.</span></div>` : ""}
-            </div>
-          </div>
-
-          <div class="actionRow">
+          <div class="actionRow desktopOnly">
             <a class="btn ghost" href="listings.html">← Back to Listings</a>
             <a class="btn primary" href="seller.html">Enquire Now</a>
+            <a class="btn whatsapp" href="${escapeAttr(buildWhatsAppUrl(item))}" target="_blank" rel="noopener">🟢 WhatsApp</a>
+            <button class="btn share" id="sharePropertyBtn" type="button">🔗 Share / Copy Link</button>
           </div>
+        </div>
+      </section>
+
+      <section class="highlightsSection">
+        <div class="highlightsGrid">
+          ${highlightItem("Property Type", item.type || "Not specified")}
+          ${highlightItem("Area", item.sqft ? item.sqft + " sqft" : "Not specified")}
+          ${highlightItem("Location", buildLocation(item))}
+          ${highlightItem("Seller / Broker", item.sellerName || item.brokerName || "Not available")}
         </div>
       </section>
 
@@ -239,6 +319,45 @@
         </div>
       </section>
 
+      <section class="section">
+        <div class="sectionCard">
+          <div class="twoCol">
+            <div class="contactCard">
+              <h3>Contact Details</h3>
+              <div class="contactList">
+                ${item.brokerName ? `<div class="contactItem"><b>Broker:</b> <span>${escapeHtml(item.brokerName)}</span></div>` : ""}
+                ${item.sellerName ? `<div class="contactItem"><b>Seller:</b> <span>${escapeHtml(item.sellerName)}</span></div>` : ""}
+                ${item.mobile ? `<div class="contactItem"><b>Contact:</b> <span>${escapeHtml(item.mobile)}</span></div>` : ""}
+                ${!item.brokerName && !item.sellerName && !item.mobile ? `<div class="contactItem"><span>Contact details not added yet.</span></div>` : ""}
+              </div>
+
+              <div class="actionRow" style="margin-top:16px;">
+                <a class="btn primary" href="seller.html">Enquire Now</a>
+                <a class="btn whatsapp" href="${escapeAttr(buildWhatsAppUrl(item))}" target="_blank" rel="noopener">🟢 WhatsApp</a>
+              </div>
+            </div>
+
+            <div class="mapCard">
+              <div class="mapTop">
+                <div class="mapTitle">Location & Map</div>
+                <a class="btn small ghost" href="${escapeAttr(buildMapsUrl(item))}" target="_blank" rel="noopener">📍 Open in Maps</a>
+              </div>
+
+              <div class="mapBox">
+                <div class="mapBoxInner">
+                  <div class="mapIcon">🗺</div>
+                  <div><strong>${escapeHtml(buildLocation(item))}</strong></div>
+                  <div class="mapText">
+                    Exact pin location can be shared during enquiry.<br>
+                    Use the button above to open the area in Google Maps.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       ${related.length ? `
         <section class="section">
           <div class="sectionCard">
@@ -250,6 +369,11 @@
         </section>
       ` : ""}
     `;
+
+    const shareBtn = $("sharePropertyBtn");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", () => shareProperty(item));
+    }
   }
 
   function renderHeroMedia(item) {
@@ -299,6 +423,20 @@
         </div>
       </article>
     `;
+  }
+
+  function bindStickyBar(item) {
+    const bar = $("mobileStickyBar");
+    if (!bar || !item) return;
+
+    bar.innerHTML = `
+      <div class="mobileStickyInner">
+        <a class="btn ghost mobileBtn" href="listings.html">⬅ Back</a>
+        <a class="btn whatsapp mobileBtn" href="${escapeAttr(buildWhatsAppUrl(item))}" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn primary mobileBtn" href="seller.html">Enquire</a>
+      </div>
+    `;
+    bar.style.display = "block";
   }
 
   function escapeHtml(value) {
