@@ -3,490 +3,1740 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MEI Admin SaaS Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css" />
+  <title>MEI Admin Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2f;
+      --card2:rgba(255,255,255,.03);
+      --line:rgba(255,255,255,.14);
+      --txt:#e8eefc;
+      --mut:rgba(232,238,252,.82);
+      --mut2:rgba(232,238,252,.68);
+      --pill:rgba(255,255,255,.08);
+      --radius:16px;
+
+      --focus: rgba(140,170,255,.95);
+
+      --okBorder: rgba(0,255,150,.30);
+      --okBg: rgba(0,255,150,.12);
+
+      --warnBorder: rgba(255,200,0,.30);
+      --warnBg: rgba(255,200,0,.12);
+
+      --dangerBorder: rgba(255,0,90,.34);
+      --dangerBg: rgba(255,0,90,.14);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      background:var(--bg);
+      color:var(--txt);
+    }
+
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+    }
+
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .h1{font-size:26px;font-weight:900;letter-spacing:.2px}
+    .muted{opacity:.85;color:var(--mut)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .spacer{flex:1}
+
+    a.link{
+      color:var(--txt);
+      text-decoration:none;
+      padding:8px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:36px;
+    }
+    a.link:hover{background:rgba(255,255,255,.07)}
+    a.link:active{transform:translateY(1px)}
+
+    button{
+      padding:9px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.07);
+      color:var(--txt);
+      cursor:pointer;
+      font-weight:800;
+      min-height:36px;
+    }
+    button:hover{background:rgba(255,255,255,.10)}
+    button:active{transform:translateY(1px)}
+    button[disabled]{opacity:.55; cursor:not-allowed}
+
+    .btnSmall{padding:6px 10px; min-height:32px; font-weight:800}
+    .iconBtn{padding:6px; min-height:32px; min-width:32px; display:inline-flex; align-items:center; justify-content:center}
+
+    .danger{border-color:var(--dangerBorder);background:var(--dangerBg)}
+    .danger:hover{background:rgba(255,0,90,.20)}
+    .ok{border-color:var(--okBorder);background:var(--okBg)}
+    .ok:hover{background:rgba(0,255,150,.18)}
+    .warn{border-color:var(--warnBorder);background:var(--warnBg)}
+    .warn:hover{background:rgba(255,200,0,.18)}
+
+    /* Focus styles (keyboard-friendly) */
+    a.link:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="menuitem"]:focus-visible{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+
+    .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+    @media (max-width:900px){.grid2{grid-template-columns:1fr}}
+
+    .tableWrap{overflow:auto;margin-top:10px;border-radius:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;vertical-align:top}
+    thead th{
+      opacity:.90;
+      text-align:left;
+      border-bottom:1px solid var(--line);
+      position:sticky;
+      top:0;
+      background:var(--card);
+      z-index:2;
+    }
+    tbody tr{border-top:1px solid rgba(255,255,255,.10)}
+
+    .pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      background:var(--pill);
+      border:1px solid var(--line);
+      opacity:.98
+    }
+    .mini{font-size:12px;color:var(--mut2)}
+    .title{font-weight:900}
+    .nowrap{white-space:nowrap}
+
+    .toast{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--okBorder);
+      background:var(--okBg);
+    }
+    .toast[hidden]{display:none}
+    .toast.danger{border-color:var(--dangerBorder);background:var(--dangerBg)}
+    .toast.warn{border-color:var(--warnBorder);background:var(--warnBg)}
+    .toastAction{
+      margin-left:auto;
+      padding:7px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-weight:900;
+      cursor:pointer;
+      min-height:32px;
+    }
+    .toastAction[hidden]{display:none}
+
+    .overdueRow{
+      background:linear-gradient(90deg, rgba(255,0,90,.14), transparent 50%);
+      outline:1px solid rgba(255,0,90,.22);
+      outline-offset:-1px;
+    }
+    .overdueLabel{
+      margin-top:6px;
+      color:rgba(255,120,170,.98);
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.58);
+      padding:20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      overflow:auto;
+    }
+    .modalBack[hidden]{display:none}
+    .modalCard{
+      width:min(680px, 100%);
+      margin:6vh auto;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 12px 40px rgba(0,0,0,.55);
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:#0b1220;
+      color:var(--txt);
+      outline:none;
+      min-height:38px;
+    }
+    input::placeholder, textarea::placeholder{color:rgba(232,238,252,.65)}
+    textarea{resize:vertical; min-height:130px}
+
+    .filterBar{
+      display:grid;
+      grid-template-columns: 1.2fr .7fr .7fr .7fr .55fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    @media (max-width:1100px){ .filterBar{grid-template-columns:1fr 1fr;} }
+    @media (max-width:560px){ .filterBar{grid-template-columns:1fr;} }
+
+    .quickFilters{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .qfBtn{padding:7px 10px; min-height:32px; font-weight:900}
+    .qfBtn.active{background:rgba(140,170,255,.18); border-color:rgba(140,170,255,.32)}
+
+    .templateGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width:900px){ .templateGrid{grid-template-columns:1fr;} }
+
+    .brokerGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width:900px){ .brokerGrid{grid-template-columns:1fr;} }
+
+    .chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      margin:4px 6px 0 0;
+    }
+    .chipBtn{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      font-weight:900;
+      cursor:pointer;
+      min-height:32px;
+    }
+    .chipBtn:hover{background:rgba(255,255,255,.08)}
+
+    /* Overflow menu (row actions) */
+    .menu{
+      position:fixed;
+      min-width:220px;
+      max-width:300px;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:14px;
+      padding:6px;
+      box-shadow:0 12px 40px rgba(0,0,0,.6);
+      z-index:9999;
+    }
+    .menu[hidden]{display:none}
+    .menuTitle{
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--mut2);
+      letter-spacing:.2px;
+    }
+    .menuItem{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--txt);
+      cursor:pointer;
+      text-align:left;
+      font-weight:900;
+      min-height:36px;
+    }
+    .menuItem:hover{background:rgba(255,255,255,.07)}
+    .menuItem.danger:hover{background:rgba(255,0,90,.18)}
+    .menuItem .sub{margin-left:auto; font-size:12px; color:var(--mut2); font-weight:800}
+
+    /* Utility */
+    .srOnly{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      border:0;
+      white-space:nowrap;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brandLogo">MEI</div>
+  <main class="wrap" id="app">
+    <div class="card">
+      <div class="top">
         <div>
-          <div class="brandTitle">Admin SaaS</div>
-          <div class="brandSub">Real launch control room</div>
+          <div class="h1">MEI — Admin Dashboard</div>
+          <div class="muted">Broker Master + Assign + Leads CRM (Template/Copy/Auto-log)</div>
+        </div>
+        <div class="row">
+          <a class="link" href="add-property.html">➕ Add Property</a>
+          <a class="link" href="buyer.html">👤 Buyer Portal</a>
+          <a class="link" href="today.html">📅 Today</a>
+          <button type="button" data-action="refreshAll">🔄 Refresh</button>
+          <button type="button" class="danger" data-action="resetDemo">🧨 Reset (demo)</button>
         </div>
       </div>
 
-      <div class="navGroup">
-        <div class="navLabel">Overview</div>
-        <button class="navBtn active" data-section="dashboard">
-          <span>📊 Dashboard</span><span class="navMeta">Live KPIs</span>
-        </button>
-        <button class="navBtn" data-section="properties">
-          <span>🏠 Properties</span><span class="navMeta" id="navPendingCount">0 pending</span>
-        </button>
-        <button class="navBtn" data-section="buyers">
-          <span>👤 Buyer Leads</span><span class="navMeta" id="navBuyerCount">0 leads</span>
-        </button>
-        <button class="navBtn" data-section="sellers">
-          <span>🏷 Seller Leads</span><span class="navMeta" id="navSellerCount">0 leads</span>
-        </button>
-        <button class="navBtn" data-section="materials">
-          <span>🏗 Materials</span><span class="navMeta" id="navMaterialCount">0 leads</span>
-        </button>
-        <button class="navBtn" data-section="services">
-          <span>🛠 Services</span><span class="navMeta" id="navServiceCount">0 leads</span>
-        </button>
+      <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <span id="toastMsg">✅ Updated</span>
+        <button id="toastAction" class="toastAction" type="button" hidden>Undo</button>
+      </div>
+    </div>
+
+    <!-- Broker Master -->
+    <div class="card" style="margin-top:12px;">
+      <div class="top">
+        <div>
+          <div class="h1" style="font-size:18px;">Broker Master</div>
+          <div class="muted">Brokers list → Assign dropdown + Filter (scale ready)</div>
+        </div>
+        <div class="row">
+          <button type="button" class="ok" data-action="addBroker">➕ Add Broker</button>
+          <button type="button" data-action="seedBrokers">✨ Seed Demo</button>
+        </div>
       </div>
 
-      <div class="navGroup">
-        <div class="navLabel">Operations</div>
-        <button class="navBtn" data-section="brokers"><span>🤝 Brokers</span><span class="navMeta">Master data</span></button>
-        <button class="navBtn" data-section="automation"><span>💬 Automation</span><span class="navMeta">WhatsApp template</span></button>
-        <button class="navBtn" data-section="exports"><span>⬇ Exports</span><span class="navMeta">CSV downloads</span></button>
+      <div class="brokerGrid">
+        <div>
+          <label class="mini" for="brokerName" style="display:block;margin-bottom:6px;">Add broker name</label>
+          <input id="brokerName" placeholder="Eg: Raj / Karthik / Priya" autocomplete="off">
+          <div class="mini" style="margin-top:8px;">Tip: short unique names work best.</div>
+        </div>
+        <div>
+          <div class="mini" style="margin-bottom:6px;">Current brokers</div>
+          <div id="brokerChips"></div>
+          <div class="mini" style="margin-top:8px;">Deleting a broker won’t delete leads; it only removes the name from the list.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp Template -->
+    <div class="card" style="margin-top:12px;">
+      <div class="top">
+        <div>
+          <div class="h1" style="font-size:18px;">WhatsApp Template</div>
+          <div class="muted">
+            Insert placeholders:
+            <span class="srOnly" id="placeholderHelp">Click to insert into the template editor.</span>
+          </div>
+          <div class="row" style="margin-top:8px;" aria-describedby="placeholderHelp">
+            <button type="button" class="chipBtn" data-insert="{buyer}">{buyer}</button>
+            <button type="button" class="chipBtn" data-insert="{listing}">{listing}</button>
+            <button type="button" class="chipBtn" data-insert="{phone}">{phone}</button>
+            <button type="button" class="chipBtn" data-insert="{date}">{date}</button>
+          </div>
+        </div>
+        <div class="row">
+          <button type="button" class="ok" data-action="saveWATemplate">💾 Save Template</button>
+          <button type="button" data-action="resetWATemplate">↩ Reset Default</button>
+        </div>
       </div>
 
-      <div class="navGroup">
-        <div class="navLabel">Launch links</div>
-        <a class="navBtn" href="index.html"><span>🏠 Public site</span><span class="navMeta">Open home</span></a>
-        <a class="navBtn" href="listings.html"><span>📋 Listings</span><span class="navMeta">Live inventory</span></a>
-        <a class="navBtn" href="add-property.html"><span>➕ Add property</span><span class="navMeta">Broker upload</span></a>
-        <a class="navBtn" href="crm.html"><span>📇 CRM</span><span class="navMeta">Sales workspace</span></a>
-      </div>
-    </aside>
+      <div class="templateGrid">
+        <div>
+          <label class="mini" for="waTemplate" style="display:block;margin-bottom:6px;">Template message</label>
+          <textarea id="waTemplate" rows="7"></textarea>
+          <div class="mini" style="margin-top:6px;">Tip: Short + clear = more replies.</div>
+        </div>
 
-    <main class="main">
-      <header class="header">
-        <div class="headerLeft">
+        <div>
+          <div class="mini" style="margin-bottom:6px;">Preview (sample)</div>
+          <div class="card" style="background:var(--card2);">
+            <div class="mini">Sample Buyer: Arun • Listing: 2BHK Whitefield • Phone: 9876543210</div>
+            <div id="waPreview" style="white-space:pre-wrap; margin-top:10px; line-height:1.35;"></div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button type="button" data-action="updatePreview">🔍 Update Preview</button>
+            <button type="button" class="ok" data-action="copyPreview">📋 Copy Preview</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPROVAL + LISTINGS -->
+    <div class="grid2">
+      <div class="card">
+        <div class="top">
           <div>
-            <div class="headerTitle">MEI Real Estate Admin Dashboard</div>
-            <div class="headerSub">Property approval, broker assignment, lead operations, exports, automation</div>
+            <div class="h1" style="font-size:18px;">Pending Approvals</div>
+            <div class="muted">Admin only: approve/reject</div>
+          </div>
+          <div class="row">
+            <span class="pill">Pending: <b id="pendingCount">0</b></span>
           </div>
         </div>
-        <div class="headerActions">
-          <button class="btn" data-action="refresh">🔄 Refresh</button>
-          <button class="btn success" data-action="syncDemo">✨ Seed Demo</button>
-          <button class="btn danger" data-action="resetDemo">🧨 Reset Demo</button>
+
+        <div class="tableWrap">
+          <table aria-label="Pending approvals table">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th class="nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingBody"></tbody>
+          </table>
         </div>
-      </header>
-
-      <div class="container">
-        <section id="section-dashboard" class="section active">
-          <div class="gridStats" id="kpiGrid"></div>
-
-          <div class="layout2">
-            <div class="stack">
-              <div class="card">
-                <div class="cardHeader">
-                  <div>
-                    <div class="cardTitle">Approval Queue</div>
-                    <div class="cardSub">Pending listings that need admin action before public visibility</div>
-                  </div>
-                  <div class="toolbar">
-                    <span class="pill">Pending <b id="dashPendingPill">0</b></span>
-                    <button class="btn small primary" data-goto="properties">Open queue</button>
-                  </div>
-                </div>
-                <div class="tableWrap">
-                  <table>
-                    <thead><tr><th>Listing</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody id="dashPendingBody"></tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="cardHeader">
-                  <div>
-                    <div class="cardTitle">Overdue Buyer Follow-ups</div>
-                    <div class="cardSub">These leads need immediate callback or WhatsApp action</div>
-                  </div>
-                  <button class="btn small warn" data-goto="buyers">Open buyer leads</button>
-                </div>
-                <div class="tableWrap">
-                  <table>
-                    <thead><tr><th>Buyer</th><th>Listing</th><th>Follow-up</th><th>Action</th></tr></thead>
-                    <tbody id="dashOverdueBody"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="stack">
-              <div class="card">
-                <div class="cardHeader">
-                  <div>
-                    <div class="cardTitle">Quick Health</div>
-                    <div class="cardSub">Launch-readiness snapshot</div>
-                  </div>
-                </div>
-                <div class="cardBody">
-                  <div class="kpiList" id="healthList"></div>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="cardHeader">
-                  <div>
-                    <div class="cardTitle">Broker Allocation</div>
-                    <div class="cardSub">See how many buyer leads each broker handles</div>
-                  </div>
-                </div>
-                <div class="cardBody">
-                  <div class="kpiList" id="brokerAllocation"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-properties" class="section">
-          <div class="card">
-            <div class="cardHeader">
-              <div>
-                <div class="cardTitle">Property Approval Center</div>
-                <div class="cardSub">Real-launch workflow: upload → moderation → approve → public listing</div>
-              </div>
-              <div class="toolbar">
-                <span class="pill">Pending <b id="propertiesPendingCount">0</b></span>
-                <span class="pill">Approved <b id="propertiesApprovedCount">0</b></span>
-              </div>
-            </div>
-            <div class="filters compact">
-              <input id="propertySearch" placeholder="Search title / city / area / broker..." />
-              <select id="propertyStatusFilter">
-                <option value="ALL">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="archived">Archived</option>
-              </select>
-              <select id="propertyCityFilter"><option value="ALL">All Cities</option></select>
-              <button class="btn success" data-action="exportProperties">⬇ Export CSV</button>
-            </div>
-            <div class="tableWrap">
-              <table>
-                <thead>
-                  <tr><th>Listing</th><th>Broker / Contact</th><th>Status</th><th>Created</th><th>Actions</th></tr>
-                </thead>
-                <tbody id="propertiesBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-buyers" class="section">
-          <div class="card">
-            <div class="cardHeader">
-              <div>
-                <div class="cardTitle">Buyer Lead Operations</div>
-                <div class="cardSub">Assign brokers, track follow-ups, push WhatsApp, close the loop</div>
-              </div>
-              <div class="toolbar">
-                <span class="pill">Total <b id="buyerLeadCount">0</b></span>
-                <button class="btn success" data-action="exportBuyer">⬇ Export CSV</button>
-              </div>
-            </div>
-            <div class="filters">
-              <input id="buyerSearch" placeholder="Search listing / buyer / phone / notes..." />
-              <select id="buyerBrokerFilter"><option value="ALL">All Brokers</option><option value="__UNASSIGNED__">Unassigned</option></select>
-              <select id="buyerStatusFilter">
-                <option value="ALL">All Status</option>
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
-              </select>
-              <select id="buyerOverdueFilter">
-                <option value="ALL">All</option>
-                <option value="OVERDUE">Overdue only</option>
-                <option value="NOT_OVERDUE">Not overdue</option>
-              </select>
-              <button class="btn primary" data-action="bulkTodayFollowup">📅 Mark today follow-up</button>
-            </div>
-            <div class="tableWrap">
-              <table class="wideTable">
-                <thead>
-                  <tr>
-                    <th>Date</th><th>Listing</th><th>Buyer</th><th>Phone</th><th>Assigned</th>
-                    <th>Status</th><th>Follow-up</th><th>Notes</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="buyerLeadsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-sellers" class="section">
-          <div class="card">
-            <div class="cardHeader">
-              <div>
-                <div class="cardTitle">Seller Lead Operations</div>
-                <div class="cardSub">Capture supply-side inventory, verify docs, move to approved property</div>
-              </div>
-              <div class="toolbar">
-                <span class="pill">Total <b id="sellerLeadCount">0</b></span>
-                <button class="btn success" data-action="exportSeller">⬇ Export CSV</button>
-              </div>
-            </div>
-            <div class="filters">
-              <input id="sellerSearch" placeholder="Search seller / phone / title / area..." />
-              <select id="sellerStatusFilter">
-                <option value="ALL">All Status</option>
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="DOCUMENT_PENDING">DOCUMENT_PENDING</option>
-                <option value="PROPERTY_RECEIVED">PROPERTY_RECEIVED</option>
-                <option value="APPROVED">APPROVED</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
-              </select>
-              <select id="sellerTypeFilter"><option value="ALL">All Seller Types</option></select>
-              <select id="sellerPropertyTypeFilter"><option value="ALL">All Property Types</option></select>
-              <button class="btn primary" data-action="createPropertyFromSeller">🏠 Convert seller to property</button>
-            </div>
-            <div class="tableWrap">
-              <table class="wideTableSeller">
-                <thead>
-                  <tr>
-                    <th>Date</th><th>Seller</th><th>Phone</th><th>Listing Title</th><th>Property</th>
-                    <th>Location</th><th>Expected Price</th><th>Docs</th><th>Status</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="sellerLeadsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-materials" class="section">
-          <div class="card">
-            <div class="cardHeader">
-              <div>
-                <div class="cardTitle">Material Leads</div>
-                <div class="cardSub">Track enquiries for steel, cement, bricks, sand and supply partners</div>
-              </div>
-              <div class="toolbar">
-                <span class="pill">Total <b id="materialLeadCount">0</b></span>
-                <button class="btn success" data-action="exportMaterial">⬇ Export CSV</button>
-              </div>
-            </div>
-            <div class="filters">
-              <input id="materialSearch" placeholder="Search material / customer / phone / location..." />
-              <select id="materialStatusFilter">
-                <option value="ALL">All Status</option>
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
-              </select>
-              <select id="materialTypeFilter"><option value="ALL">All Materials</option></select>
-              <select id="materialCustomerFilter"><option value="ALL">All Customer Types</option></select>
-              <button class="btn primary" data-action="markMaterialContacted">📞 Quick contact</button>
-            </div>
-            <div class="tableWrap">
-              <table class="wideTableMat">
-                <thead>
-                  <tr>
-                    <th>Date</th><th>Customer</th><th>Phone</th><th>Material</th><th>Qty</th>
-                    <th>Location</th><th>Budget</th><th>Status</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="materialLeadsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-services" class="section">
-          <div class="card">
-            <div class="cardHeader">
-              <div>
-                <div class="cardTitle">Service Leads</div>
-                <div class="cardSub">Painting, interiors, construction, legal, maintenance and vendor fulfilment</div>
-              </div>
-              <div class="toolbar">
-                <span class="pill">Total <b id="serviceLeadCount">0</b></span>
-                <button class="btn success" data-action="exportService">⬇ Export CSV</button>
-              </div>
-            </div>
-            <div class="filters">
-              <input id="serviceSearch" placeholder="Search service / customer / phone / location..." />
-              <select id="serviceStatusFilter">
-                <option value="ALL">All Status</option>
-                <option value="NEW">NEW</option>
-                <option value="CONTACTED">CONTACTED</option>
-                <option value="CLOSED">CLOSED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
-              </select>
-              <select id="serviceTypeFilter"><option value="ALL">All Services</option></select>
-              <select id="serviceCustomerFilter"><option value="ALL">All Customer Types</option></select>
-              <button class="btn primary" data-action="markServiceContacted">🛠 Quick contact</button>
-            </div>
-            <div class="tableWrap">
-              <table class="wideTableSer">
-                <thead>
-                  <tr>
-                    <th>Date</th><th>Customer</th><th>Phone</th><th>Service</th><th>Property Type</th>
-                    <th>Location</th><th>Budget</th><th>Status</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="serviceLeadsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-brokers" class="section">
-          <div class="topForm">
-            <div class="card">
-              <div class="cardHeader">
-                <div>
-                  <div class="cardTitle">Broker Master</div>
-                  <div class="cardSub">Add and manage brokers for assignment</div>
-                </div>
-                <button class="btn success" data-action="seedBrokers">✨ Seed Demo Brokers</button>
-              </div>
-              <div class="cardBody stack">
-                <div>
-                  <label class="label" for="brokerName">Broker name</label>
-                  <input id="brokerName" placeholder="Eg: Raj / Priya / Karthik" />
-                </div>
-                <div>
-                  <label class="label" for="brokerCity">City</label>
-                  <input id="brokerCity" placeholder="Eg: Bangalore" />
-                </div>
-                <div>
-                  <label class="label" for="brokerArea">Area</label>
-                  <input id="brokerArea" placeholder="Eg: Whitefield" />
-                </div>
-                <div>
-                  <label class="label" for="brokerCompany">Company</label>
-                  <input id="brokerCompany" placeholder="Eg: MEI Associate" />
-                </div>
-                <button class="btn primary" data-action="addBroker">➕ Add Broker</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="cardHeader">
-                <div>
-                  <div class="cardTitle">Current Brokers</div>
-                  <div class="cardSub">Delete only if no live workflows depend on them</div>
-                </div>
-              </div>
-              <div class="cardBody">
-                <div class="chips" id="brokerChips"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-automation" class="section">
-          <div class="layoutHalf">
-            <div class="card">
-              <div class="cardHeader">
-                <div>
-                  <div class="cardTitle">Buyer WhatsApp Template</div>
-                  <div class="cardSub">Used when admin clicks WhatsApp on buyer leads</div>
-                </div>
-              </div>
-              <div class="cardBody stack">
-                <div class="chips">
-                  <button class="btn small ghost" data-insert="{buyer}">{buyer}</button>
-                  <button class="btn small ghost" data-insert="{listing}">{listing}</button>
-                  <button class="btn small ghost" data-insert="{phone}">{phone}</button>
-                  <button class="btn small ghost" data-insert="{date}">{date}</button>
-                </div>
-                <div>
-                  <label class="label" for="waTemplate">Template</label>
-                  <textarea id="waTemplate"></textarea>
-                </div>
-                <div class="toolbar">
-                  <button class="btn success" data-action="saveTemplate">💾 Save</button>
-                  <button class="btn warn" data-action="resetTemplate">↩ Reset</button>
-                  <button class="btn" data-action="copyTemplatePreview">📋 Copy Preview</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="cardHeader">
-                <div>
-                  <div class="cardTitle">Live Preview</div>
-                  <div class="cardSub">Sample buyer preview before sending</div>
-                </div>
-              </div>
-              <div class="cardBody">
-                <div class="rowMeta">Sample Buyer: Arun • Listing: 2BHK Whitefield • Phone: 9876543210</div>
-                <div id="waPreview" class="waPreview"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="section-exports" class="section">
-          <div class="layout3">
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Buyer Leads</div><div class="cardSub">CSV export with notes, follow-up, assignment</div><button class="btn success" data-action="exportBuyer">⬇ Download Buyer CSV</button></div></div>
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Seller Leads</div><div class="cardSub">CSV export with property intent and docs status</div><button class="btn success" data-action="exportSeller">⬇ Download Seller CSV</button></div></div>
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Properties</div><div class="cardSub">CSV export for approval queue and live listings</div><button class="btn success" data-action="exportProperties">⬇ Download Properties CSV</button></div></div>
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Materials</div><div class="cardSub">Supplier and materials enquiry export</div><button class="btn success" data-action="exportMaterial">⬇ Download Material CSV</button></div></div>
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Services</div><div class="cardSub">Vendor and service demand export</div><button class="btn success" data-action="exportService">⬇ Download Service CSV</button></div></div>
-            <div class="card"><div class="cardBody stack"><div class="cardTitle">Full Launch Pack</div><div class="cardSub">Use exports daily for ops backup, CRM import, broker reporting</div><button class="btn" data-action="refresh">🔄 Refresh all data</button></div></div>
-          </div>
-        </section>
       </div>
-    </main>
-  </div>
 
+      <div class="card">
+        <div class="top">
+          <div>
+            <div class="h1" style="font-size:18px;">Approved Listings</div>
+            <div class="muted">Buyer portal shows ONLY these</div>
+          </div>
+          <div class="row">
+            <span class="pill">Approved: <b id="approvedCount">0</b></span>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table aria-label="Approved listings table">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th class="nowrap">Manage</th>
+              </tr>
+            </thead>
+            <tbody id="approvedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div class="card" style="margin-top:12px;">
+      <div class="top">
+        <div>
+          <div class="h1" style="font-size:18px;">Leads — Mini CRM</div>
+          <div class="muted">Search + Filters + Broker Assign/Filter + Export + WhatsApp/Copy + Auto Log</div>
+        </div>
+        <div class="row">
+          <span class="pill">Total: <b id="leadCount">0</b></span>
+          <span class="pill">Overdue: <b id="overdueCount">0</b></span>
+          <button type="button" data-action="refreshLeads">Refresh</button>
+          <button type="button" class="warn" data-action="clearClosedLeads">Clear Closed/Archived</button>
+        </div>
+      </div>
+
+      <div class="filterBar" aria-label="Lead filters">
+        <div>
+          <label class="srOnly" for="leadSearch">Search leads</label>
+          <input id="leadSearch" placeholder="Search listing / phone / buyer / notes..." autocomplete="off">
+        </div>
+
+        <div>
+          <label class="srOnly" for="brokerFilter">Broker filter</label>
+          <select id="brokerFilter">
+            <option value="ALL">All Brokers</option>
+            <option value="__UNASSIGNED__">Unassigned</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="srOnly" for="statusFilter">Status filter</label>
+          <select id="statusFilter">
+            <option value="ALL">All Status</option>
+            <option value="NEW">NEW</option>
+            <option value="CONTACTED">CONTACTED</option>
+            <option value="CLOSED">CLOSED</option>
+            <option value="ARCHIVED">ARCHIVED</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="srOnly" for="overdueFilter">Overdue filter</label>
+          <select id="overdueFilter">
+            <option value="ALL">All</option>
+            <option value="OVERDUE">Overdue only</option>
+            <option value="NOT_OVERDUE">Not overdue</option>
+          </select>
+        </div>
+
+        <button type="button" class="ok" data-action="exportCSV">⬇ Export CSV</button>
+      </div>
+
+      <div class="quickFilters" aria-label="Quick filters">
+        <button type="button" class="qfBtn" data-qfilter="OVERDUE">⚠ Overdue</button>
+        <button type="button" class="qfBtn" data-qfilter="DUE_TODAY">📅 Due today</button>
+        <button type="button" class="qfBtn" data-qfilter="UNASSIGNED">👤 Unassigned</button>
+        <button type="button" class="qfBtn" data-qfilter="CLEAR">🧼 Clear quick filters</button>
+      </div>
+
+      <div class="tableWrap" style="margin-top:12px;">
+        <table style="min-width:1500px;" aria-label="Leads table">
+          <thead>
+            <tr>
+              <th class="nowrap">Date</th>
+              <th>Listing</th>
+              <th>Buyer</th>
+              <th class="nowrap">Phone</th>
+              <th class="nowrap">Assigned</th>
+              <th>Status</th>
+              <th class="nowrap">Follow-up</th>
+              <th>Notes</th>
+              <th class="nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Overflow Menu (one shared menu for all rows) -->
+  <div id="overflowMenu" class="menu" role="menu" aria-label="Lead actions" hidden></div>
+
+  <!-- Lead Edit Modal -->
   <div id="leadModalBack" class="modalBack" hidden>
-    <div class="modal">
-      <div class="modalHeader">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="leadModalTitle" aria-describedby="leadModalDesc">
+      <div class="top">
         <div>
-          <div class="cardTitle">Edit Buyer Lead</div>
-          <div class="cardSub" id="modalLeadMeta">Lead info</div>
+          <div id="leadModalTitle" class="h1" style="font-size:18px;">Edit Lead</div>
+          <div id="leadModalDesc" class="srOnly">Update follow-up date, assignment, and notes, then save.</div>
+          <div id="mListing" class="muted"></div>
         </div>
-        <button class="btn small" data-action="closeLeadModal">✕ Close</button>
-      </div>
-      <div class="modalBody">
-        <div class="formGrid">
-          <div>
-            <label class="label" for="mFollowUp">Follow-up date</label>
-            <input id="mFollowUp" type="date" />
-          </div>
-          <div>
-            <label class="label" for="mAssigned">Assigned broker</label>
-            <select id="mAssigned"></select>
-          </div>
-          <div>
-            <label class="label" for="mStatus">Status</label>
-            <select id="mStatus">
-              <option value="NEW">NEW</option>
-              <option value="CONTACTED">CONTACTED</option>
-              <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
-              <option value="CLOSED">CLOSED</option>
-              <option value="ARCHIVED">ARCHIVED</option>
-            </select>
-          </div>
-          <div class="full">
-            <label class="label" for="mNotes">Notes</label>
-            <textarea id="mNotes"></textarea>
-          </div>
+        <div class="row">
+          <button type="button" data-action="closeLeadModal">✕ Close</button>
         </div>
       </div>
-      <div class="modalFooter">
-        <button class="btn" data-action="closeLeadModal">Cancel</button>
-        <button class="btn success" data-action="saveLeadModal">✅ Save</button>
+
+      <div style="display:grid; gap:10px; margin-top:12px;">
+        <div>
+          <label class="mini" for="mFollowUp" style="display:block;margin-bottom:6px;">Follow-up date</label>
+          <input id="mFollowUp" type="date">
+        </div>
+        <div>
+          <label class="mini" for="mAssigned" style="display:block;margin-bottom:6px;">Assigned to (optional)</label>
+          <select id="mAssigned"></select>
+        </div>
+        <div>
+          <label class="mini" for="mNotes" style="display:block;margin-bottom:6px;">Notes</label>
+          <textarea id="mNotes" rows="6" placeholder="Call summary / site visit / budget / next step..."></textarea>
+        </div>
+
+        <div class="row">
+          <button type="button" class="ok" data-action="saveLeadModal">✅ Save</button>
+          <button type="button" data-action="closeLeadModal">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="toastStack" id="toastStack"></div>
+<script>
+  // ====== Storage Keys ======
+  const PROPS_KEY = "mei_properties_v1";
+  const LEADS_KEY = "mei_leads_v1";
+  const WA_TEMPLATE_KEY = "mei_whatsapp_template_v1";
+  const BROKERS_KEY = "mei_brokers_v1";
 
-  <script src="app.js"></script>
-  <script src="dashboard.js"></script>
+  // ====== State ======
+  let MODAL_LEAD_ID = null;
+  let CURRENT_FILTERED_LEADS = [];
+  let LAST_FOCUSED_BEFORE_MODAL = null;
+
+  // Quick filters (in addition to dropdown filters)
+  const QUICK = {
+    overdueOnly: false,
+    dueTodayOnly: false,
+    unassignedOnly: false,
+  };
+
+  // Overflow menu state
+  const MENU = {
+    open: false,
+    leadId: null,
+    anchorEl: null,
+  };
+
+  const $ = (id)=>document.getElementById(id);
+
+  // ====== Tiny DOM helpers ======
+  function el(tag, attrs = {}, children = []){
+    const node = document.createElement(tag);
+    for (const [k,v] of Object.entries(attrs || {})){
+      if(k === "class") node.className = v;
+      else if(k === "text") node.textContent = v;
+      else if(k === "html") node.innerHTML = v;
+      else if(k === "style") node.style.cssText = v;
+      else if(k.startsWith("data-")) node.setAttribute(k, v);
+      else if(v === true) node.setAttribute(k, "");
+      else if(v !== false && v != null) node.setAttribute(k, String(v));
+    }
+    (children || []).forEach(ch => {
+      if(ch == null) return;
+      if(typeof ch === "string") node.appendChild(document.createTextNode(ch));
+      else node.appendChild(ch);
+    });
+    return node;
+  }
+
+  function uid(){
+    // Prefer crypto.randomUUID where available.
+    try{
+      if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    }catch(e){}
+    return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+
+  // ====== Toast (supports optional Undo action) ======
+  let TOAST_TIMER = null;
+  let TOAST_ACTION_FN = null;
+
+  function toast(msg = "✅ Updated", opts = {}){
+    const { type = "ok", actionText = "", actionFn = null, timeout = 1600 } = opts;
+
+    const t = $("toast");
+    const m = $("toastMsg");
+    const a = $("toastAction");
+
+    t.classList.remove("danger","warn");
+    if(type === "danger") t.classList.add("danger");
+    if(type === "warn") t.classList.add("warn");
+
+    m.textContent = msg;
+
+    TOAST_ACTION_FN = (typeof actionFn === "function") ? actionFn : null;
+    if(actionText && TOAST_ACTION_FN){
+      a.textContent = actionText;
+      a.hidden = false;
+    }else{
+      a.hidden = true;
+    }
+
+    t.hidden = false;
+
+    if(TOAST_TIMER) clearTimeout(TOAST_TIMER);
+    TOAST_TIMER = setTimeout(()=>{ t.hidden = true; a.hidden = true; TOAST_ACTION_FN = null; }, timeout);
+  }
+
+  function onToastAction(){
+    if(typeof TOAST_ACTION_FN === "function"){
+      const fn = TOAST_ACTION_FN;
+      // Close toast first so UI feels instant
+      $("toast").hidden = true;
+      $("toastAction").hidden = true;
+      TOAST_ACTION_FN = null;
+      try{ fn(); }catch(e){}
+    }
+  }
+
+  // ====== Date helpers ======
+  function fmtDate(iso){
+    try {
+      const d = new Date(iso);
+      if(Number.isNaN(d.getTime())) return String(iso || "");
+      return d.toLocaleString();
+    } catch(e){
+      return String(iso || "");
+    }
+  }
+  function todayYMD(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function isOverdue(lead){
+    const status = (lead.status || "").toUpperCase();
+    if(["CLOSED","ARCHIVED"].includes(status)) return false;
+    if(!lead.followUp) return false;
+    return String(lead.followUp) < todayYMD();
+  }
+  function isDueToday(lead){
+    const status = (lead.status || "").toUpperCase();
+    if(["CLOSED","ARCHIVED"].includes(status)) return false;
+    if(!lead.followUp) return false;
+    return String(lead.followUp) === todayYMD();
+  }
+
+  // ====== Normalizers ======
+  function normalizeProp(p){
+    const out = Object.assign({}, p || {});
+    if(!out.id) out.id = uid();
+    if(!out.status) out.status = "pending";
+    if(!out.title && out.name) out.title = out.name;
+    return out;
+  }
+
+  function normalizeLead(lead){
+    const out = Object.assign({}, lead || {});
+    if(!out.id) out.id = uid();
+    if(!out.createdAt) out.createdAt = new Date().toISOString();
+    if(out.notes == null) out.notes = "";
+    if(out.message == null) out.message = "";
+    if(out.followUp == null) out.followUp = "";
+    if(out.lastContactedAt == null) out.lastContactedAt = "";
+    if(out.updatedAt == null) out.updatedAt = "";
+    if(out.status == null) out.status = "NEW";
+    if(out.assignedTo == null) out.assignedTo = "";
+    if(out.buyerName == null) out.buyerName = "";
+    if(out.buyerPhone == null) out.buyerPhone = "";
+    if(out.listingTitle == null) out.listingTitle = "";
+    if(out.listingId == null) out.listingId = "";
+    return out;
+  }
+
+  // ====== Data access ======
+  function getProps(){ return (JSON.parse(localStorage.getItem(PROPS_KEY) || "[]") || []).map(normalizeProp); }
+  function saveProps(props){ localStorage.setItem(PROPS_KEY, JSON.stringify((props || []).map(normalizeProp))); }
+
+  function getLeads(){ return (JSON.parse(localStorage.getItem(LEADS_KEY) || "[]") || []).map(normalizeLead); }
+  function saveLeads(leads){ localStorage.setItem(LEADS_KEY, JSON.stringify((leads || []).map(normalizeLead))); }
+
+  // ====== Broker master ======
+  function getBrokers(){ return JSON.parse(localStorage.getItem(BROKERS_KEY) || "[]"); }
+  function saveBrokers(list){
+    const cleaned = Array.from(new Set((list || [])
+      .map(x => String(x||"").trim())
+      .filter(Boolean)
+    ));
+    localStorage.setItem(BROKERS_KEY, JSON.stringify(cleaned));
+  }
+
+  function renderBrokerChips(){
+    const brokers = getBrokers();
+    const wrap = $("brokerChips");
+    wrap.innerHTML = "";
+
+    if(brokers.length === 0){
+      wrap.appendChild(el("div", { class:"mini", style:"opacity:.85", text:"No brokers yet. Add one." }));
+      return;
+    }
+
+    brokers.forEach(b => {
+      const name = String(b);
+      const chip = el("span", { class:"chip" }, [
+        el("span", { style:"font-weight:900", text:name }),
+        el("button", {
+          type:"button",
+          class:"danger iconBtn",
+          "aria-label":`Remove broker ${name}`,
+        }, [ "✕" ])
+      ]);
+
+      chip.querySelector("button").addEventListener("click", () => deleteBroker(name));
+      wrap.appendChild(chip);
+    });
+  }
+
+  function addBroker(){
+    const name = ($("brokerName").value || "").trim();
+    if(!name){ alert("Enter broker name"); return; }
+    const brokers = getBrokers();
+    brokers.push(name);
+    saveBrokers(brokers);
+    $("brokerName").value = "";
+    toast("✅ Broker added");
+    syncBrokerDropdowns();
+    refreshLeads();
+  }
+
+  function deleteBroker(name){
+    if(!confirm(`Delete broker "${name}" from list?`)) return;
+    const brokers = getBrokers().filter(b => b !== name);
+    saveBrokers(brokers);
+    toast("🧹 Broker removed", { type:"warn" });
+    syncBrokerDropdowns();
+    refreshLeads();
+  }
+
+  function seedBrokers(){
+    const brokers = getBrokers();
+    if(brokers.length) { toast("Already has brokers"); return; }
+    saveBrokers(["Raj","Karthik","Priya"]);
+    toast("✨ Demo brokers added");
+    syncBrokerDropdowns();
+    refreshLeads();
+  }
+
+  function syncBrokerDropdowns(){
+    renderBrokerChips();
+
+    // Filter dropdown
+    const bf = $("brokerFilter");
+    const current = bf.value || "ALL";
+    bf.innerHTML = "";
+
+    bf.appendChild(el("option", { value:"ALL", text:"All Brokers" }));
+    bf.appendChild(el("option", { value:"__UNASSIGNED__", text:"Unassigned" }));
+
+    getBrokers().forEach(b => bf.appendChild(el("option", { value:b, text:b })));
+
+    // restore previous selection if still present
+    const has = Array.from(bf.options).some(o => o.value === current);
+    bf.value = has ? current : "ALL";
+
+    // Modal dropdown
+    const md = $("mAssigned");
+    const curM = md.value || "";
+    md.innerHTML = "";
+    md.appendChild(el("option", { value:"", text:"Unassigned" }));
+    getBrokers().forEach(b => md.appendChild(el("option", { value:b, text:b })));
+    md.value = Array.from(md.options).some(o => o.value === curM) ? curM : "";
+  }
+
+  // ====== WhatsApp Template ======
+  function defaultWATemplate(){
+    return `Hello {buyer},
+
+Thanks for your interest in "{listing}".
+
+This is MEI Realty. Please share your preferred time to discuss today.
+
+- MEI`;
+  }
+  function getWATemplate(){
+    return localStorage.getItem(WA_TEMPLATE_KEY) || defaultWATemplate();
+  }
+  function saveWATemplate(){
+    const val = ($("waTemplate").value || "").trim();
+    if(!val){ alert("Template cannot be empty"); return; }
+    localStorage.setItem(WA_TEMPLATE_KEY, val);
+    toast("💾 WhatsApp template saved");
+    updatePreview();
+  }
+  function resetWATemplate(){
+    localStorage.setItem(WA_TEMPLATE_KEY, defaultWATemplate());
+    $("waTemplate").value = getWATemplate();
+    toast("↩ Template reset to default", { type:"warn" });
+    updatePreview();
+  }
+
+  function applyTemplate(tpl, lead){
+    const dateStr = new Date().toLocaleDateString();
+    return String(tpl || "")
+      .replaceAll("{buyer}", lead.buyerName || "")
+      .replaceAll("{listing}", lead.listingTitle || "property")
+      .replaceAll("{phone}", lead.buyerPhone || "")
+      .replaceAll("{date}", dateStr);
+  }
+
+  function updatePreview(){
+    const tpl = ($("waTemplate").value || "").trim() || defaultWATemplate();
+    const sample = { buyerName:"Arun", listingTitle:"2BHK Whitefield", buyerPhone:"9876543210" };
+    $("waPreview").textContent = applyTemplate(tpl, sample);
+  }
+
+  function insertAtCursor(textarea, insertText){
+    textarea.focus();
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? textarea.value.length;
+
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+
+    textarea.value = before + insertText + after;
+
+    const newPos = start + insertText.length;
+    textarea.setSelectionRange(newPos, newPos);
+  }
+
+  // ====== Clipboard ======
+  async function copyToClipboard(text){
+    const t = String(text ?? "");
+    if(!t.trim()){ alert("Nothing to copy"); return false; }
+    try{
+      // Clipboard API works reliably only in secure contexts (https://).
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(t);
+        return true;
+      }
+    }catch(e){}
+
+    // Fallback for non-secure contexts / older browsers
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function copyPreview(){
+    const txt = $("waPreview").textContent || "";
+    const ok = await copyToClipboard(txt);
+    if(ok) toast("📋 Preview copied");
+    else alert("Copy failed.");
+  }
+
+  // ====== WhatsApp + Copy (Lead) ======
+  function cleanPhoneForWA(phone){
+    const clean = String(phone || "").replace(/[^\d]/g,'');
+    if(clean.length === 10) return "91" + clean; // India default
+    return clean;
+  }
+
+  function buildLeadMessage(lead){
+    const tpl = getWATemplate();
+    return applyTemplate(tpl, lead);
+  }
+
+  function safeOpenNewTab(url){
+    // Prevent reverse tabnabbing by severing access to window.opener when possible.
+    // Some browsers honor "noopener,noreferrer" windowFeatures; we also null opener as a fallback.
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if(w) w.opener = null;
+    return w;
+  }
+
+  function openWhatsAppForLead(leadId){
+    const lead = getLeads().find(l => l.id === leadId);
+    if(!lead) return;
+    if(!lead.buyerPhone){ alert("No phone number"); return; }
+
+    const finalPhone = cleanPhoneForWA(lead.buyerPhone);
+    const message = buildLeadMessage(lead);
+    const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`;
+
+    safeOpenNewTab(url);
+    autoLogCommunication(leadId, "WhatsApp opened");
+    toast("💬 WhatsApp opened + Logged");
+    refreshLeads();
+  }
+
+  async function copyLeadMessageById(leadId){
+    const lead = getLeads().find(l => l.id === leadId);
+    if(!lead) return;
+
+    const message = buildLeadMessage(lead);
+    const ok = await copyToClipboard(message);
+
+    if(ok){
+      autoLogCommunication(leadId, "Message copied");
+      toast("📋 Message copied + Logged");
+      refreshLeads();
+    }else{
+      alert("Copy failed.");
+    }
+  }
+
+  // ====== Auto Log Communication ======
+  function autoLogCommunication(leadId, type){
+    const leads = getLeads();
+    const idx = leads.findIndex(l => l.id === leadId);
+    if(idx === -1) return;
+
+    const now = new Date();
+    const logLine = `[${now.toLocaleString()}] ${type}`;
+
+    const existing = (leads[idx].notes || "").trim();
+    leads[idx].notes = existing ? (existing + "\n" + logLine) : logLine;
+
+    // Move pipeline forward
+    leads[idx].status = "CONTACTED";
+    leads[idx].lastContactedAt = now.toISOString();
+    leads[idx].updatedAt = now.toISOString();
+
+    // If no follow-up, default to tomorrow
+    if(!leads[idx].followUp){
+      const d = new Date();
+      d.setDate(d.getDate()+1);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      leads[idx].followUp = `${yyyy}-${mm}-${dd}`;
+    }
+
+    saveLeads(leads);
+  }
+
+  // ====== Listings approvals ======
+  function approveProp(id){
+    const props = getProps();
+    const i = props.findIndex(p => p.id === id);
+    if(i === -1) return;
+    props[i].status = "approved";
+    props[i].approvedAt = new Date().toISOString();
+    saveProps(props);
+    toast("✅ Approved");
+    refreshProps();
+  }
+
+  function rejectProp(id){
+    const props = getProps();
+    const i = props.findIndex(p => p.id === id);
+    if(i === -1) return;
+    props[i].status = "rejected";
+    props[i].rejectedAt = new Date().toISOString();
+    saveProps(props);
+    toast("🗑️ Rejected", { type:"warn" });
+    refreshProps();
+  }
+
+  function deleteProp(id){
+    if(!confirm("Delete this listing permanently?")) return;
+    const props = getProps().filter(p => p.id !== id);
+    saveProps(props);
+    toast("🧹 Deleted", { type:"warn" });
+    refreshProps();
+  }
+
+  function rowListingCell(p){
+    const wrap = el("div", {}, []);
+    const title = p.title || p.name || "Listing";
+    const metaBits = [p.city, p.area, p.price ? ("₹"+p.price) : ""].filter(Boolean);
+
+    wrap.appendChild(el("div", { class:"title", text:title }));
+    wrap.appendChild(el("div", { class:"mini", text: metaBits.length ? metaBits.join(" • ") : "—" }));
+    wrap.appendChild(el("div", { class:"mini", text: "ID: " + (p.id || "-") }));
+    return wrap;
+  }
+
+  function refreshProps(){
+    const props = getProps();
+    const pending = props.filter(p => (p.status || "pending").toLowerCase() === "pending");
+    const approved = props.filter(p => (p.status || "").toLowerCase() === "approved");
+
+    $("pendingCount").textContent = pending.length;
+    $("approvedCount").textContent = approved.length;
+
+    // Pending table
+    const pBody = $("pendingBody");
+    pBody.innerHTML = "";
+    if(!pending.length){
+      const tr = el("tr", {}, [
+        el("td", { colspan:"2", style:"opacity:.80;padding:14px;", text:"No pending approvals." })
+      ]);
+      pBody.appendChild(tr);
+    }else{
+      pending.forEach(p => {
+        const tr = el("tr", {}, []);
+        const tdListing = el("td", {}, [ rowListingCell(p) ]);
+        const tdActions = el("td", { class:"nowrap" }, []);
+
+        const row = el("div", { class:"row" }, [
+          el("button", { type:"button", class:"ok btnSmall", text:"Approve" }),
+          el("button", { type:"button", class:"danger btnSmall", text:"Reject" }),
+        ]);
+
+        const [btnApprove, btnReject] = row.querySelectorAll("button");
+        btnApprove.addEventListener("click", ()=> approveProp(p.id));
+        btnReject.addEventListener("click", ()=> rejectProp(p.id));
+
+        tdActions.appendChild(row);
+        tr.appendChild(tdListing);
+        tr.appendChild(tdActions);
+        pBody.appendChild(tr);
+      });
+    }
+
+    // Approved table
+    const aBody = $("approvedBody");
+    aBody.innerHTML = "";
+    if(!approved.length){
+      aBody.appendChild(el("tr", {}, [
+        el("td", { colspan:"2", style:"opacity:.80;padding:14px;", text:"No approved listings yet." })
+      ]));
+    }else{
+      approved.forEach(p => {
+        const tr = el("tr", {}, []);
+        const tdListing = el("td", {}, [
+          rowListingCell(p),
+          el("div", { class:"mini", text: "Approved: " + fmtDate(p.approvedAt || "") })
+        ]);
+
+        const tdActions = el("td", { class:"nowrap" }, []);
+        const row = el("div", { class:"row" }, [
+          el("button", { type:"button", class:"warn btnSmall", text:"Re-Approve" }),
+          el("button", { type:"button", class:"danger btnSmall", text:"Delete" }),
+        ]);
+        const [btnReapprove, btnDelete] = row.querySelectorAll("button");
+        btnReapprove.addEventListener("click", ()=> approveProp(p.id));
+        btnDelete.addEventListener("click", ()=> deleteProp(p.id));
+
+        tdActions.appendChild(row);
+
+        tr.appendChild(tdListing);
+        tr.appendChild(tdActions);
+        aBody.appendChild(tr);
+      });
+    }
+  }
+
+  // ====== Lead status + assignment ======
+  function setLeadAssigned(id, broker){
+    const leads = getLeads();
+    const idx = leads.findIndex(l => l.id === id);
+    if(idx === -1) return;
+    leads[idx].assignedTo = String(broker || "").trim();
+    leads[idx].updatedAt = new Date().toISOString();
+    saveLeads(leads);
+    toast("👤 Assigned updated");
+    refreshLeads();
+  }
+
+  function setLeadStatus(id, status){
+    const leads = getLeads();
+    const idx = leads.findIndex(x => x.id === id);
+    if(idx === -1) return;
+
+    const prev = Object.assign({}, leads[idx]);
+
+    leads[idx].status = status;
+    leads[idx].updatedAt = new Date().toISOString();
+
+    if(String(status).toUpperCase() === "CONTACTED"){
+      leads[idx].lastContactedAt = new Date().toISOString();
+      if(!leads[idx].followUp){
+        const d = new Date(); d.setDate(d.getDate()+1);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,"0");
+        const dd = String(d.getDate()).padStart(2,"0");
+        leads[idx].followUp = `${yyyy}-${mm}-${dd}`;
+      }
+    }
+
+    saveLeads(leads);
+
+    // Offer undo for state moves that are usually "oops prone"
+    const isUndoWorthy = ["CLOSED","ARCHIVED"].includes(String(status).toUpperCase());
+    if(isUndoWorthy){
+      toast(`✅ Lead marked ${String(status).toUpperCase()}`, {
+        actionText: "Undo",
+        actionFn: () => {
+          const ls = getLeads();
+          const i2 = ls.findIndex(x => x.id === id);
+          if(i2 === -1) return;
+          ls[i2] = normalizeLead(prev);
+          saveLeads(ls);
+          toast("↩ Undone", { type:"warn" });
+          refreshLeads();
+        },
+        timeout: 4500
+      });
+    }else{
+      toast("✅ Lead updated");
+    }
+
+    refreshLeads();
+  }
+
+  function archiveLead(id){
+    if(!confirm("Archive this lead? (You can Undo right after)")) return;
+    setLeadStatus(id, "ARCHIVED");
+  }
+
+  function clearClosedLeads(){
+    if(!confirm("Clear all CLOSED and ARCHIVED leads from local storage?")) return;
+    const leads = getLeads();
+    const filtered = leads.filter(l => !["CLOSED","ARCHIVED"].includes((l.status||"").toUpperCase()));
+    saveLeads(filtered);
+    toast("🧹 Cleared closed/archived", { type:"warn" });
+    refreshLeads();
+  }
+
+  // ====== Modal (Edit lead) ======
+  function openLeadModal(id){
+    const leads = getLeads();
+    const lead = leads.find(l => l.id === id);
+    if(!lead) return;
+
+    LAST_FOCUSED_BEFORE_MODAL = document.activeElement;
+
+    MODAL_LEAD_ID = id;
+
+    $("mListing").textContent = `${lead.listingTitle || "Listing"} • ${lead.buyerName || ""} • ${lead.buyerPhone || ""}`;
+    $("mFollowUp").value = lead.followUp || "";
+    syncBrokerDropdowns();
+    $("mAssigned").value = lead.assignedTo || "";
+    $("mNotes").value = lead.notes || "";
+
+    $("leadModalBack").hidden = false;
+
+    // Make background inert-ish (screen reader guidance)
+    $("app").setAttribute("aria-hidden", "true");
+
+    // Focus first control
+    setTimeout(()=> $("mFollowUp").focus(), 0);
+  }
+
+  function closeLeadModal(){
+    $("leadModalBack").hidden = true;
+    $("app").removeAttribute("aria-hidden");
+    MODAL_LEAD_ID = null;
+
+    if(LAST_FOCUSED_BEFORE_MODAL && typeof LAST_FOCUSED_BEFORE_MODAL.focus === "function"){
+      LAST_FOCUSED_BEFORE_MODAL.focus();
+    }
+    LAST_FOCUSED_BEFORE_MODAL = null;
+  }
+
+  function saveLeadModal(){
+    if(!MODAL_LEAD_ID) return;
+
+    const leads = getLeads();
+    const idx = leads.findIndex(l => l.id === MODAL_LEAD_ID);
+    if(idx === -1) return;
+
+    leads[idx].followUp = $("mFollowUp").value || "";
+    leads[idx].assignedTo = ($("mAssigned").value || "").trim();
+    leads[idx].notes = ($("mNotes").value || "").trim();
+    leads[idx].updatedAt = new Date().toISOString();
+
+    saveLeads(leads);
+    toast("✅ Saved");
+    closeLeadModal();
+    refreshLeads();
+  }
+
+  function trapFocusInModal(e){
+    if($("leadModalBack").hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeLeadModal();
+      return;
+    }
+    if(e.key !== "Tab") return;
+
+    const modal = $("leadModalBack").querySelector(".modalCard");
+    const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const list = Array.from(focusables).filter(x => !x.disabled && x.offsetParent !== null);
+
+    if(!list.length) return;
+
+    const first = list[0];
+    const last = list[list.length - 1];
+
+    if(e.shiftKey && document.activeElement === first){
+      e.preventDefault();
+      last.focus();
+    }else if(!e.shiftKey && document.activeElement === last){
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  // ====== Filters ======
+  function leadMatchesSearch(lead, q){
+    if(!q) return true;
+    const hay = [
+      lead.listingTitle, lead.listingId,
+      lead.buyerName, lead.buyerPhone,
+      lead.message, lead.notes,
+      lead.assignedTo
+    ].join(" ").toLowerCase();
+    return hay.includes(q);
+  }
+
+  function applyLeadFilters(leadsRaw){
+    const q = ($("leadSearch").value || "").trim().toLowerCase();
+    const brokerF = ($("brokerFilter").value || "ALL");
+    const statusF = ($("statusFilter").value || "ALL").toUpperCase();
+    const odF = ($("overdueFilter").value || "ALL").toUpperCase();
+
+    return leadsRaw
+      .filter(l => leadMatchesSearch(l, q))
+      .filter(l => {
+        if(brokerF === "ALL") return true;
+        if(brokerF === "__UNASSIGNED__") return !(l.assignedTo || "").trim();
+        return (l.assignedTo || "") === brokerF;
+      })
+      .filter(l => statusF === "ALL" ? true : (l.status || "NEW").toUpperCase() === statusF)
+      .filter(l => {
+        // Dropdown overdue filter
+        if(odF === "ALL") return true;
+        const od = isOverdue(l);
+        if(odF === "OVERDUE") return od;
+        if(odF === "NOT_OVERDUE") return !od;
+        return true;
+      })
+      .filter(l => {
+        // Quick filters (additional)
+        if(QUICK.unassignedOnly && (l.assignedTo || "").trim()) return false;
+        if(QUICK.overdueOnly && !isOverdue(l)) return false;
+        if(QUICK.dueTodayOnly && !isDueToday(l)) return false;
+        return true;
+      });
+  }
+
+  function badgeEl(status){
+    const s = (status || "NEW").toUpperCase();
+    const span = el("span", { class:"pill", text:s });
+
+    const styles = {
+      NEW: "background:rgba(0,153,255,.16); border:1px solid rgba(0,153,255,.28);",
+      CONTACTED: "background:rgba(255,200,0,.14); border:1px solid rgba(255,200,0,.26);",
+      CLOSED: "background:rgba(0,255,150,.14); border:1px solid rgba(0,255,150,.28);",
+      ARCHIVED: "background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);"
+    };
+    span.style.cssText = styles[s] || styles.NEW;
+    return span;
+  }
+
+  function renderAssignSelect(lead){
+    const sel = el("select", { style:"min-width:160px" });
+    sel.appendChild(el("option", { value:"", text:"Unassigned" }));
+    getBrokers().forEach(b => sel.appendChild(el("option", { value:b, text:b })));
+    sel.value = (lead.assignedTo || "").trim();
+    sel.addEventListener("change", () => setLeadAssigned(lead.id, sel.value));
+    return sel;
+  }
+
+  // ====== Row action menu ======
+  function closeMenu(){
+    const menu = $("overflowMenu");
+    menu.hidden = true;
+    menu.innerHTML = "";
+    MENU.open = false;
+    MENU.leadId = null;
+
+    if(MENU.anchorEl){
+      MENU.anchorEl.setAttribute("aria-expanded","false");
+      if(typeof MENU.anchorEl.focus === "function") MENU.anchorEl.focus();
+    }
+    MENU.anchorEl = null;
+  }
+
+  function openMenuForLead(leadId, anchorBtn){
+    const lead = getLeads().find(l => l.id === leadId);
+    if(!lead) return;
+
+    const menu = $("overflowMenu");
+    menu.innerHTML = "";
+
+    menu.appendChild(el("div", { class:"menuTitle", text:`Lead actions • ${lead.buyerName || "Buyer"}` }));
+
+    const items = [
+      { key:"copy", label:"📋 Copy message", sub:"Logs", onClick:()=>copyLeadMessageById(leadId) },
+      { key:"edit", label:"✏️ Edit lead", sub:"Follow-up/notes", onClick:()=>openLeadModal(leadId) },
+      { key:"contacted", label:"✅ Mark contacted", sub:"Tomorrow follow-up", onClick:()=>setLeadStatus(leadId, "CONTACTED") },
+      { key:"close", label:"✅ Close lead", sub:"Undo available", onClick:()=>setLeadStatus(leadId, "CLOSED") },
+      { key:"archive", label:"🗄️ Archive lead", sub:"Confirm", danger:true, onClick:()=>archiveLead(leadId) },
+    ];
+
+    items.forEach((it, idx) => {
+      const btn = el("button", {
+        type:"button",
+        class: "menuItem" + (it.danger ? " danger" : ""),
+        role:"menuitem",
+        "data-menu-index": String(idx),
+      }, [
+        el("span", { text: it.label }),
+        el("span", { class:"sub", text: it.sub })
+      ]);
+      btn.addEventListener("click", () => {
+        closeMenu();
+        it.onClick();
+      });
+      menu.appendChild(btn);
+    });
+
+    // Position near the anchor button
+    const r = anchorBtn.getBoundingClientRect();
+    const margin = 8;
+    const left = Math.min(window.innerWidth - 10, Math.max(10, r.left));
+    const top = Math.min(window.innerHeight - 10, r.bottom + margin);
+
+    menu.style.left = left + "px";
+    menu.style.top = top + "px";
+    menu.hidden = false;
+
+    MENU.open = true;
+    MENU.leadId = leadId;
+    MENU.anchorEl = anchorBtn;
+
+    // Focus first item (APG style)
+    const firstItem = menu.querySelector('[role="menuitem"]');
+    if(firstItem) firstItem.focus();
+  }
+
+  function onMenuKeydown(e){
+    if($("overflowMenu").hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    const items = Array.from($("overflowMenu").querySelectorAll('[role="menuitem"]'));
+    if(!items.length) return;
+
+    const cur = document.activeElement;
+    const idx = items.indexOf(cur);
+
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      const next = items[(idx + 1) % items.length] || items[0];
+      next.focus();
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      const prev = items[(idx - 1 + items.length) % items.length] || items[items.length - 1];
+      prev.focus();
+    }else if(e.key === "Home"){
+      e.preventDefault();
+      items[0].focus();
+    }else if(e.key === "End"){
+      e.preventDefault();
+      items[items.length - 1].focus();
+    }
+  }
+
+  // Close menu on outside click
+  function onDocClickToCloseMenu(e){
+    if($("overflowMenu").hidden) return;
+    const menu = $("overflowMenu");
+    const isInside = menu.contains(e.target);
+    const isAnchor = MENU.anchorEl && MENU.anchorEl.contains(e.target);
+    if(!isInside && !isAnchor){
+      closeMenu();
+    }
+  }
+
+  // ====== Leads rendering ======
+  function refreshLeads(){
+    const leadsRaw = getLeads();
+    saveLeads(leadsRaw); // normalize
+
+    $("leadCount").textContent = leadsRaw.length;
+    $("overdueCount").textContent = leadsRaw.filter(isOverdue).length;
+
+    const leads = applyLeadFilters(leadsRaw);
+    CURRENT_FILTERED_LEADS = leads;
+
+    const tbody = $("leadsBody");
+    tbody.innerHTML = "";
+
+    if(leads.length === 0){
+      tbody.appendChild(el("tr", {}, [
+        el("td", { colspan:"9", style:"padding:14px; opacity:.80;", text:"No leads match your filters." })
+      ]));
+      return;
+    }
+
+    leads.forEach(l => {
+      const overdue = isOverdue(l);
+      const tr = el("tr", { class: overdue ? "overdueRow" : "" }, []);
+
+      // Date
+      tr.appendChild(el("td", { class:"nowrap", text: fmtDate(l.createdAt) }));
+
+      // Listing
+      const listingTd = el("td", {}, [
+        el("div", { class:"title", text: l.listingTitle || "Listing" }),
+        el("div", { class:"mini", text: "ID: " + (l.listingId || "-") })
+      ]);
+      tr.appendChild(listingTd);
+
+      // Buyer
+      tr.appendChild(el("td", { text: l.buyerName || "-" }));
+
+      // Phone
+      tr.appendChild(el("td", { class:"nowrap", text: l.buyerPhone || "-" }));
+
+      // Assigned select
+      const assignedTd = el("td", { class:"nowrap" }, [ renderAssignSelect(l) ]);
+      tr.appendChild(assignedTd);
+
+      // Status
+      const statusTd = el("td", {}, [ badgeEl(l.status) ]);
+      if(overdue){
+        statusTd.appendChild(el("div", { class:"mini overdueLabel", text:"⚠ OVERDUE" }));
+      }
+      tr.appendChild(statusTd);
+
+      // Follow-up
+      const fu = l.followUp ? String(l.followUp) : "—";
+      const lastC = l.lastContactedAt ? ("Last: " + fmtDate(l.lastContactedAt)) : "";
+      const followTd = el("td", { class:"nowrap" }, [
+        el("div", { text: fu }),
+        el("div", { class:"mini", text:lastC })
+      ]);
+      tr.appendChild(followTd);
+
+      // Notes
+      const notesText = (l.notes || "").trim() ? (l.notes || "").trim() : "—";
+      const notesTd = el("td", { style:"max-width:420px;" }, [
+        el("div", { text: notesText })
+      ]);
+      tr.appendChild(notesTd);
+
+      // Actions (primary + overflow)
+      const actionsTd = el("td", { class:"nowrap" }, []);
+      const row = el("div", { class:"row" }, []);
+
+      const callHref = "tel:" + encodeURIComponent(l.buyerPhone || "");
+      const callA = el("a", { class:"link", href: callHref, style:"padding:6px 10px;", "data-lead-id": l.id }, [ "📞 Call" ]);
+      callA.addEventListener("click", () => {
+        // Best-effort log (can’t guarantee the call actually happened)
+        autoLogCommunication(l.id, "Call initiated");
+        toast("📞 Call initiated + Logged");
+        // no preventDefault; allow tel: to proceed
+      });
+
+      const waBtn = el("button", { type:"button", class:"btnSmall", "data-lead-id": l.id }, [ "💬 WhatsApp" ]);
+      waBtn.addEventListener("click", () => openWhatsAppForLead(l.id));
+
+      const moreBtn = el("button", {
+        type:"button",
+        class:"btnSmall",
+        "aria-haspopup":"menu",
+        "aria-expanded":"false",
+        "data-lead-id": l.id
+      }, [ "⋯ More" ]);
+
+      moreBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const expanded = moreBtn.getAttribute("aria-expanded") === "true";
+        if(expanded){
+          closeMenu();
+        }else{
+          // close other
+          closeMenu();
+          moreBtn.setAttribute("aria-expanded","true");
+          openMenuForLead(l.id, moreBtn);
+        }
+      });
+
+      row.appendChild(callA);
+      row.appendChild(waBtn);
+      row.appendChild(moreBtn);
+
+      actionsTd.appendChild(row);
+      tr.appendChild(actionsTd);
+
+      tbody.appendChild(tr);
+
+      // Optional message row
+      if((l.message || "").trim()){
+        const tr2 = el("tr", { class: overdue ? "overdueRow" : "" }, []);
+        tr2.appendChild(el("td", {}, []));
+        tr2.appendChild(el("td", { colspan:"8", style:"opacity:.92; border-top:1px dashed rgba(255,255,255,.12);" }, [
+          el("span", { text:"📝 " + String(l.message).trim() })
+        ]));
+        tbody.appendChild(tr2);
+      }
+    });
+  }
+
+  // ====== Export CSV (filtered) ======
+  function csvEscape(v){
+    const s = String(v ?? "");
+    return `"${s.replace(/"/g,'""')}"`;
+  }
+
+  function exportFilteredLeadsCSV(){
+    const rows = CURRENT_FILTERED_LEADS || [];
+    if(rows.length === 0){ alert("No filtered leads to export."); return; }
+
+    const header = ["CreatedAt","ListingTitle","ListingId","BuyerName","BuyerPhone","AssignedTo","Status","FollowUp","Notes","Message"];
+    const lines = [];
+    lines.push(header.map(csvEscape).join(","));
+
+    rows.forEach(l => {
+      const line = [
+        fmtDate(l.createdAt),
+        l.listingTitle || "",
+        l.listingId || "",
+        l.buyerName || "",
+        l.buyerPhone || "",
+        l.assignedTo || "",
+        (l.status || "NEW"),
+        l.followUp || "",
+        l.notes || "",
+        l.message || ""
+      ];
+      lines.push(line.map(csvEscape).join(","));
+    });
+
+    const csv = lines.join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    const fname = `MEI_Leads_${yyyy}-${mm}-${dd}.csv`;
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    toast(`⬇ Exported CSV: ${fname}`);
+  }
+
+  // ====== Refresh + Reset ======
+  function refreshAll(){
+    syncBrokerDropdowns();
+    $("waTemplate").value = getWATemplate();
+    updatePreview();
+    refreshProps();
+    refreshLeads();
+  }
+
+  function resetDemo(){
+    const typed = prompt("Type RESET to confirm demo reset (clears local data).");
+    if(String(typed || "").trim().toUpperCase() !== "RESET"){
+      toast("Reset cancelled", { type:"warn" });
+      return;
+    }
+    localStorage.removeItem(PROPS_KEY);
+    localStorage.removeItem(LEADS_KEY);
+    localStorage.removeItem(WA_TEMPLATE_KEY);
+    localStorage.removeItem(BROKERS_KEY);
+    toast("🧨 Reset done", { type:"warn" });
+    refreshAll();
+  }
+
+  // ====== Quick filters UI ======
+  function setQuickFilter(mode){
+    // Reset
+    QUICK.overdueOnly = false;
+    QUICK.dueTodayOnly = false;
+    QUICK.unassignedOnly = false;
+
+    if(mode === "OVERDUE") QUICK.overdueOnly = true;
+    if(mode === "DUE_TODAY") QUICK.dueTodayOnly = true;
+    if(mode === "UNASSIGNED") QUICK.unassignedOnly = true;
+
+    // Update active chip styling (best-effort)
+    document.querySelectorAll("[data-qfilter]").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-qfilter") === mode && mode !== "CLEAR");
+    });
+
+    refreshLeads();
+  }
+
+  // ====== Central action dispatcher ======
+  function dispatchAction(action){
+    switch(action){
+      case "refreshAll": refreshAll(); break;
+      case "resetDemo": resetDemo(); break;
+      case "addBroker": addBroker(); break;
+      case "seedBrokers": seedBrokers(); break;
+      case "saveWATemplate": saveWATemplate(); break;
+      case "resetWATemplate": resetWATemplate(); break;
+      case "updatePreview": updatePreview(); break;
+      case "copyPreview": copyPreview(); break;
+      case "refreshLeads": refreshLeads(); break;
+      case "clearClosedLeads": clearClosedLeads(); break;
+      case "exportCSV": exportFilteredLeadsCSV(); break;
+      case "closeLeadModal": closeLeadModal(); break;
+      case "saveLeadModal": saveLeadModal(); break;
+      default: break;
+    }
+  }
+
+  // ====== Init ======
+  function init(){
+    $("toastAction").addEventListener("click", onToastAction);
+
+    // Delegated click for data-action buttons
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if(!btn) return;
+      const act = btn.getAttribute("data-action");
+      if(!act) return;
+      dispatchAction(act);
+    });
+
+    // Placeholder insert buttons
+    document.querySelectorAll("[data-insert]").forEach(b => {
+      b.addEventListener("click", () => {
+        insertAtCursor($("waTemplate"), b.getAttribute("data-insert"));
+        updatePreview();
+      });
+    });
+
+    // Leads filters
+    $("leadSearch").addEventListener("input", refreshLeads);
+    $("brokerFilter").addEventListener("change", refreshLeads);
+    $("statusFilter").addEventListener("change", refreshLeads);
+    $("overdueFilter").addEventListener("change", refreshLeads);
+
+    // Quick filters
+    document.querySelectorAll("[data-qfilter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const mode = btn.getAttribute("data-qfilter");
+        if(mode === "CLEAR") setQuickFilter("CLEAR"); else setQuickFilter(mode);
+      });
+    });
+
+    // Template live preview (nice-feel)
+    $("waTemplate").addEventListener("input", () => {
+      // Soft update; does not auto-save
+      updatePreview();
+    });
+
+    // Menu behaviors
+    document.addEventListener("keydown", onMenuKeydown);
+    document.addEventListener("click", onDocClickToCloseMenu);
+
+    // Modal focus trap + ESC
+    document.addEventListener("keydown", trapFocusInModal);
+
+    // Close modal if clicking background (not the card)
+    $("leadModalBack").addEventListener("mousedown", (e) => {
+      if(e.target === $("leadModalBack")) closeLeadModal();
+    });
+
+    // Initial render
+    refreshAll();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
 </body>
 </html>
-

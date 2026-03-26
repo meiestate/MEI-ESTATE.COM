@@ -3,804 +3,632 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MEI Estate — Add Property</title>
-  <meta name="description" content="Submit new real-estate listings into the MEI Estate approval pipeline. Properties are saved as pending and become public only after admin approval." />
+  <meta name="color-scheme" content="dark" />
+  <title>Add Property</title>
   <style>
     :root{
-      --bg:#09101c;
-      --bg2:#0c1526;
-      --card:#101a2f;
-      --text:#e9f0ff;
-      --muted:#adbad8;
-      --line:rgba(255,255,255,.12);
-      --line2:rgba(255,255,255,.08);
-      --accent:#8caaff;
-      --accent2:#73ecff;
-      --gold:#d6a94f;
-      --gold2:#f1cf7b;
-      --ok:#2ecc71;
-      --warn:#f4b400;
-      --danger:#ff4d7a;
-      --shadow:0 22px 50px rgba(0,0,0,.34);
-      --radius:22px;
+      --bg:#0b1220;
+      --card:#121b2f;
+      --line:rgba(255,255,255,.14);
+      --txt:#e8eefc;
+      --mut:rgba(232,238,252,.78);
+      --radius:16px;
+      --focus: rgba(140,170,255,.95);
+      --okBorder: rgba(0,255,150,.30);
+      --okBg: rgba(0,255,150,.12);
+      --warnBorder: rgba(255,200,0,.30);
+      --warnBg: rgba(255,200,0,.10);
+      --badBorder: rgba(255,0,90,.34);
+      --badBg: rgba(255,0,90,.12);
     }
-
     *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1000px 460px at 15% 10%, rgba(115,236,255,.12), transparent 50%),
-        radial-gradient(900px 440px at 80% 0%, rgba(140,170,255,.12), transparent 55%),
-        linear-gradient(180deg,var(--bg),var(--bg2));
-      min-height:100vh;
+    body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--txt)}
+    .wrap{max-width:980px;margin:0 auto;padding:20px}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .h1{font-size:26px;font-weight:1000}
+    .muted{color:var(--mut);opacity:.95}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    a.link{
+      color:var(--txt);
+      text-decoration:none;
+      padding:8px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:36px;
     }
-    a{color:inherit;text-decoration:none}
-    button,input,select,textarea{font:inherit}
-    :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    a.link:hover{background:rgba(255,255,255,.07)}
+    a.link:active{transform:translateY(1px)}
 
-    .skip-link{position:absolute;left:-9999px}
-    .skip-link:focus{left:16px;top:16px;z-index:999;background:#fff;color:#000;padding:10px 12px;border-radius:12px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
 
-    .wrap{max-width:1280px;margin:0 auto;padding:20px}
-
-    header{
-      position:sticky;
-      top:0;
-      z-index:20;
-      border-bottom:1px solid var(--line);
-      background:rgba(9,16,28,.75);
-      backdrop-filter:blur(12px);
-    }
-    .headerRow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:900}
-    .logo{
-      width:40px;height:40px;border-radius:14px;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      box-shadow:0 14px 30px rgba(115,236,255,.18);
-      display:grid;place-items:center;color:#09111c;font-weight:1000;
-    }
-    .brandSub{font-size:12px;color:var(--muted);font-weight:700}
-    nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      min-height:42px;padding:0 14px;border-radius:14px;border:1px solid var(--line);
-      background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-weight:800;
-    }
-    .btn:hover{filter:brightness(1.06)}
-    .btn:active{transform:translateY(1px)}
-    .btn.small{min-height:36px;padding:0 12px;font-size:14px}
-    .btn.primary{background:linear-gradient(135deg, rgba(140,170,255,.18), rgba(115,236,255,.16));border-color:rgba(140,170,255,.28)}
-    .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#191208;border-color:rgba(214,169,79,.3)}
-    .btn.success{background:rgba(46,204,113,.12);border-color:rgba(46,204,113,.26)}
-    .btn.warn{background:rgba(244,180,0,.12);border-color:rgba(244,180,0,.26)}
-    .btn.danger{background:rgba(255,77,122,.12);border-color:rgba(255,77,122,.26)}
-    .btn.ghost{background:transparent}
-
-    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:18px}
-    .layout{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;margin-top:18px}
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
-      border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
-    }
-    .cardBody{padding:18px}
-    .h1{margin:0;font-size:34px;line-height:1.1;font-weight:1000}
-    .h2{margin:0;font-size:20px;font-weight:900}
-    .muted{color:var(--muted);line-height:1.65}
-    .mini{font-size:12px;color:var(--muted)}
-    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .chip{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)}
-    .banner{margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(244,180,0,.10);border:1px solid rgba(244,180,0,.24);color:#ffe9a9;font-weight:800}
-    .okBanner{background:rgba(46,204,113,.10);border-color:rgba(46,204,113,.24);color:#bcffda}
-
-    .sectionTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
-    .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .full{grid-column:1/-1}
-    label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:6px}
+    label{font-size:12px;color:var(--mut);display:block;margin:0 0 6px 2px;font-weight:800}
     input,select,textarea{
-      width:100%;min-height:44px;padding:12px;border-radius:14px;
-      border:1px solid var(--line);background:rgba(8,15,28,.65);color:var(--text);
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:#0b1220;
+      color:var(--txt);
+      outline:none;
+      min-height:40px;
     }
-    textarea{min-height:118px;resize:vertical}
-    input::placeholder,textarea::placeholder{color:rgba(173,186,216,.78)}
-    .hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
-    .err{font-size:12px;font-weight:900;color:#ff98b7;margin-top:6px}
+    input::placeholder, textarea::placeholder{color:rgba(232,238,252,.65)}
+    textarea{resize:vertical; min-height:120px}
+
+    :focus-visible{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    button{
+      padding:10px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.07);color:var(--txt);cursor:pointer;font-weight:900;
+      min-height:40px;
+    }
+    button:hover{background:rgba(255,255,255,.10)}
+    button:active{transform:translateY(1px)}
+    button[disabled]{opacity:.55; cursor:not-allowed; transform:none}
+
+    .ok{border-color:var(--okBorder);background:var(--okBg)}
+    .ok:hover{background:rgba(0,255,150,.18)}
+
+    .danger{border-color:var(--badBorder);background:var(--badBg)}
+    .danger:hover{background:rgba(255,0,90,.18)}
+
+    .note{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--warnBorder);
+      background:var(--warnBg);
+      font-size:13px;
+      line-height:1.45;
+      color:rgba(232,238,252,.90);
+    }
+
+    .hint{
+      margin-top:8px;
+      color:rgba(232,238,252,.70);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .err{
+      margin-top:6px;
+      color:rgba(255,120,170,.98);
+      font-size:12px;
+      font-weight:900;
+    }
     .err[hidden]{display:none}
 
-    .toolRow,.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .actions{margin-top:16px}
-
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .checkRow{display:flex;align-items:flex-start;gap:10px}
-    .checkRow input{width:18px;height:18px;min-height:auto;margin-top:2px}
-
-    .previewShell{display:grid;gap:14px}
-    .previewCard{overflow:hidden;border-radius:20px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
-    .previewImage{
-      height:240px;
-      background:
-        linear-gradient(135deg, rgba(115,236,255,.16), rgba(140,170,255,.16)),
-        radial-gradient(300px 180px at 18% 20%, rgba(115,236,255,.16), transparent 58%),
-        radial-gradient(280px 160px at 80% 15%, rgba(140,170,255,.16), transparent 58%);
-      background-size:cover;background-position:center;background-repeat:no-repeat;
+    .summary{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,0,90,.22);
+      background:rgba(255,0,90,.08);
+      color:rgba(232,238,252,.92);
     }
-    .previewBody{padding:16px}
-    .previewTitle{font-size:22px;font-weight:1000;line-height:1.25}
-    .previewPrice{font-size:24px;font-weight:1000;margin-top:10px}
-    .previewMeta,.previewDesc{margin-top:10px;color:var(--muted);line-height:1.65}
-    .previewGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-    .previewStat{padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03)}
-    .previewStat .k{font-size:12px;color:var(--muted)}
-    .previewStat .v{margin-top:4px;font-weight:900}
+    .summary[hidden]{display:none}
 
-    .checklist{display:grid;gap:10px}
-    .checkItem{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
-    .checkItem .state{font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;border:1px solid var(--line)}
-    .state.ready{color:#c0ffd9;border-color:rgba(46,204,113,.28);background:rgba(46,204,113,.10)}
-    .state.wait{color:#ffe6a6;border-color:rgba(244,180,0,.24);background:rgba(244,180,0,.10)}
-
-    footer{border-top:1px solid var(--line);margin-top:24px}
-    .footerRow{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0;color:var(--muted)}
-    .footerLinks{display:flex;gap:12px;flex-wrap:wrap}
-
+    /* Toast: accessible status message */
     .toast{
-      position:fixed;right:18px;bottom:18px;z-index:999;
-      min-width:260px;max-width:420px;padding:12px 14px;border-radius:16px;
-      border:1px solid var(--line);background:rgba(16,26,47,.96);box-shadow:var(--shadow);display:none;
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--okBorder);
+      background:var(--okBg);
+      display:flex;
+      gap:10px;
+      align-items:center;
     }
-    .toast.success{border-color:rgba(46,204,113,.28);background:rgba(46,204,113,.12)}
-    .toast.warn{border-color:rgba(244,180,0,.28);background:rgba(244,180,0,.12)}
-    .toast.danger{border-color:rgba(255,77,122,.28);background:rgba(255,77,122,.12)}
-
-    .savingBar{display:none;margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(140,170,255,.24);background:rgba(140,170,255,.10)}
-    .savingBar.show{display:block}
-
-    @media (max-width:1050px){
-      .hero,.layout,.split{grid-template-columns:1fr}
+    .toast[hidden]{display:none}
+    .toast .msg{font-size:13px; line-height:1.4}
+    .toast .act{
+      margin-left:auto;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-weight:1000;
+      cursor:pointer;
+      min-height:36px;
     }
-    @media (max-width:740px){
-      .formGrid,.previewGrid{grid-template-columns:1fr}
-      .wrap{padding:14px}
-      .h1{font-size:28px}
-      .headerRow{align-items:flex-start}
+    .toast .act:hover{background:rgba(255,255,255,.10)}
+    .toast .act[hidden]{display:none}
+
+    .preview{
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+    }
+    .preview pre{
+      margin:0;
+      white-space:pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color:rgba(232,238,252,.86);
+      line-height:1.5;
+    }
+
+    .topTools{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+
+    .srOnly{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
     }
   </style>
 </head>
+
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
-  <header>
-    <div class="wrap headerRow">
-      <div class="brand">
-        <div class="logo">MEI</div>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
         <div>
-          <div>MEI Estate</div>
-          <div class="brandSub">Add Property • Pending Approval Flow</div>
+          <div class="h1">Add Property</div>
+          <div class="muted">Submit → goes to Admin approval (Pending)</div>
+        </div>
+
+        <div class="topTools">
+          <a class="link" href="dashboard.html">🛡️ Admin Dashboard</a>
+          <a class="link" href="buyer.html">👤 Buyer Portal</a>
+          <button type="button" class="danger" data-action="clearLocal" title="Clears draft + local property data on this browser.">
+            🧹 Clear Local Demo
+          </button>
         </div>
       </div>
-      <nav>
-        <a class="btn small ghost" href="index.html">🏠 Home</a>
-        <a class="btn small ghost" href="listings.html">📋 Listings</a>
-        <a class="btn small ghost" href="seller.html">🏷 Seller</a>
-        <a class="btn small primary" href="dashboard.html">🛡 Dashboard</a>
-      </nav>
+
+      <div class="note">
+        ✅ இந்த model-ல Buyer portal-க்கு listing போகாது.
+        <b>Admin approve</b> பண்ணினா மட்டுமே buyer.html-ல தெரியும்.
+        <div class="hint">
+          Privacy note: Demo stores data locally in this browser. In production, store properties on the server with access control and audit logs.
+        </div>
+      </div>
+
+      <div id="errorSummary" class="summary" role="alert" hidden></div>
+
+      <form id="propForm" class="grid" autocomplete="off" novalidate>
+        <div>
+          <label for="title">Listing Title *</label>
+          <input id="title" name="title" placeholder="Eg: 2BHK Apartment - Whitefield" required maxlength="120" />
+          <div id="titleErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="type">Type *</label>
+          <select id="type" name="type" required>
+            <option value="">Select</option>
+            <option value="apartment">Apartment</option>
+            <option value="house">House</option>
+            <option value="plot">Plot</option>
+            <option value="commercial">Commercial</option>
+          </select>
+          <div id="typeErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="city">City *</label>
+          <input id="city" name="city" placeholder="Eg: Bangalore" required maxlength="60" />
+          <div id="cityErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="area">Area / Locality *</label>
+          <input id="area" name="area" placeholder="Eg: Whitefield" required maxlength="60" />
+          <div id="areaErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="price">Price (₹)</label>
+          <input id="price" name="price" placeholder="Eg: 6500000" inputmode="numeric" autocomplete="off" />
+          <div class="hint">Numbers only. Commas/spaces will be cleaned.</div>
+          <div id="priceErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="contactName">Contact Name (Broker/Seller)</label>
+          <input id="contactName" name="contactName" placeholder="Eg: Raj" maxlength="60" />
+          <div id="contactNameErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Eg: 9876543210" maxlength="13" />
+          <div class="hint">If India: enter 10 digits. You can also include +91.</div>
+          <div id="phoneErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="beds">Bedrooms (optional)</label>
+          <input id="beds" name="beds" placeholder="Eg: 2" inputmode="numeric" autocomplete="off" />
+          <div id="bedsErr" class="err" hidden></div>
+        </div>
+
+        <div style="grid-column:1/-1;">
+          <label for="desc">Description</label>
+          <textarea id="desc" name="desc" rows="4" maxlength="800" placeholder="Short details, facing, sqft, amenities..."></textarea>
+          <div class="hint">Tip: keep it concise; highlight 3–5 key points.</div>
+        </div>
+
+        <div style="grid-column:1/-1;" class="actions">
+          <button class="ok" type="submit" data-action="submit">✅ Submit for Approval</button>
+          <button type="button" data-action="fillSample">✨ Fill Sample</button>
+          <button class="danger" type="button" data-action="clearForm">🧽 Clear</button>
+          <button type="button" data-action="saveDraft">💾 Save Draft</button>
+        </div>
+      </form>
+
+      <div class="preview" aria-label="Saved preview">
+        <div style="font-weight:1000;margin-bottom:6px;">Preview (safe text)</div>
+        <pre id="previewText">—</pre>
+        <div class="hint">
+          XSS check: if you type <code>&lt;img src=x onerror=alert(1)&gt;</code> in Title/Description, it will display as text here (no execution).
+        </div>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <div class="msg" id="toastMsg">✅ Submitted.</div>
+        <button class="act" id="toastAction" type="button" hidden>Undo</button>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        API placeholder (unspecified): <span style="font-weight:900">POST /properties</span> → status defaults to <span style="font-weight:900">pending</span>.
+        In production, validate on the server (client validation can be bypassed). 
+      </div>
     </div>
-  </header>
+  </div>
 
-  <main id="main-content" class="wrap">
-    <section class="hero">
-      <div class="card">
-        <div class="cardBody">
-          <h1 class="h1">Add a new property into the MEI launch pipeline</h1>
-          <p class="muted">
-            Listing save ஆனதும் அது <b>pending</b> status-ல் admin dashboard-க்கு போகும்.
-            Admin approve செய்த பிறகுதான் public listings page-ல் தெரியும்.
-          </p>
-          <div class="chips">
-            <span class="chip">Cloud or local save</span>
-            <span class="chip">Pending approval workflow</span>
-            <span class="chip">Broker assignment support</span>
-            <span class="chip">Gallery + featured support</span>
-            <span class="chip">Draft save support</span>
-          </div>
-          <div class="banner">Listing fast save ஆகணும். Public ஆக போகும் முன் moderation இருக்கணும்.</div>
-        </div>
-      </div>
+<script>
+(() => {
+  // ====== Storage keys (must match dashboard & buyer) ======
+  const PROPS_KEY = "mei_properties_v1";
+  const DRAFT_KEY = "mei_add_property_draft_v1";
 
-      <div class="card">
-        <div class="cardBody">
-          <div class="h2">Launch flow</div>
-          <div class="muted">
-            1. Broker / admin property submit பண்ணுகிறார்<br>
-            2. Property save ஆகும்<br>
-            3. Status = <b>pending</b><br>
-            4. Admin dashboard moderation<br>
-            5. Approved properties மட்டும் public
-          </div>
-          <div class="okBanner banner">
-            Supabase config இல்லையென்றாலும் local pending queue-க்கு save ஆகும்.
-          </div>
-        </div>
-      </div>
-    </section>
+  const $ = (id) => document.getElementById(id);
 
-    <section class="layout">
-      <div class="card">
-        <div class="cardBody">
-          <div class="sectionTop">
-            <div>
-              <div class="h2">Property Submission Form</div>
-              <div class="muted">Minimum required fields மட்டும் நிரப்பினாலும் pending listing save ஆகும்.</div>
-            </div>
-            <div class="toolRow">
-              <button class="btn small" type="button" id="loadDraftBtn">📥 Load Draft</button>
-              <button class="btn small success" type="button" id="saveDraftBtn">💾 Save Draft</button>
-              <button class="btn small warn" type="button" id="clearBtn">🧽 Clear</button>
-            </div>
-          </div>
+  // ====== Toast with optional Undo ======
+  let TOAST_TIMER = null;
+  let TOAST_ACTION_FN = null;
 
-          <form id="propertyForm" novalidate>
-            <div class="formGrid">
-              <div>
-                <label for="title">Listing Title *</label>
-                <input id="title" placeholder="e.g. 2BHK Apartment in Whitefield" />
-                <div id="titleErr" class="err" hidden></div>
-              </div>
+  function toast(msg, opts = {}){
+    const { actionText = "", actionFn = null, timeout = 4500 } = opts;
 
-              <div>
-                <label for="type">Property Type *</label>
-                <select id="type">
-                  <option value="">Select type</option>
-                  <option>Apartment</option>
-                  <option>House</option>
-                  <option>Plot</option>
-                  <option>Commercial</option>
-                  <option>Villa</option>
-                  <option>Office</option>
-                  <option>Warehouse</option>
-                  <option>Pg</option>
-                  <option>Agriculture land</option>
-                  <option>Shop</option>
-                </select>
-                <div id="typeErr" class="err" hidden></div>
-              </div>
+    $("toastMsg").textContent = msg || "✅ Done";
+    TOAST_ACTION_FN = (typeof actionFn === "function") ? actionFn : null;
 
-              <div>
-                <label for="city">City *</label>
-                <input id="city" placeholder="e.g. Bangalore" />
-                <div id="cityErr" class="err" hidden></div>
-              </div>
-
-              <div>
-                <label for="area">Area / Locality *</label>
-                <input id="area" placeholder="e.g. Whitefield" />
-                <div id="areaErr" class="err" hidden></div>
-              </div>
-
-              <div>
-                <label for="bhk">BHK</label>
-                <input id="bhk" placeholder="e.g. 2 BHK" />
-              </div>
-
-              <div>
-                <label for="sqft">Area Size (sqft)</label>
-                <input id="sqft" type="number" min="0" placeholder="e.g. 1200" />
-              </div>
-
-              <div>
-                <label for="price">Price (₹) *</label>
-                <input id="price" type="number" min="0" placeholder="e.g. 6500000" />
-                <div id="priceErr" class="err" hidden></div>
-              </div>
-
-              <div>
-                <label for="brokerName">Broker</label>
-                <select id="brokerName">
-                  <option value="">Select broker</option>
-                </select>
-              </div>
-
-              <div>
-                <label for="sellerName">Seller / Contact Name</label>
-                <input id="sellerName" placeholder="e.g. Ramesh" />
-              </div>
-
-              <div>
-                <label for="sellerPhone">Seller / Contact Phone</label>
-                <input id="sellerPhone" placeholder="e.g. 9876543210" inputmode="numeric" />
-                <div id="sellerPhoneErr" class="err" hidden></div>
-              </div>
-
-              <div class="full">
-                <label for="image">Main Image URL</label>
-                <input id="image" placeholder="https://example.com/image.jpg" />
-                <div class="hint">Optional. Cloud image upload later add பண்ணலாம். இப்போ URL-based quick launch flow.</div>
-              </div>
-
-              <div class="full">
-                <label for="gallery">Gallery Image URLs</label>
-                <textarea id="gallery" placeholder="One image URL per line"></textarea>
-                <div class="hint">ஒரு lineக்கு ஒரு image URL.</div>
-              </div>
-
-              <div class="full">
-                <label for="description">Description</label>
-                <textarea id="description" placeholder="Explain highlights, documents, school/metro access, rental potential, parking, facing, loan eligibility..."></textarea>
-              </div>
-
-              <div class="full split">
-                <label class="checkRow">
-                  <input id="featured" type="checkbox" />
-                  <span>
-                    <b>Mark as featured listing</b><br>
-                    <span class="mini">Admin approve பிறகு featured section-ல் high visibility.</span>
-                  </span>
-                </label>
-
-                <label class="checkRow">
-                  <input id="termsAccepted" type="checkbox" />
-                  <span>
-                    <b>I confirm this listing data is genuine *</b><br>
-                    <span class="mini">இந்த checkbox இல்லேனா save block ஆகும்.</span>
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div id="savingBar" class="savingBar">Saving property…</div>
-
-            <div class="actions">
-              <button class="btn gold" type="submit">🚀 Save Property</button>
-              <button class="btn" type="button" id="previewSyncBtn">🔄 Refresh Preview</button>
-              <button class="btn success" type="button" id="saveAndStayBtn">✅ Save & Stay</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="previewShell">
-        <div class="card previewCard">
-          <div class="previewImage" id="previewImg"></div>
-          <div class="previewBody">
-            <div class="previewTitle" id="previewTitle">Untitled Property</div>
-            <div class="previewPrice" id="previewPrice">Price on request</div>
-            <div class="previewMeta" id="previewMeta">Area, City • Type • BHK • sqft</div>
-            <div class="previewDesc" id="previewDesc">Description preview will appear here.</div>
-            <div class="previewGrid">
-              <div class="previewStat"><div class="k">Broker</div><div class="v" id="previewBroker">Unassigned</div></div>
-              <div class="previewStat"><div class="k">Status</div><div class="v">Pending approval</div></div>
-              <div class="previewStat"><div class="k">Seller</div><div class="v" id="previewSeller">—</div></div>
-              <div class="previewStat"><div class="k">Featured</div><div class="v" id="previewFeatured">No</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardBody">
-            <div class="h2">Submission readiness</div>
-            <div class="muted">இந்த checklist green ஆனால் property submit smoothly போகும்.</div>
-            <div class="checklist" style="margin-top:14px">
-              <div class="checkItem"><span>Title added</span><span id="checkTitle" class="state wait">WAIT</span></div>
-              <div class="checkItem"><span>Type selected</span><span id="checkType" class="state wait">WAIT</span></div>
-              <div class="checkItem"><span>City and area ready</span><span id="checkLocation" class="state wait">WAIT</span></div>
-              <div class="checkItem"><span>Valid price</span><span id="checkPrice" class="state wait">WAIT</span></div>
-              <div class="checkItem"><span>Trust checkbox</span><span id="checkTerms" class="state wait">WAIT</span></div>
-            </div>
-            <div class="banner" style="margin-top:14px">
-              Save செய்த பிறகு property <b>dashboard.html → pending approvals</b> queue-ல் வரும்.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <div class="footerRow">
-        <div>© <span id="yr"></span> MEI Estate</div>
-        <div class="footerLinks">
-          <a href="index.html">Home</a>
-          <a href="listings.html">Listings</a>
-          <a href="seller.html">Seller</a>
-          <a href="dashboard.html">Dashboard</a>
-        </div>
-      </div>
-    </footer>
-  </main>
-
-  <div class="toast" id="toast" role="status"></div>
-
-  <script src="app.js"></script>
-
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-    const SUPABASE_URL = "YOUR_SUPABASE_URL";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-
-    const hasSupabaseConfig =
-      SUPABASE_URL &&
-      SUPABASE_ANON_KEY &&
-      SUPABASE_URL !== "YOUR_SUPABASE_URL" &&
-      SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY";
-
-    if (hasSupabaseConfig) {
-      window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else {
-      window.supabaseClient = null;
+    if(actionText && TOAST_ACTION_FN){
+      $("toastAction").textContent = actionText;
+      $("toastAction").hidden = false;
+    }else{
+      $("toastAction").hidden = true;
     }
 
-    window.hasSupabaseConfig = hasSupabaseConfig;
-  </script>
+    $("toast").hidden = false;
 
-  <script>
-    const DRAFT_KEY = "mei_add_property_draft_v3";
-    const PROPS_KEY = "mei_properties_v1";
-    const $ = (id) => document.getElementById(id);
+    if(TOAST_TIMER) clearTimeout(TOAST_TIMER);
+    TOAST_TIMER = setTimeout(() => {
+      $("toast").hidden = true;
+      $("toastAction").hidden = true;
+      TOAST_ACTION_FN = null;
+    }, timeout);
+  }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      $("yr").textContent = new Date().getFullYear();
-      if (typeof seedData === "function") seedData();
-      fillBrokerOptions();
-      loadDraft();
-      renderPreview();
-      bindEvents();
+  $("toastAction").addEventListener("click", () => {
+    if(typeof TOAST_ACTION_FN === "function"){
+      const fn = TOAST_ACTION_FN;
+      $("toast").hidden = true;
+      $("toastAction").hidden = true;
+      TOAST_ACTION_FN = null;
+      try{ fn(); }catch(e){}
+    }
+  });
+
+  // ====== Data helpers ======
+  function readProps(){
+    try{ return JSON.parse(localStorage.getItem(PROPS_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+
+  function writeProps(props){
+    localStorage.setItem(PROPS_KEY, JSON.stringify(props || []));
+  }
+
+  function uid(){
+    try{
+      if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    }catch(e){}
+    return "P_" + Date.now().toString(16) + "_" + Math.random().toString(16).slice(2);
+  }
+
+  function normalizeDigits(val){
+    const s = String(val || "").replace(/[^\d]/g, "");
+    return s ? s : "";
+  }
+
+  function cleanMoney(val){
+    // keeps digits only; e.g. "65,00,000" => "6500000"
+    return normalizeDigits(val);
+  }
+
+  function cleanPhone(val){
+    const raw = String(val || "").trim();
+    if(!raw) return "";
+    // allow + and digits; then normalize
+    const cleaned = raw.replace(/[^\d+]/g, "");
+    // If starts with +91 and 12-13 chars, keep. If 10 digits, keep.
+    const digitsOnly = cleaned.replace(/[^\d]/g, "");
+
+    if(digitsOnly.length === 10) return digitsOnly;
+    if(digitsOnly.length === 12 && digitsOnly.startsWith("91")) return "+" + digitsOnly;
+    if(cleaned.startsWith("+") && digitsOnly.length >= 10) return cleaned;
+    return digitsOnly; // best-effort
+  }
+
+  // ====== Validation ======
+  function setFieldError(id, msg){
+    const err = $(id + "Err");
+    const input = $(id);
+
+    if(!msg){
+      err.hidden = true;
+      err.textContent = "";
+      input.removeAttribute("aria-invalid");
+      return;
+    }
+
+    err.hidden = false;
+    err.textContent = msg;
+    input.setAttribute("aria-invalid", "true");
+  }
+
+  function validateAll(showSummary = true){
+    let ok = true;
+    const problems = [];
+
+    const title = $("title").value.trim();
+    const type = $("type").value.trim();
+    const city = $("city").value.trim();
+    const area = $("area").value.trim();
+
+    // Required
+    if(!title){ ok = false; setFieldError("title","Title is required."); problems.push("Title is required."); }
+    else setFieldError("title","");
+
+    if(!type){ ok = false; setFieldError("type","Type is required."); problems.push("Type is required."); }
+    else setFieldError("type","");
+
+    if(!city){ ok = false; setFieldError("city","City is required."); problems.push("City is required."); }
+    else setFieldError("city","");
+
+    if(!area){ ok = false; setFieldError("area","Area/Locality is required."); problems.push("Area is required."); }
+    else setFieldError("area","");
+
+    // Price optional but numeric if present
+    const priceRaw = $("price").value.trim();
+    if(priceRaw){
+      const p = cleanMoney(priceRaw);
+      if(!p){ ok = false; setFieldError("price","Enter a valid numeric price."); problems.push("Price must be numeric."); }
+      else setFieldError("price","");
+    }else setFieldError("price","");
+
+    // Beds optional numeric
+    const bedsRaw = $("beds").value.trim();
+    if(bedsRaw){
+      const b = normalizeDigits(bedsRaw);
+      if(!b){ ok = false; setFieldError("beds","Bedrooms must be a number."); problems.push("Bedrooms must be numeric."); }
+      else setFieldError("beds","");
+    }else setFieldError("beds","");
+
+    // Phone optional: accept 10 digits or +91xxxxxxxxxx / 91xxxxxxxxxx
+    const phoneRaw = $("phone").value.trim();
+    if(phoneRaw){
+      const cleanedDigits = phoneRaw.replace(/[^\d]/g,"");
+      const valid = (cleanedDigits.length === 10) || (cleanedDigits.length === 12 && cleanedDigits.startsWith("91")) || (phoneRaw.startsWith("+") && cleanedDigits.length >= 10);
+      if(!valid){
+        ok = false;
+        setFieldError("phone","Enter 10 digits (or +91XXXXXXXXXX).");
+        problems.push("Phone format is invalid.");
+      }else setFieldError("phone","");
+    }else setFieldError("phone","");
+
+    // Summary
+    const sum = $("errorSummary");
+    if(showSummary && !ok){
+      sum.hidden = false;
+      sum.textContent = "Please fix: " + problems.join(" ");
+    }else{
+      sum.hidden = true;
+      sum.textContent = "";
+    }
+
+    return ok;
+  }
+
+  // ====== Safe preview ======
+  function renderPreview(){
+    const obj = {
+      title: $("title").value.trim(),
+      type: $("type").value.trim(),
+      city: $("city").value.trim(),
+      area: $("area").value.trim(),
+      price: cleanMoney($("price").value),
+      contactName: $("contactName").value.trim(),
+      phone: cleanPhone($("phone").value),
+      beds: normalizeDigits($("beds").value),
+      desc: $("desc").value.trim()
+    };
+    $("previewText").textContent = JSON.stringify(obj, null, 2);
+  }
+
+  // ====== Draft save/load ======
+  function saveDraft(){
+    const draft = {
+      title: $("title").value,
+      type: $("type").value,
+      city: $("city").value,
+      area: $("area").value,
+      price: $("price").value,
+      contactName: $("contactName").value,
+      phone: $("phone").value,
+      beds: $("beds").value,
+      desc: $("desc").value
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    toast("💾 Draft saved");
+  }
+
+  function loadDraft(){
+    try{
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+      if(!d) return;
+
+      $("title").value = d.title || "";
+      $("type").value = d.type || "";
+      $("city").value = d.city || "";
+      $("area").value = d.area || "";
+      $("price").value = d.price || "";
+      $("contactName").value = d.contactName || "";
+      $("phone").value = d.phone || "";
+      $("beds").value = d.beds || "";
+      $("desc").value = d.desc || "";
+    }catch(e){}
+  }
+
+  function clearForm(){
+    $("propForm").reset();
+    $("errorSummary").hidden = true;
+    $("errorSummary").textContent = "";
+    ["title","type","city","area","price","contactName","phone","beds"].forEach(id => setFieldError(id, ""));
+    renderPreview();
+  }
+
+  function fillSample(){
+    $("title").value = "2BHK Apartment - Whitefield";
+    $("type").value = "apartment";
+    $("city").value = "Bangalore";
+    $("area").value = "Whitefield";
+    $("price").value = "6500000";
+    $("contactName").value = "MEI Broker";
+    $("phone").value = "9876543210";
+    $("beds").value = "2";
+    $("desc").value = "East facing • 1100 sqft • Near metro • Covered parking";
+    renderPreview();
+    toast("✨ Sample filled");
+  }
+
+  // ====== Submit ======
+  function submitForm(){
+    const ok = validateAll(true);
+    renderPreview();
+
+    if(!ok){
+      toast("❌ Fix errors and submit again.");
+      // focus first invalid
+      const firstInvalid = document.querySelector("[aria-invalid='true']");
+      if(firstInvalid) firstInvalid.focus();
+      return;
+    }
+
+    const prop = {
+      id: uid(),
+      title: $("title").value.trim(),
+      type: $("type").value.trim(),
+      city: $("city").value.trim(),
+      area: $("area").value.trim(),
+      price: cleanMoney($("price").value),
+      contactName: $("contactName").value.trim(),
+      phone: cleanPhone($("phone").value),
+      beds: normalizeDigits($("beds").value),
+      desc: $("desc").value.trim(),
+
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const props = readProps();
+    props.unshift(prop);
+    writeProps(props);
+
+    // Undo removes this ID
+    toast("✅ Submitted. Listing is PENDING until Admin approves.", {
+      actionText: "Undo",
+      actionFn: () => {
+        const cur = readProps();
+        const next = cur.filter(p => p.id !== prop.id);
+        writeProps(next);
+        toast("↩ Undone. Listing removed.", { timeout: 2200 });
+      },
+      timeout: 6500
     });
 
-    function readJSON(key, fallback = null) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return fallback;
-        const parsed = JSON.parse(raw);
-        return parsed ?? fallback;
-      } catch {
-        return fallback;
-      }
-    }
+    // Save a draft? no; but keep data clean after submit
+    localStorage.removeItem(DRAFT_KEY);
+    clearForm();
+  }
 
-    function writeJSON(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
-    }
+  // ====== Clear local demo data (properties + draft) ======
+  function clearLocalDemo(){
+    const sure = confirm("Clear local demo data? This will delete ALL locally stored properties and drafts on this browser.");
+    if(!sure) return;
 
-    function uid() {
-      try {
-        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      } catch {}
-      return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-    }
+    localStorage.removeItem(PROPS_KEY);
+    localStorage.removeItem(DRAFT_KEY);
 
-    function normalizePhone(v) {
-      return String(v || "").replace(/[^\d+]/g, "").trim();
-    }
+    toast("🧹 Local demo cleared.");
+    clearForm();
+  }
 
-    function cleanNumber(v) {
-      const n = Number(v);
-      return Number.isFinite(n) && n > 0 ? n : 0;
-    }
+  // ====== Event delegation ======
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    const action = btn.getAttribute("data-action");
+    if(action === "fillSample") fillSample();
+    if(action === "clearForm") clearForm();
+    if(action === "saveDraft") saveDraft();
+    if(action === "clearLocal") clearLocalDemo();
+  });
 
-    function showToast(msg, type = "success") {
-      const el = $("toast");
-      el.className = "toast " + type;
-      el.textContent = msg;
-      el.style.display = "block";
-      clearTimeout(el._timer);
-      el._timer = setTimeout(() => {
-        el.style.display = "none";
-      }, 2400);
-    }
+  $("propForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    submitForm();
+  });
 
-    function setSaving(show, text = "Saving property…") {
-      const bar = $("savingBar");
-      bar.textContent = text;
-      bar.classList.toggle("show", !!show);
-    }
-
-    function formatINR(v) {
-      const num = cleanNumber(v);
-      return num ? "₹" + num.toLocaleString("en-IN") : "Price on request";
-    }
-
-    function safeBg(url) {
-      const v = String(url || "").trim();
-      return v ? `url("${v.replace(/"/g, "%22")}")` : "";
-    }
-
-    function getGalleryLines() {
-      return $("gallery").value
-        .split("\n")
-        .map(x => x.trim())
-        .filter(Boolean);
-    }
-
-    function getAllBrokersSafe() {
-      if (typeof getAllBrokers === "function") {
-        return getAllBrokers();
-      }
-      const raw = readJSON("mei_brokers_v1", []);
-      return Array.isArray(raw)
-        ? raw.map(x => typeof x === "string" ? { name: x } : x).filter(Boolean)
-        : [];
-    }
-
-    function fillBrokerOptions() {
-      const brokerSelect = $("brokerName");
-      const current = brokerSelect.value || "";
-      brokerSelect.innerHTML = `<option value="">Select broker</option>`;
-
-      getAllBrokersSafe().forEach(b => {
-        const op = document.createElement("option");
-        op.value = b.name || "";
-        op.textContent = b.name || "";
-        brokerSelect.appendChild(op);
-      });
-
-      if ([...brokerSelect.options].some(o => o.value === current)) {
-        brokerSelect.value = current;
-      }
-    }
-
-    function renderChecklist() {
-      const titleOk = !!$("title").value.trim();
-      const typeOk = !!$("type").value.trim();
-      const locationOk = !!$("city").value.trim() && !!$("area").value.trim();
-      const priceOk = !!cleanNumber($("price").value);
-      const termsOk = !!$("termsAccepted").checked;
-
-      setCheckState("checkTitle", titleOk);
-      setCheckState("checkType", typeOk);
-      setCheckState("checkLocation", locationOk);
-      setCheckState("checkPrice", priceOk);
-      setCheckState("checkTerms", termsOk);
-    }
-
-    function setCheckState(id, ok) {
-      const el = $(id);
-      el.textContent = ok ? "READY" : "WAIT";
-      el.className = "state " + (ok ? "ready" : "wait");
-    }
-
-    function renderPreview() {
-      const title = $("title").value.trim() || "Untitled Property";
-      const city = $("city").value.trim() || "City";
-      const area = $("area").value.trim() || "Area";
-      const type = $("type").value || "Property";
-      const bhk = $("bhk").value.trim();
-      const sqft = cleanNumber($("sqft").value);
-      const price = $("price").value;
-      const desc = $("description").value.trim() || "Description preview will appear here.";
-      const image = $("image").value.trim();
-      const brokerName = $("brokerName").value.trim() || "Unassigned";
-      const sellerName = $("sellerName").value.trim() || "—";
-      const featured = $("featured").checked ? "Yes" : "No";
-
-      $("previewTitle").textContent = title;
-      $("previewPrice").textContent = formatINR(price);
-      $("previewMeta").textContent = `${area}, ${city} • ${type}${bhk ? " • " + bhk : ""}${sqft ? " • " + sqft + " sqft" : ""}`;
-      $("previewDesc").textContent = desc;
-      $("previewBroker").textContent = brokerName;
-      $("previewSeller").textContent = sellerName;
-      $("previewFeatured").textContent = featured;
-      $("previewImg").style.backgroundImage = image ? safeBg(image) : "";
-
-      renderChecklist();
-    }
-
-    function clearErrors() {
-      ["titleErr","typeErr","cityErr","areaErr","priceErr","sellerPhoneErr"].forEach(id => {
-        $(id).hidden = true;
-        $(id).textContent = "";
-      });
-    }
-
-    function validatePhone(phone) {
-      const clean = normalizePhone(phone);
-      return !clean || clean.length >= 10;
-    }
-
-    function validateForm() {
-      clearErrors();
-      let ok = true;
-
-      if (!$("title").value.trim()) {
-        $("titleErr").textContent = "Listing title is required.";
-        $("titleErr").hidden = false;
-        ok = false;
-      }
-      if (!$("type").value.trim()) {
-        $("typeErr").textContent = "Property type is required.";
-        $("typeErr").hidden = false;
-        ok = false;
-      }
-      if (!$("city").value.trim()) {
-        $("cityErr").textContent = "City is required.";
-        $("cityErr").hidden = false;
-        ok = false;
-      }
-      if (!$("area").value.trim()) {
-        $("areaErr").textContent = "Area / locality is required.";
-        $("areaErr").hidden = false;
-        ok = false;
-      }
-      if (!cleanNumber($("price").value)) {
-        $("priceErr").textContent = "Valid price is required.";
-        $("priceErr").hidden = false;
-        ok = false;
-      }
-      if (!validatePhone($("sellerPhone").value)) {
-        $("sellerPhoneErr").textContent = "Seller phone looks invalid.";
-        $("sellerPhoneErr").hidden = false;
-        ok = false;
-      }
-      if (!$("termsAccepted").checked) {
-        showToast("Please confirm listing genuineness before submit.", "warn");
-        ok = false;
-      }
-      return ok;
-    }
-
-    function buildPayload() {
-      const broker = getAllBrokersSafe().find(x => x.name === $("brokerName").value) || null;
-
-      return {
-        id: uid(),
-        title: $("title").value.trim(),
-        city: $("city").value.trim(),
-        area: $("area").value.trim(),
-        type: $("type").value.trim(),
-        bhk: $("bhk").value.trim(),
-        sqft: String(cleanNumber($("sqft").value) || ""),
-        price: cleanNumber($("price").value),
-        description: $("description").value.trim(),
-        image: $("image").value.trim(),
-        gallery: getGalleryLines(),
-        seller_name: $("sellerName").value.trim(),
-        seller_phone: normalizePhone($("sellerPhone").value),
-        broker_name: broker ? broker.name : $("brokerName").value.trim(),
-        featured: $("featured").checked,
-        status: "pending",
-        approved_at: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-
-        /* dashboard compatibility */
-        name: $("title").value.trim(),
-        approvedAt: null
-      };
-    }
-
-    function saveDraft() {
-      const draft = {
-        title: $("title").value,
-        city: $("city").value,
-        area: $("area").value,
-        type: $("type").value,
-        bhk: $("bhk").value,
-        price: $("price").value,
-        sqft: $("sqft").value,
-        description: $("description").value,
-        image: $("image").value,
-        gallery: $("gallery").value,
-        sellerName: $("sellerName").value,
-        sellerPhone: $("sellerPhone").value,
-        brokerName: $("brokerName").value,
-        featured: $("featured").checked,
-        termsAccepted: $("termsAccepted").checked
-      };
-      writeJSON(DRAFT_KEY, draft);
-      showToast("Draft saved");
-    }
-
-    function loadDraft() {
-      const draft = readJSON(DRAFT_KEY, null);
-      if (!draft) return;
-
-      $("title").value = draft.title || "";
-      $("city").value = draft.city || "";
-      $("area").value = draft.area || "";
-      $("type").value = draft.type || "";
-      $("bhk").value = draft.bhk || "";
-      $("price").value = draft.price || "";
-      $("sqft").value = draft.sqft || "";
-      $("description").value = draft.description || "";
-      $("image").value = draft.image || "";
-      $("gallery").value = draft.gallery || "";
-      $("sellerName").value = draft.sellerName || "";
-      $("sellerPhone").value = draft.sellerPhone || "";
-      $("brokerName").value = draft.brokerName || "";
-      $("featured").checked = !!draft.featured;
-      $("termsAccepted").checked = !!draft.termsAccepted;
-    }
-
-    function clearForm() {
-      $("propertyForm").reset();
-      clearErrors();
+  // Live preview
+  ["title","type","city","area","price","contactName","phone","beds","desc"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      // do light validation without summary spam
+      validateAll(false);
       renderPreview();
-    }
+    });
+  });
 
-    async function insertPropertyCloud(payload) {
-      const { data, error } = await window.supabaseClient
-        .from("properties")
-        .insert([payload])
-        .select();
+  // Init
+  loadDraft();
+  renderPreview();
 
-      if (error) throw error;
-      return data;
-    }
-
-    function insertPropertyLocal(payload) {
-      const existing = readJSON(PROPS_KEY, []);
-      existing.unshift(payload);
-      writeJSON(PROPS_KEY, existing);
-      return payload;
-    }
-
-    async function saveProperty(payload) {
-      if (window.supabaseClient && window.hasSupabaseConfig) {
-        return await insertPropertyCloud(payload);
-      }
-      return insertPropertyLocal(payload);
-    }
-
-    async function submitProperty(e, stayOnPage = false) {
-      if (e) e.preventDefault();
-
-      if (!validateForm()) {
-        showToast("Please fix form errors", "danger");
-        return;
-      }
-
-      const payload = buildPayload();
-
-      try {
-        setSaving(true, window.hasSupabaseConfig ? "Saving property to cloud…" : "Saving property locally…");
-        await saveProperty(payload);
-
-        localStorage.removeItem(DRAFT_KEY);
-        showToast(window.hasSupabaseConfig ? "Property saved to cloud as pending ✅" : "Property saved locally as pending ✅", "success");
-
-        if (stayOnPage) {
-          clearForm();
-          setSaving(false, "Saved");
-          return;
-        }
-
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 900);
-      } catch (err) {
-        console.error(err);
-        setSaving(false, "Save failed");
-        showToast(err.message || "Property save failed", "danger");
-      }
-    }
-
-    function bindEvents() {
-      [
-        "title","city","area","type","bhk","price","sqft",
-        "description","image","gallery","sellerName","sellerPhone",
-        "brokerName","featured","termsAccepted"
-      ].forEach(id => {
-        $(id).addEventListener("input", renderPreview);
-        $(id).addEventListener("change", renderPreview);
-      });
-
-      $("propertyForm").addEventListener("submit", submitProperty);
-      $("saveDraftBtn").addEventListener("click", saveDraft);
-      $("loadDraftBtn").addEventListener("click", () => {
-        loadDraft();
-        renderPreview();
-        showToast("Draft loaded", "success");
-      });
-      $("clearBtn").addEventListener("click", clearForm);
-      $("previewSyncBtn").addEventListener("click", renderPreview);
-      $("saveAndStayBtn").addEventListener("click", () => submitProperty(null, true));
-    }
-  </script>
+})();
+</script>
 </body>
 </html>
-
-
 
 

@@ -5,49 +5,285 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#0b0f17" />
-  <title>MEI Estate — Approved Listings • Buyer Leads • Seller Leads • Broker Network</title>
-  <meta
-    name="description"
-    content="MEI Estate — browse approved listings, post buyer and seller leads, list property for sale, and join as a broker."
-  />
-  <link rel="stylesheet" href="index.css" />
+  <title>Real Estate Broker Network — Whitefield</title>
+  <meta name="description" content="Verified Broker Network + Deal Room. Whitefield launch. Post a lead or join as a broker." />
+
+  <!--
+    Production notes (server-side, unspecified):
+    - Deliver CSP via Content-Security-Policy response header; set on all responses.
+    - Enforce HTTPS + HSTS (Strict-Transport-Security).
+    - Validate/rate-limit form submissions server-side; client-side checks can be bypassed.
+  -->
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#0f1624;
+      --text:#e7eefc;
+      --muted:#a8b3c7;
+      --line:#1f2a3d;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+
+      --focus: rgba(110,231,255,.92);
+      --okBorder: rgba(52,211,153,.35);
+      --okBg: rgba(52,211,153,.12);
+      --warnBorder: rgba(251,191,36,.35);
+      --warnBg: rgba(251,191,36,.10);
+      --badBorder: rgba(251,113,133,.38);
+      --badBg: rgba(251,113,133,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
+        radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+
+    /* Skip link */
+    .skipLink{
+      position:absolute;
+      left:-9999px;
+      top:12px;
+      padding:10px 12px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.95);
+      border-radius:14px;
+      z-index:9999;
+    }
+    .skipLink:focus{left:16px}
+
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      position:sticky;
+      top:0;
+      background:rgba(11,15,23,.68);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(31,42,61,.6);
+      z-index:10;
+    }
+    header .wrap{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      width:100%;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.3px}
+    .logo{
+      width:36px;height:36px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 35px rgba(110,231,255,.18)
+    }
+    nav{display:flex;gap:14px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.7);
+      cursor:pointer;
+      color:var(--text);
+      font-weight:900;
+      min-height:40px; /* >= 24x24 target size intent */
+      user-select:none;
+    }
+    .btn:hover{background:rgba(15,22,36,.92)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{
+      background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
+      border-color:rgba(110,231,255,.35)
+    }
+    .btn.small{padding:8px 12px;border-radius:12px;font-size:14px;min-height:36px}
+    .btn.danger{
+      border-color: var(--badBorder);
+      background: var(--badBg);
+    }
+    .btn.danger:hover{background:rgba(251,113,133,.18)}
+    .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none}
+
+    :focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+
+    .hero{padding:44px 0 18px}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+
+    .h1{font-size:44px;line-height:1.05;margin:0 0 10px}
+    .sub{color:var(--muted);font-size:16px;line-height:1.6;margin:0 0 18px}
+    .pill{display:inline-flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      font-size:13px;
+      color:var(--muted);
+      border:1px solid rgba(31,42,61,.85);
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(15,22,36,.55)
+    }
+    .card{
+      background:rgba(15,22,36,.55);
+      border:1px solid rgba(31,42,61,.85);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 18px 60px rgba(0,0,0,.25)
+    }
+    .card h3{margin:0 0 10px;font-size:18px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 520px){.row{grid-template-columns:1fr}}
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px;font-weight:800}
+    input,select,textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.95);
+      background:rgba(11,15,23,.55);
+      color:var(--text);
+      outline:none;
+      min-height:42px;
+    }
+    input::placeholder, textarea::placeholder{color: rgba(168,179,199,.78)}
+    textarea{min-height:92px;resize:vertical}
+
+    .hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
+    .err{
+      margin-top:6px;
+      color:rgba(251,113,133,.95);
+      font-weight:900;
+      font-size:12px;
+      line-height:1.35;
+    }
+    .err[hidden]{display:none}
+
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+    @media (max-width: 650px){.kpis{grid-template-columns:1fr}}
+    .kpi{
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.45)
+    }
+    .kpi .n{font-size:20px;font-weight:1000}
+    .kpi .t{font-size:12px;color:var(--muted);margin-top:4px}
+
+    section{padding:18px 0; scroll-margin-top:100px;}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width: 900px){.features{grid-template-columns:1fr}}
+    .feat{padding:16px;border-radius:20px;border:1px solid rgba(31,42,61,.85);background:rgba(15,22,36,.45)}
+    .feat b{display:block;margin-bottom:6px}
+
+    footer{padding:24px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:22px}
+
+    /* Toast: accessible status message (role=status is set in HTML) */
+    .toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      max-width:420px;
+      background:rgba(15,22,36,.94);
+      border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;
+      border-radius:16px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      box-shadow:0 16px 50px rgba(0,0,0,.45);
+    }
+    .toast[hidden]{display:none}
+    .toast .msg{font-size:13px; line-height:1.4}
+    .toast .act{
+      margin-left:auto;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid rgba(31,42,61,.92);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:1000;
+      cursor:pointer;
+      min-height:36px;
+    }
+    .toast .act:hover{background:rgba(255,255,255,.10)}
+    .toast .act[hidden]{display:none}
+
+    /* Modal: accessible confirmation dialog */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.58);
+      padding:20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      overflow:auto;
+      z-index:99999;
+    }
+    .modalBack[hidden]{display:none}
+    .modalCard{
+      width:min(680px, 100%);
+      margin:6vh auto;
+      background:rgba(15,22,36,.98);
+      border:1px solid rgba(31,42,61,.92);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 20px 80px rgba(0,0,0,.60);
+    }
+    .modalTop{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .modalTitle{font-weight:1000;font-size:16px}
+    .modalBody{margin-top:10px;color:var(--muted);line-height:1.7}
+    .modalActions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+
+    .srOnly{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .btn:active{transform:none}
+    }
+  </style>
 </head>
+
 <body>
   <a class="skipLink" href="#main">Skip to content</a>
 
   <header>
     <div class="wrap">
-      <div class="brand">
+      <div class="brand" aria-label="Broker Network">
         <div class="logo" aria-hidden="true"></div>
         <div>
-          <div>MEI Estate</div>
-          <div class="sub">Approved Listings • Buyer Leads • Seller Leads • Broker Network</div>
+          <div>Broker Network</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:700">Whitefield • Verified • Deal Room</div>
         </div>
       </div>
 
-      <nav id="publicNav" aria-label="Public navigation">
-        <a class="btn small" href="index.html">Home</a>
+      <nav aria-label="Primary navigation">
         <a class="btn small" href="#features">Features</a>
         <a class="btn small" href="#how">How it works</a>
-        <a class="btn small" href="#quick-actions">Explore</a>
-        <a class="btn small" href="#listings">Browse Listings</a>
-        <a class="btn primary small" href="#lead">Post Lead</a>
-        <a class="btn small" href="seller.html">🏷 Sell Property</a>
-        <a class="btn small" href="#broker">Join Broker</a>
-        <a class="btn small" href="login.html">🔐 Login</a>
-        <a class="btn small" href="register.html">📝 Register</a>
-      </nav>
-
-      <nav id="privateNav" aria-label="Private navigation" hidden>
-        <a class="btn small" href="index.html">Home</a>
-        <a class="btn small" id="navDashboard" href="dashboard.html">🛡️ Dashboard</a>
-        <a class="btn small" id="navCRM" href="crm.html">📇 CRM</a>
-        <a class="btn small" id="navAddProperty" href="add-property.html">➕ Add Property</a>
-        <a class="btn small" id="navListings" href="listings.html">📋 All Listings</a>
-        <a class="btn small" id="navBrokerNetwork" href="broker-network.html">🤝 Broker Network</a>
-        <a class="btn small" id="navSellerPage" href="seller.html">🏷 Seller Page</a>
-        <a class="btn small" id="navLoginAs" href="javascript:void(0)">👤 User</a>
-        <button class="btn danger small" type="button" id="logoutBtn">🚪 Logout</button>
+        <a class="btn small" href="#lead">Post Lead</a>
+        <a class="btn primary small" href="#broker">Join as Broker</a>
+        <a class="btn small" href="broker.html">Broker Portal</a>
+        <button class="btn small" type="button" id="apiToggle" aria-pressed="false" data-action="toggleApi" title="API mode OFF = demo local. API mode ON = try backend (fallback to local).">
+          🔌 API: OFF
+        </button>
+        <button class="btn small danger" type="button" data-action="clearLocal" title="Remove only submissions created from this page (demo).">
+          🧹 Clear Local Demo
+        </button>
       </nav>
     </div>
   </header>
@@ -56,282 +292,128 @@
     <section class="hero">
       <div class="grid">
         <div>
-          <div id="heroBadge" class="heroBadge">Real Estate Operating Layer</div>
-
-          <h1 class="h1" id="heroTitle">Trust-first Real Estate.<br />Approved listings. Serious leads.</h1>
-
-          <p class="muted" id="heroText">
-            Browse admin-approved listings, connect with verified brokers, post serious buyer or seller enquiries,
-            and grow inventory through a clean real-estate pipeline.
+          <h1 class="h1">Trust-first Real Estate.<br/>Deal Room ready.</h1>
+          <p class="sub">
+            Whitefield launch: Verified brokers only. Clean listings. Serious leads.
+            Every deal gets a step-by-step Deal Room — no chaos, no fake promises.
           </p>
 
-          <div class="chips" aria-label="Key benefits" id="publicBenefits">
-            <span class="chip">✅ Approved listings only</span>
-            <span class="chip">📞 Buyer & seller lead capture</span>
-            <span class="chip">🤝 Broker network</span>
-            <span class="chip">🏷 Seller onboarding</span>
-            <span class="chip">🛡️ Admin approval flow</span>
+          <div class="pill" aria-label="Key benefits">
+            <span class="chip">✅ KYC Verified Brokers</span>
+            <span class="chip">🔁 Lead ↔ Match System</span>
+            <span class="chip">🤝 Deal Room Timeline</span>
+            <span class="chip">⚖️ Dispute Control</span>
           </div>
 
-          <div class="heroActions" id="publicHeroActions">
-            <a class="btn primary" href="#listings">Browse Approved Listings</a>
-            <a class="btn" href="#lead">Post a Lead</a>
-            <a class="btn" href="seller.html">Sell Property</a>
-            <a class="btn" href="#broker">Join as Broker</a>
+          <div class="kpis" aria-label="Key performance indicators">
+            <div class="kpi">
+              <div class="n">MVP</div>
+              <div class="t">Launch-ready in weeks</div>
+            </div>
+            <div class="kpi">
+              <div class="n">Whitefield</div>
+              <div class="t">Local dominance first</div>
+            </div>
+            <div class="kpi">
+              <div class="n">Trust</div>
+              <div class="t">Verification + audit trail</div>
+            </div>
           </div>
 
-          <div id="welcomePanel" class="welcomePanel" hidden>
-            <div class="welcomeHead">
-              <div>
-                <div class="welcomeTitle" id="welcomeTitle">Welcome back 👋</div>
-                <div class="welcomeText" id="welcomeText">Your workspace is ready.</div>
-              </div>
-              <div class="rolePill" id="rolePill">BROKER</div>
-            </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <a class="btn primary" href="#lead">Post a Lead</a>
+            <a class="btn" href="#broker">Become a Verified Broker</a>
+          </div>
 
-            <div class="statGrid">
-              <div class="statCard">
-                <div class="statValue" id="smartStat1Value">0</div>
-                <div class="statLabel" id="smartStat1Label">Approved Listings</div>
-              </div>
-              <div class="statCard">
-                <div class="statValue" id="smartStat2Value">0</div>
-                <div class="statLabel" id="smartStat2Label">CRM Leads</div>
-              </div>
-              <div class="statCard">
-                <div class="statValue" id="smartStat3Value">0</div>
-                <div class="statLabel" id="smartStat3Label">Brokers</div>
-              </div>
-            </div>
-
-            <div class="smartActions" id="privateHeroActions">
-              <a class="btn primary" id="smartAction1" href="dashboard.html">Open Dashboard</a>
-              <a class="btn" id="smartAction2" href="crm.html">Open CRM</a>
-              <a class="btn" id="smartAction3" href="add-property.html">Add Property</a>
-            </div>
+          <div class="hint" style="margin-top:12px">
+            Demo privacy note: If API mode is OFF (default), submissions are stored locally in this browser for testing.
+            In production, do not store sensitive personal data in browser storage.
           </div>
         </div>
 
         <div class="card" id="lead">
-          <h3>📩 Post a Buyer / Seller Lead</h3>
-          <p class="muted mtMinus">We’ll save this request into the CRM lead pipeline.</p>
+          <h3>📩 Post a Lead (Buyer / Seller)</h3>
+          <p class="sub" style="margin-top:-4px">We’ll connect you to a verified broker.</p>
 
-          <form id="landingLeadForm" novalidate>
-            <div class="row2">
+          <form id="leadForm" novalidate aria-label="Post a lead form">
+            <div class="row">
               <div>
                 <label for="leadName">Your Name *</label>
-                <input id="leadName" maxlength="60" placeholder="Name" required />
+                <input id="leadName" name="name" placeholder="Name" autocomplete="name" maxlength="60" required />
               </div>
               <div>
                 <label for="leadPhone">Phone *</label>
-                <input
-                  id="leadPhone"
-                  type="tel"
-                  inputmode="numeric"
-                  maxlength="16"
-                  placeholder="10-digit mobile or +91..."
-                  required
-                />
+                <input id="leadPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
+                       placeholder="10-digit mobile" maxlength="13" required />
+                <div class="hint">Example: 9876543210 (India). You may also enter +91XXXXXXXXXX.</div>
               </div>
             </div>
 
-            <div class="row2 mt10">
+            <div class="row" style="margin-top:10px">
               <div>
                 <label for="leadType">Lead Type *</label>
-                <select id="leadType">
+                <select id="leadType" name="leadType" required>
                   <option value="BUYER">Buyer</option>
                   <option value="SELLER">Seller</option>
                 </select>
               </div>
               <div>
                 <label for="leadLocality">Locality *</label>
-                <input id="leadLocality" maxlength="80" placeholder="Whitefield / ITPL / Hoodi…" required />
+                <input id="leadLocality" name="locality" placeholder="Whitefield / ITPL / Hoodi…" maxlength="80" required />
               </div>
             </div>
 
-            <div class="row2 mt10">
+            <div class="row" style="margin-top:10px">
               <div>
                 <label for="budgetMin">Budget Min (₹)</label>
-                <input id="budgetMin" type="number" min="0" inputmode="numeric" placeholder="e.g. 5000000" />
+                <input id="budgetMin" name="budgetMin" type="number" min="0" inputmode="numeric" placeholder="e.g. 5000000" />
               </div>
               <div>
                 <label for="budgetMax">Budget Max (₹)</label>
-                <input id="budgetMax" type="number" min="0" inputmode="numeric" placeholder="e.g. 9000000" />
+                <input id="budgetMax" name="budgetMax" type="number" min="0" inputmode="numeric" placeholder="e.g. 9000000" />
               </div>
             </div>
 
-            <div class="mt10">
+            <div style="margin-top:10px">
               <label for="leadNotes">Notes</label>
-              <textarea id="leadNotes" placeholder="Property type, timeline, preferences…"></textarea>
+              <textarea id="leadNotes" name="notes" placeholder="Property type, timeline, preferences…"></textarea>
             </div>
 
-            <div class="checkRow">
-              <input id="leadConsent" type="checkbox" class="checkBox" />
-              <div class="hint noTop">I agree to be contacted about this lead.</div>
+            <div style="margin-top:10px">
+              <label class="srOnly" for="leadConsent">Consent</label>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <input id="leadConsent" type="checkbox" style="width:18px;height:18px;margin-top:2px" />
+                <div class="hint" style="margin-top:0">
+                  I agree to be contacted about this lead.
+                </div>
+              </div>
             </div>
 
-            <div id="landingLeadErr" class="err" hidden></div>
+            <div id="leadErr" class="err" hidden></div>
 
-            <div class="formActions">
-              <button class="btn primary" type="submit">Submit Lead</button>
-              <button class="btn" type="button" data-action="saveLandingDraft">💾 Save Draft</button>
-              <button class="btn" type="button" data-action="clearLandingForm">🧽 Clear</button>
-            </div>
-
-            <div class="preview">
-              <div class="hint noTop">Preview (safe text)</div>
-              <pre id="landingLeadPreview">—</pre>
+            <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+              <button class="btn primary" type="submit" id="leadSubmitBtn">Submit Lead</button>
+              <span style="font-size:12px;color:var(--muted)">No spam. Verified brokers only.</span>
             </div>
           </form>
         </div>
       </div>
     </section>
 
-    <section id="smart-workspace" hidden>
-      <div class="card">
-        <div class="sectionTop">
-          <div>
-            <h2 class="noMarginBottom">Your Workspace</h2>
-            <div class="muted" id="workspaceSubtext">Quick entry points based on your role.</div>
-          </div>
-        </div>
-
-        <div class="quickCards" id="workspaceCards">
-          <article class="quickCard">
-            <div class="quickIcon">🛡️</div>
-            <div class="titleText">Dashboard</div>
-            <div class="desc">Open your main control center and track platform activity.</div>
-            <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">📇</div>
-            <div class="titleText">CRM</div>
-            <div class="desc">Handle enquiries, follow-ups and daily lead movement.</div>
-            <a class="btn small primary" href="crm.html">Open CRM</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">➕</div>
-            <div class="titleText">Add Property</div>
-            <div class="desc">Create a fresh property entry and move it into approval flow.</div>
-            <a class="btn small primary" href="add-property.html">Add Property</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">📋</div>
-            <div class="titleText">Listings</div>
-            <div class="desc">Review all listings and jump into public-facing property pages.</div>
-            <a class="btn small primary" href="listings.html">Open Listings</a>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="quick-actions">
-      <div class="card">
-        <div class="sectionTop">
-          <div>
-            <h2 class="noMarginBottom">Quick Actions</h2>
-            <div class="muted" id="quickActionText">Choose the path that matches your role in the property journey.</div>
-          </div>
-        </div>
-
-        <div class="quickCards" id="quickActionGrid">
-          <article class="quickCard">
-            <div class="quickIcon">🏠</div>
-            <div class="titleText">Browse Properties</div>
-            <div class="desc">See approved listings only and move into interest flow without noise.</div>
-            <a class="btn small primary" href="#listings">Browse Listings</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">🏷</div>
-            <div class="titleText">Sell Property</div>
-            <div class="desc">Owners, builders and land sellers can submit property details and enter the seller pipeline.</div>
-            <a class="btn small primary" href="seller.html">Open Seller Page</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">🤝</div>
-            <div class="titleText">Join Broker Network</div>
-            <div class="desc">Register for verification and become part of the broker-side opportunity flow.</div>
-            <a class="btn small primary" href="#broker">Join Broker</a>
-          </article>
-
-          <article class="quickCard">
-            <div class="quickIcon">🛡️</div>
-            <div class="titleText">Admin Dashboard</div>
-            <div class="desc">Manage approvals, buyer leads, seller leads, broker flow and follow-ups from one place.</div>
-            <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="listings">
-      <div class="card">
-        <div class="sectionTop">
-          <div>
-            <h2 class="noMarginBottom">Featured Approved Listings</h2>
-            <div class="muted">Homepage preview of approved public listings</div>
-          </div>
-          <div class="topActions">
-            <span class="pill">Approved: <span id="approvedCount">0</span></span>
-            <button class="btn small" type="button" data-action="refreshListings">🔄 Refresh</button>
-            <a class="btn small primary" href="listings.html">View All Listings</a>
-          </div>
-        </div>
-
-        <div class="filterBar" aria-label="Listing filters">
-          <div>
-            <label class="srOnly" for="q">Search listings</label>
-            <input id="q" placeholder="Search title / city / area / type..." />
-          </div>
-
-          <div>
-            <label class="srOnly" for="typeFilter">Type filter</label>
-            <select id="typeFilter">
-              <option value="">All Types</option>
-              <option value="Apartment">Apartment</option>
-              <option value="House">House</option>
-              <option value="Plot">Plot</option>
-              <option value="Commercial">Commercial</option>
-              <option value="Villa">Villa</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="srOnly" for="sortFilter">Sort filter</label>
-            <select id="sortFilter">
-              <option value="NEWEST">Sort: Newest</option>
-              <option value="PRICE_LOW">Sort: Price low → high</option>
-              <option value="PRICE_HIGH">Sort: Price high → low</option>
-              <option value="FEATURED">Sort: Featured first</option>
-            </select>
-          </div>
-
-          <button class="btn ok" type="button" data-action="clearFilters">↩ Reset Filters</button>
-        </div>
-
-        <div id="grid" class="gridListings" aria-label="Approved listings grid"></div>
-      </div>
-    </section>
-
     <section id="features">
-      <h2 class="sectionHeading">What makes this different</h2>
+      <h2 style="margin:0 0 12px">What makes this different</h2>
       <div class="features">
         <div class="feat">
-          <b>✅ Admin Approved Listings</b>
-          <div class="muted">Public pages show only approved properties. Pending listings stay private.</div>
+          <b>✅ Broker Verification</b>
+          <div style="color:var(--muted);line-height:1.6">KYC-based onboarding. Bad actors get suspended fast.</div>
         </div>
         <div class="feat">
-          <b>📞 Lead Tracking</b>
-          <div class="muted">Every enquiry can flow into the dashboard CRM for follow-up and broker assignment.</div>
+          <b>🔁 Lead ↔ Property Matching</b>
+          <div style="color:var(--muted);line-height:1.6">Simple matching now, smarter scoring later. Clean pipeline.</div>
         </div>
         <div class="feat">
-          <b>🏷 Seller Module</b>
-          <div class="muted">Owners and builders can enter the platform directly through a dedicated sell-property flow.</div>
+          <b>🤝 Deal Room Timeline</b>
+          <div style="color:var(--muted);line-height:1.6">Visit → Token → Agreement → Registration. Track every step.</div>
         </div>
       </div>
     </section>
@@ -339,96 +421,611 @@
     <section id="how">
       <div class="card">
         <h3>How it works (MVP)</h3>
-        <ol class="howList">
-          <li>Broker or seller adds a property.</li>
-          <li>Admin reviews and approves it.</li>
-          <li>Approved listing appears publicly.</li>
-          <li>Buyer or seller submits enquiry from homepage or dedicated pages.</li>
-          <li>Lead shows up in dashboard CRM for follow-up.</li>
+        <ol style="color:var(--muted);line-height:1.8;margin:10px 0 0">
+          <li>Buyer/Seller posts a lead.</li>
+          <li>Admin assigns a verified broker.</li>
+          <li>Broker shares matching options + schedules visit.</li>
+          <li>Deal Room opens for serious clients.</li>
+          <li>Disputes handled via platform audit trail.</li>
         </ol>
       </div>
     </section>
 
     <section id="broker">
       <div class="card">
-        <h3>🪪 Join as a Broker</h3>
-        <p class="muted mtMinus">Submit details — this request will be saved into the CRM for broker verification follow-up.</p>
+        <h3>🪪 Join as a Verified Broker</h3>
+        <p class="sub" style="margin-top:-4px">Submit details — we’ll call you for KYC verification.</p>
 
-        <form id="brokerJoinForm" novalidate>
-          <div class="row2">
+        <form id="brokerForm" novalidate aria-label="Join as broker form">
+          <div class="row">
             <div>
               <label for="brokerName">Broker Name *</label>
-              <input id="brokerName" maxlength="60" placeholder="Full name" required />
+              <input id="brokerName" name="brokerName" placeholder="Full name" autocomplete="name" maxlength="60" required />
             </div>
             <div>
               <label for="brokerPhone">Phone *</label>
-              <input
-                id="brokerPhone"
-                type="tel"
-                inputmode="numeric"
-                maxlength="16"
-                placeholder="10-digit mobile or +91..."
-                required
-              />
+              <input id="brokerPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
+                     placeholder="10-digit mobile" maxlength="13" required />
             </div>
           </div>
 
-          <div class="row2 mt10">
+          <div class="row" style="margin-top:10px">
             <div>
               <label for="brokerArea">Primary Area *</label>
-              <input id="brokerArea" maxlength="80" placeholder="Whitefield / Bangalore East…" required />
+              <input id="brokerArea" name="area" placeholder="Whitefield / Bangalore East…" maxlength="80" required />
             </div>
             <div>
               <label for="brokerExp">Experience (years)</label>
-              <input id="brokerExp" type="number" min="0" inputmode="numeric" placeholder="e.g. 5" />
+              <input id="brokerExp" name="exp" type="number" min="0" inputmode="numeric" placeholder="e.g. 5" />
             </div>
           </div>
 
-          <div class="mt10">
+          <div style="margin-top:10px">
             <label for="brokerCompany">Office / Company (optional)</label>
-            <input id="brokerCompany" maxlength="80" placeholder="Company / office name" />
+            <input id="brokerCompany" name="company" placeholder="Company / office name" maxlength="80" />
           </div>
 
-          <div class="checkRow">
-            <input id="brokerConsent" type="checkbox" class="checkBox" />
-            <div class="hint noTop">I agree to be contacted about broker verification.</div>
+          <div style="margin-top:10px">
+            <label class="srOnly" for="brokerConsent">Consent</label>
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <input id="brokerConsent" type="checkbox" style="width:18px;height:18px;margin-top:2px" />
+              <div class="hint" style="margin-top:0">
+                I agree to be contacted about broker verification.
+              </div>
+            </div>
           </div>
 
           <div id="brokerErr" class="err" hidden></div>
 
-          <div class="formActions">
-            <button class="btn primary" type="submit">Request Verification</button>
-            <button class="btn" type="button" data-action="saveBrokerDraft">💾 Save Draft</button>
-            <button class="btn" type="button" data-action="clearBrokerForm">🧽 Clear</button>
-          </div>
-
-          <div class="preview">
-            <div class="hint noTop">Preview (safe text)</div>
-            <pre id="brokerPreview">—</pre>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+            <button class="btn primary" type="submit" id="brokerSubmitBtn">Request Verification</button>
+            <span style="font-size:12px;color:var(--muted)">KYC + approval required before posting listings.</span>
           </div>
         </form>
       </div>
     </section>
 
     <footer>
-      <div class="footerInner">
-        <div>© <span id="yr"></span> MEI Estate</div>
-        <div class="footerLinks">
-          <a href="#listings">Browse Listings</a>
+      <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>© <span id="yr"></span> Broker Network • Whitefield</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
           <a href="#lead">Post Lead</a>
-          <a href="seller.html">Sell Property</a>
           <a href="#broker">Join Broker</a>
         </div>
       </div>
     </footer>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+  <!-- Toast: accessible status message -->
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
     <div class="msg" id="toastMsg">✅ Updated</div>
     <button class="act" id="toastAct" type="button" hidden>Undo</button>
   </div>
 
-  <script src="app.js"></script>
-  <script src="index.js"></script>
+  <!-- Modal: accessible confirmation dialog -->
+  <div id="modalBack" class="modalBack" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <div class="modalTop">
+        <div>
+          <div id="modalTitle" class="modalTitle">Confirm</div>
+          <div id="modalDesc" class="srOnly">Modal dialog. Tab stays inside. Escape closes.</div>
+        </div>
+        <button class="btn small" type="button" data-action="modalClose">✕ Close</button>
+      </div>
+      <div id="modalBody" class="modalBody"></div>
+      <div class="modalActions">
+        <button class="btn" id="modalSecondary" type="button">Cancel</button>
+        <button class="btn primary" id="modalPrimary" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    // ========= Config (unspecified backend) =========
+    const API_BASE = "https://api.yourplatform.in"; // placeholder
+    const CITY_DEFAULT = "Bangalore";
+
+    // ========= Storage keys =========
+    const KEYS = {
+      API_MODE: "mei_index_api_mode_v1",
+      RATE: "mei_index_rate_v1",
+      CREATED_IDS: "mei_index_created_lead_ids_v1",
+      LEADS: "mei_leads_v1"
+    };
+
+    // Demo throttling: 30s per phone per form
+    const THROTTLE_MS = 30_000;
+
+    // ========= DOM helpers =========
+    const $ = (id) => document.getElementById(id);
+    const qs = (sel, root=document) => root.querySelector(sel);
+
+    // ========= JSON storage helpers =========
+    function readJSON(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function writeJSON(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+    function nowMs(){ return Date.now(); }
+
+    function uid(prefix="") {
+      try {
+        if (window.crypto && crypto.randomUUID) return prefix + crypto.randomUUID();
+      } catch (e) {}
+      return prefix + Date.now().toString(16) + "_" + Math.random().toString(16).slice(2);
+    }
+
+    // ========= Toast with optional action =========
+    let TOAST_T = null;
+    let TOAST_FN = null;
+
+    function toast(msg, opts={}) {
+      const { actionText="", actionFn=null, timeout=3200 } = opts;
+
+      $("toastMsg").textContent = String(msg || "✅ Updated");
+
+      TOAST_FN = (typeof actionFn === "function") ? actionFn : null;
+      if (actionText && TOAST_FN) {
+        $("toastAct").textContent = actionText;
+        $("toastAct").hidden = false;
+      } else {
+        $("toastAct").hidden = true;
+      }
+
+      $("toast").hidden = false;
+
+      if (TOAST_T) clearTimeout(TOAST_T);
+      TOAST_T = setTimeout(() => {
+        $("toast").hidden = true;
+        $("toastAct").hidden = true;
+        TOAST_FN = null;
+      }, timeout);
+    }
+
+    $("toastAct").addEventListener("click", () => {
+      if (typeof TOAST_FN === "function") {
+        const fn = TOAST_FN;
+        $("toast").hidden = true;
+        $("toastAct").hidden = true;
+        TOAST_FN = null;
+        try { fn(); } catch (e) {}
+      }
+    });
+
+    // ========= Modal (confirmation) =========
+    const MODAL = { open:false, lastFocus:null, onPrimary:null, onSecondary:null };
+
+    function focusablesWithin(root){
+      return Array.from(root.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => !el.disabled && el.offsetParent !== null);
+    }
+
+    function openModal({ title="Confirm", bodyText="", primaryText="Confirm", secondaryText="Cancel", onPrimary, onSecondary }){
+      MODAL.open = true;
+      MODAL.lastFocus = document.activeElement;
+      MODAL.onPrimary = (typeof onPrimary === "function") ? onPrimary : null;
+      MODAL.onSecondary = (typeof onSecondary === "function") ? onSecondary : null;
+
+      $("modalTitle").textContent = title;
+      $("modalBody").textContent = bodyText;
+      $("modalPrimary").textContent = primaryText;
+      $("modalSecondary").textContent = secondaryText;
+
+      $("modalBack").hidden = false;
+      $("main").setAttribute("aria-hidden","true");
+
+      const dialog = qs(".modalCard", $("modalBack"));
+      const f = focusablesWithin(dialog);
+      setTimeout(() => (f[0] || $("modalPrimary")).focus(), 0);
+    }
+
+    function closeModal(){
+      $("modalBack").hidden = true;
+      $("main").removeAttribute("aria-hidden");
+      MODAL.open = false;
+
+      if (MODAL.lastFocus && typeof MODAL.lastFocus.focus === "function") MODAL.lastFocus.focus();
+      MODAL.lastFocus = null;
+      MODAL.onPrimary = null;
+      MODAL.onSecondary = null;
+    }
+
+    $("modalPrimary").addEventListener("click", () => {
+      const fn = MODAL.onPrimary;
+      closeModal();
+      if (fn) { try { fn(); } catch (e) {} }
+    });
+
+    $("modalSecondary").addEventListener("click", () => {
+      const fn = MODAL.onSecondary;
+      closeModal();
+      if (fn) { try { fn(); } catch (e) {} }
+    });
+
+    $("modalBack").addEventListener("mousedown", (e) => {
+      if (e.target === $("modalBack")) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ($("modalBack").hidden) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const dialog = qs(".modalCard", $("modalBack"));
+      const f = focusablesWithin(dialog);
+      if (!f.length) return;
+
+      const first = f[0];
+      const last = f[f.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    });
+
+    // ========= API mode =========
+    const STATE = { apiMode:false };
+
+    function setApiMode(on){
+      STATE.apiMode = !!on;
+      writeJSON(KEYS.API_MODE, STATE.apiMode);
+
+      const btn = $("apiToggle");
+      btn.setAttribute("aria-pressed", STATE.apiMode ? "true" : "false");
+      btn.textContent = STATE.apiMode ? "🔌 API: ON" : "🔌 API: OFF";
+
+      toast(STATE.apiMode ? "API mode ON (will try backend)." : "API mode OFF (demo local).");
+    }
+
+    async function safePost(path, payload){
+      // Server-side requirements are unspecified and must include validation and rate limiting.
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const res = await fetch(API_BASE + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload || {}),
+          signal: controller.signal
+        });
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json().catch(() => ({}));
+        return { ok:true, data, offline:false };
+      } catch (e) {
+        return { ok:false, offline:true, error:String(e) };
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    // ========= Validation helpers =========
+    function cleanDigits(s){ return String(s || "").replace(/[^\d]/g,""); }
+    function normalizePhone(s){
+      const raw = String(s || "").trim();
+      const digits = cleanDigits(raw);
+      if (digits.length === 10) return digits;
+      if (digits.length === 12 && digits.startsWith("91")) return "+" + digits;
+      if (raw.startsWith("+") && digits.length >= 10) return "+" + digits;
+      return digits;
+    }
+    function isValidPhone(s){
+      const digits = cleanDigits(s);
+      if (digits.length === 10) return true;
+      if (digits.length === 12 && digits.startsWith("91")) return true;
+      if (String(s||"").trim().startsWith("+") && digits.length >= 10) return true;
+      return false;
+    }
+
+    function setFormError(elId, msg){
+      const el = $(elId);
+      if (!msg){
+        el.hidden = true;
+        el.textContent = "";
+      } else {
+        el.hidden = false;
+        el.textContent = msg;
+      }
+    }
+
+    function throttleKey(kind, phone){
+      return `${kind}|${normalizePhone(phone)}`;
+    }
+
+    function checkThrottle(kind, phone){
+      const m = readJSON(KEYS.RATE, {});
+      const key = throttleKey(kind, phone);
+      const now = nowMs();
+      const last = Number(m[key] || 0);
+
+      if (now - last < THROTTLE_MS){
+        return { ok:false, waitMs: THROTTLE_MS - (now - last) };
+      }
+
+      m[key] = now;
+      writeJSON(KEYS.RATE, m);
+      return { ok:true, waitMs:0 };
+    }
+
+    // ========= Local lead storage (demo) =========
+    function rememberCreatedId(id){
+      const ids = readJSON(KEYS.CREATED_IDS, []);
+      ids.unshift(String(id));
+      // keep small
+      writeJSON(KEYS.CREATED_IDS, ids.slice(0, 500));
+    }
+
+    function saveLeadLocal(lead){
+      const leads = readJSON(KEYS.LEADS, []);
+      leads.unshift(lead);
+      writeJSON(KEYS.LEADS, leads);
+      rememberCreatedId(lead.id);
+    }
+
+    function removeLeadLocalById(id){
+      const leads = readJSON(KEYS.LEADS, []);
+      const next = leads.filter(x => String(x.id) !== String(id));
+      writeJSON(KEYS.LEADS, next);
+
+      const ids = readJSON(KEYS.CREATED_IDS, []);
+      writeJSON(KEYS.CREATED_IDS, ids.filter(x => String(x) !== String(id)));
+    }
+
+    // ========= Build lead objects compatible with your Admin CRM =========
+    function buildInboundLead({ name, phone, leadType, locality, budgetMin, budgetMax, notes }){
+      const cleanPhone = normalizePhone(phone);
+
+      const budgetText =
+        (budgetMin || budgetMax)
+          ? `Budget: ${budgetMin || "—"} to ${budgetMax || "—"}`
+          : "";
+
+      const messageParts = [
+        `Inbound ${leadType || "LEAD"} • Locality: ${locality || "—"}`,
+        budgetText,
+        (notes || "").trim()
+      ].filter(Boolean);
+
+      return {
+        id: uid("L_"),
+        listingId: "WEB",
+        listingTitle: `Inbound Lead (${leadType || "LEAD"}) — ${locality || "Unknown"}`,
+        buyerName: String(name || "").trim(),
+        buyerPhone: cleanPhone,
+        message: messageParts.join("\n"),
+        status: "NEW",
+        source: "WEB_INDEX",
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function buildBrokerRequestLead({ brokerName, phone, area, exp, company }){
+      const cleanPhone = normalizePhone(phone);
+
+      const messageParts = [
+        `Broker verification request`,
+        `Primary area: ${area || "—"}`,
+        exp ? `Experience: ${exp} years` : "",
+        company ? `Company: ${company}` : ""
+      ].filter(Boolean);
+
+      return {
+        id: uid("L_"),
+        listingId: "BROKER-KYC",
+        listingTitle: `Broker KYC Request — ${area || "Unknown"}`,
+        buyerName: String(brokerName || "").trim(),
+        buyerPhone: cleanPhone,
+        message: messageParts.join("\n"),
+        status: "NEW",
+        source: "WEB_INDEX",
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // ========= Submit handlers =========
+    async function submitLeadForm(e){
+      e.preventDefault();
+
+      const errEl = "leadErr";
+      setFormError(errEl, "");
+
+      const name = $("leadName").value.trim();
+      const phone = $("leadPhone").value.trim();
+      const leadType = $("leadType").value.trim();
+      const locality = $("leadLocality").value.trim();
+      const budgetMin = $("budgetMin").value ? Number($("budgetMin").value) : null;
+      const budgetMax = $("budgetMax").value ? Number($("budgetMax").value) : null;
+      const notes = $("leadNotes").value || "";
+      const consent = $("leadConsent").checked;
+
+      if (!name) { setFormError(errEl, "Name is required."); $("leadName").focus(); return; }
+      if (!phone || !isValidPhone(phone)) { setFormError(errEl, "Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("leadPhone").focus(); return; }
+      if (!locality) { setFormError(errEl, "Locality is required."); $("leadLocality").focus(); return; }
+      if (!consent) { setFormError(errEl, "Please confirm you agree to be contacted."); $("leadConsent").focus(); return; }
+
+      if (budgetMin != null && budgetMin < 0) { setFormError(errEl, "Budget Min cannot be negative."); $("budgetMin").focus(); return; }
+      if (budgetMax != null && budgetMax < 0) { setFormError(errEl, "Budget Max cannot be negative."); $("budgetMax").focus(); return; }
+      if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) { setFormError(errEl, "Budget Min cannot be greater than Budget Max."); $("budgetMin").focus(); return; }
+
+      const throttle = checkThrottle("lead", phone);
+      if (!throttle.ok) {
+        setFormError(errEl, `Please wait ${Math.ceil(throttle.waitMs/1000)}s before submitting again.`);
+        return;
+      }
+
+      const lead = buildInboundLead({
+        name, phone, leadType, locality,
+        budgetMin: budgetMin != null ? String(Math.floor(budgetMin)) : "",
+        budgetMax: budgetMax != null ? String(Math.floor(budgetMax)) : "",
+        notes
+      });
+
+      const btn = $("leadSubmitBtn");
+      btn.disabled = true;
+
+      try{
+        if (STATE.apiMode){
+          const res = await safePost("/leads", {
+            name, phone: normalizePhone(phone), leadType, locality,
+            budgetMin, budgetMax, notes,
+            city: CITY_DEFAULT,
+            source: "WEB",
+            consent: true
+          });
+
+          if (res.ok){
+            toast("Lead submitted ✅ We’ll connect you soon.");
+          }else{
+            saveLeadLocal(lead);
+            toast("Offline: saved locally ✅", {
+              actionText: "Undo",
+              actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
+              timeout: 6500
+            });
+          }
+        }else{
+          // Demo local
+          saveLeadLocal(lead);
+          toast("Lead submitted ✅ (demo local)", {
+            actionText: "Undo",
+            actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
+            timeout: 6500
+          });
+        }
+
+        e.target.reset();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function submitBrokerForm(e){
+      e.preventDefault();
+
+      const errEl = "brokerErr";
+      setFormError(errEl, "");
+
+      const brokerName = $("brokerName").value.trim();
+      const phone = $("brokerPhone").value.trim();
+      const area = $("brokerArea").value.trim();
+      const exp = $("brokerExp").value ? Number($("brokerExp").value) : null;
+      const company = $("brokerCompany").value.trim();
+      const consent = $("brokerConsent").checked;
+
+      if (!brokerName) { setFormError(errEl, "Broker name is required."); $("brokerName").focus(); return; }
+      if (!phone || !isValidPhone(phone)) { setFormError(errEl, "Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("brokerPhone").focus(); return; }
+      if (!area) { setFormError(errEl, "Primary area is required."); $("brokerArea").focus(); return; }
+      if (!consent) { setFormError(errEl, "Please confirm you agree to be contacted."); $("brokerConsent").focus(); return; }
+      if (exp != null && exp < 0) { setFormError(errEl, "Experience cannot be negative."); $("brokerExp").focus(); return; }
+
+      const throttle = checkThrottle("broker", phone);
+      if (!throttle.ok) {
+        setFormError(errEl, `Please wait ${Math.ceil(throttle.waitMs/1000)}s before submitting again.`);
+        return;
+      }
+
+      const lead = buildBrokerRequestLead({
+        brokerName, phone, area,
+        exp: exp != null ? String(Math.floor(exp)) : "",
+        company
+      });
+
+      const btn = $("brokerSubmitBtn");
+      btn.disabled = true;
+
+      try{
+        if (STATE.apiMode){
+          const res = await safePost("/brokers/onboard", {
+            brokerName, phone: normalizePhone(phone), area,
+            exp, company,
+            city: CITY_DEFAULT,
+            source: "WEB",
+            consent: true
+          });
+
+          if (res.ok){
+            toast("Request received ✅ Verification team will call you.");
+          }else{
+            saveLeadLocal(lead);
+            toast("Offline: saved locally ✅", {
+              actionText: "Undo",
+              actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
+              timeout: 6500
+            });
+          }
+        }else{
+          saveLeadLocal(lead);
+          toast("Request received ✅ (demo local)", {
+            actionText: "Undo",
+            actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
+            timeout: 6500
+          });
+        }
+
+        e.target.reset();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ========= Clear local demo submissions created by this page =========
+    function clearLocalDemo(){
+      openModal({
+        title: "Clear local demo data",
+        bodyText: "This removes only leads created from this index page (demo). It will not affect other pages unless they share the same objects. Continue?",
+        primaryText: "Clear",
+        secondaryText: "Cancel",
+        onPrimary: () => {
+          const ids = readJSON(KEYS.CREATED_IDS, []);
+          ids.forEach(id => removeLeadLocalById(id));
+
+          writeJSON(KEYS.CREATED_IDS, []);
+          // clear client throttle and api mode toggle for clean slate
+          localStorage.removeItem(KEYS.RATE);
+          localStorage.removeItem(KEYS.API_MODE);
+
+          setApiMode(false);
+          toast("Local demo cleared ✅");
+        },
+        onSecondary: () => {}
+      });
+    }
+
+    // ========= Event delegation =========
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const act = btn.getAttribute("data-action");
+
+      if (act === "toggleApi") setApiMode(!STATE.apiMode);
+      if (act === "clearLocal") clearLocalDemo();
+      if (act === "modalClose") closeModal();
+    });
+
+    // ========= Init =========
+    $("yr").textContent = new Date().getFullYear();
+
+    const savedMode = readJSON(KEYS.API_MODE, false);
+    setApiMode(!!savedMode);
+
+    $("leadForm").addEventListener("submit", submitLeadForm);
+    $("brokerForm").addEventListener("submit", submitBrokerForm);
+
+  })();
+  </script>
 </body>
 </html>

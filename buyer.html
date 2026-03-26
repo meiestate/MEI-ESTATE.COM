@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>MEI Buyer Portal</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2f;
+      --line:rgba(255,255,255,.14);
+      --txt:#e8eefc;
+      --mut:rgba(232,238,252,.78);
+      --radius:16px;
+
+      --focus: rgba(140,170,255,.95);
+      --okBorder: rgba(0,255,150,.30);
+      --okBg: rgba(0,255,150,.12);
+      --warnBorder: rgba(255,200,0,.30);
+      --warnBg: rgba(255,200,0,.10);
+      --badBorder: rgba(255,0,90,.34);
+      --badBg: rgba(255,0,90,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--txt)}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .h1{font-size:26px;font-weight:1000}
+    .muted{color:var(--mut)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    a.link{
+      color:var(--txt);
+      text-decoration:none;
+      padding:8px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      min-height:36px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    a.link:hover{background:rgba(255,255,255,.07)}
+    a.link:active{transform:translateY(1px)}
+
+    label{font-size:12px;color:var(--mut);font-weight:800}
+    .srOnly{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+
+    input,select{
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:#0b1220;
+      color:var(--txt);
+      min-width:220px;
+      min-height:40px;
+      outline:none;
+    }
+    input::placeholder{color:rgba(232,238,252,.65)}
+    button{
+      padding:9px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.07);
+      color:var(--txt);
+      cursor:pointer;
+      font-weight:900;
+      min-height:40px; /* >= 24px target size requirement */
+    }
+    button:hover{background:rgba(255,255,255,.10)}
+    button:active{transform:translateY(1px)}
+    button[disabled]{opacity:.55; cursor:not-allowed; transform:none}
+
+    :focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+
+    .pill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      opacity:.98
+    }
+
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+    @media (max-width:950px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:650px){.grid{grid-template-columns:1fr}}
+
+    .tile{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      min-height:200px;
+    }
+    .title{font-weight:1000;font-size:16px}
+    .mini{font-size:12px;color:rgba(232,238,252,.72);margin-top:4px;line-height:1.35}
+    .price{margin-top:10px;font-weight:1000}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:12px;align-items:center}
+    .iconBtn{
+      padding:8px;
+      min-width:40px;
+      min-height:40px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .notice{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--warnBorder);
+      background:var(--warnBg);
+      color:rgba(232,238,252,.90);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    /* Toast (WCAG status message technique) */
+    .toast{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--okBorder);
+      background:var(--okBg);
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .toast[hidden]{display:none}
+    .toast .msg{font-size:13px;line-height:1.35}
+    .toast .act{
+      margin-left:auto;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-weight:1000;
+      min-height:36px;
+    }
+    .toast .act:hover{background:rgba(255,255,255,.10)}
+    .toast .act[hidden]{display:none}
+
+    /* Modal (accessible dialog) */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.58);
+      padding:20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      overflow:auto;
+      z-index:9999;
+    }
+    .modalBack[hidden]{display:none}
+    .modalCard{
+      width:min(560px,100%);
+      margin:8vh auto;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 20px 80px rgba(0,0,0,.65);
+    }
+    .modalTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .modalTitle{font-weight:1000;font-size:18px}
+    .modalSub{opacity:.82;font-size:13px;line-height:1.35}
+    .modalGrid{display:grid;gap:10px;margin-top:12px}
+    textarea{
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:#0b1220;
+      color:var(--txt);
+      outline:none;
+      min-height:90px;
+      resize:vertical;
+    }
+    .err{
+      margin-top:6px;
+      color:rgba(255,120,170,.98);
+      font-size:12px;
+      font-weight:900;
+    }
+    .err[hidden]{display:none}
+
+    /* Shared overflow menu */
+    .menu{
+      position:fixed;
+      min-width:220px;
+      max-width:320px;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;
+      padding:6px;
+      box-shadow:0 12px 40px rgba(0,0,0,.6);
+      z-index:99999;
+    }
+    .menu[hidden]{display:none}
+    .menuTitle{
+      padding:8px 10px;
+      font-size:12px;
+      color:rgba(232,238,252,.70);
+    }
+    .menuItem{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--txt);
+      cursor:pointer;
+      text-align:left;
+      font-weight:900;
+      min-height:38px;
+    }
+    .menuItem:hover{background:rgba(255,255,255,.07)}
+    .menuItem .sub{margin-left:auto;font-size:12px;color:rgba(232,238,252,.65);font-weight:800}
+    .menuItem[disabled]{opacity:.55; cursor:not-allowed}
+
+    @media (prefers-reduced-motion: reduce){
+      button:active{transform:none}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap" id="app">
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="h1">Buyer Portal</div>
+          <div class="muted">Approved listings only ✅ (spam-free model)</div>
+        </div>
+        <div class="row">
+          <a class="link" href="dashboard.html">🛡️ Admin Dashboard</a>
+          <a class="link" href="add-property.html">➕ Add Property</a>
+          <button type="button" data-action="refresh">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        Demo note: Requests are saved in this browser’s local storage for the Admin Dashboard to see.
+        In production, store requests on the server with access control and rate limiting.
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div>
+          <label class="srOnly" for="q">Search listings</label>
+          <input id="q" placeholder="Search (area/city/title)" />
+        </div>
+
+        <div>
+          <label class="srOnly" for="typeFilter">Filter by type</label>
+          <select id="typeFilter">
+            <option value="">All Types</option>
+            <option value="plot">Plot</option>
+            <option value="house">House</option>
+            <option value="apartment">Apartment</option>
+            <option value="commercial">Commercial</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="srOnly" for="sortFilter">Sort</label>
+          <select id="sortFilter">
+            <option value="NEWEST">Sort: Newest</option>
+            <option value="PRICE_LOW">Sort: Price low → high</option>
+            <option value="PRICE_HIGH">Sort: Price high → low</option>
+          </select>
+        </div>
+
+        <span class="pill">Approved: <b id="count">0</b></span>
+      </div>
+
+      <div id="pageToast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <div class="msg" id="pageToastMsg">✅ Updated</div>
+        <button class="act" id="pageToastAct" type="button" hidden>Undo</button>
+      </div>
+    </div>
+
+    <div id="grid" class="grid" aria-label="Approved listings grid"></div>
+  </div>
+
+  <!-- Shared overflow menu -->
+  <div id="overflowMenu" class="menu" role="menu" aria-label="Listing actions" hidden></div>
+
+  <!-- Lead Modal -->
+  <div id="leadModalBack" class="modalBack" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="leadTitle" aria-describedby="leadDesc">
+      <div class="modalTop">
+        <div>
+          <div class="modalTitle" id="leadTitle">Buyer Request</div>
+          <div class="modalSub" id="leadDesc">
+            Request for: <span id="leadListingTitle"></span>
+          </div>
+        </div>
+        <button type="button" class="iconBtn" data-action="closeLead" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="leadForm" class="modalGrid" novalidate>
+        <div>
+          <label for="buyerName">Your Name *</label>
+          <input id="buyerName" name="buyerName" autocomplete="name" placeholder="Your Name" maxlength="60" />
+          <div id="buyerNameErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="buyerPhone">Phone Number *</label>
+          <input id="buyerPhone" name="buyerPhone" type="tel" inputmode="numeric" autocomplete="tel"
+                 placeholder="10-digit mobile (or +91...)" maxlength="13" />
+          <div id="buyerPhoneErr" class="err" hidden></div>
+        </div>
+
+        <div>
+          <label for="buyerMsg">Message (optional)</label>
+          <textarea id="buyerMsg" name="buyerMsg" placeholder="Budget / move-in date / preferences..."></textarea>
+        </div>
+
+        <div>
+          <label class="srOnly" for="buyerConsent">Consent</label>
+          <div class="mini" style="margin-top:2px;">
+            <input id="buyerConsent" type="checkbox" />
+            <span>I agree to be contacted about this request.</span>
+          </div>
+          <div id="buyerConsentErr" class="err" hidden></div>
+        </div>
+
+        <button type="submit" data-action="submitLead">Submit Request</button>
+
+        <div id="leadToast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+          <div class="msg" id="leadToastMsg">✅ Request sent.</div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ====== Storage keys (must match your other pages) ======
+  const PROPS_KEY = "mei_properties_v1";
+  const LEADS_KEY = "mei_leads_v1";
+
+  // Demo-only throttling key
+  const RATE_KEY = "mei_buyer_lead_rate_v1";
+
+  const $ = (id) => document.getElementById(id);
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  // ====== State ======
+  const STATE = {
+    currentListing: null,     // { id, title }
+    lastFocus: null,
+    approved: []
+  };
+
+  // Toast with optional action
+  let toastTimer = null;
+  let toastActionFn = null;
+
+  function toast(msg, opts={}){
+    const { actionText="", actionFn=null, timeout=2600 } = opts;
+    $("pageToastMsg").textContent = msg || "✅ Updated";
+    toastActionFn = (typeof actionFn === "function") ? actionFn : null;
+
+    if(actionText && toastActionFn){
+      $("pageToastAct").textContent = actionText;
+      $("pageToastAct").hidden = false;
+    }else{
+      $("pageToastAct").hidden = true;
+    }
+
+    $("pageToast").hidden = false;
+
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      $("pageToast").hidden = true;
+      $("pageToastAct").hidden = true;
+      toastActionFn = null;
+    }, timeout);
+  }
+
+  $("pageToastAct").addEventListener("click", () => {
+    if(typeof toastActionFn === "function"){
+      const fn = toastActionFn;
+      $("pageToast").hidden = true;
+      $("pageToastAct").hidden = true;
+      toastActionFn = null;
+      try{ fn(); }catch(e){}
+    }
+  });
+
+  // ====== Storage helpers ======
+  function readJSON(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    }catch(e){
+      return fallback;
+    }
+  }
+  function writeJSON(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function uid(prefix){
+    try{
+      if(window.crypto && crypto.randomUUID) return (prefix || "") + crypto.randomUUID();
+    }catch(e){}
+    return (prefix || "") + Date.now().toString(16) + "_" + Math.random().toString(16).slice(2);
+  }
+
+  function cleanDigits(s){ return String(s || "").replace(/[^\d]/g, ""); }
+
+  function normalizePhone(raw){
+    const t = String(raw || "").trim();
+    if(!t) return "";
+    const digits = cleanDigits(t);
+    if(digits.length === 10) return digits;
+    if(digits.length === 12 && digits.startsWith("91")) return "+" + digits;
+    if(t.startsWith("+") && digits.length >= 10) return "+" + digits;
+    return digits;
+  }
+
+  function isValidPhone(raw){
+    const digits = cleanDigits(raw);
+    if(digits.length === 10) return true;
+    if(digits.length === 12 && digits.startsWith("91")) return true;
+    if(String(raw||"").trim().startsWith("+") && digits.length >= 10) return true;
+    return false;
+  }
+
+  function parsePriceToNumber(p){
+    const digits = cleanDigits(p);
+    if(!digits) return NaN;
+    try{ return Number(digits); }catch(e){ return NaN; }
+  }
+
+  function formatINR(p){
+    const n = parsePriceToNumber(p);
+    if(!Number.isFinite(n)) return "Price on request";
+    try{
+      return new Intl.NumberFormat("en-IN", { style:"currency", currency:"INR", maximumFractionDigits:0 }).format(n);
+    }catch(e){
+      return "₹" + String(p);
+    }
+  }
+
+  // ====== Safe DOM creation ======
+  function el(tag, attrs={}, children=[]){
+    const node = document.createElement(tag);
+    for(const [k,v] of Object.entries(attrs)){
+      if(k === "class") node.className = v;
+      else if(k === "text") node.textContent = v;
+      else if(k === "html") node.innerHTML = v; // avoid for untrusted inputs
+      else if(k.startsWith("data-")) node.setAttribute(k, v);
+      else if(v === true) node.setAttribute(k, "");
+      else if(v !== false && v != null) node.setAttribute(k, String(v));
+    }
+    (children || []).forEach(c => {
+      if(c == null) return;
+      if(typeof c === "string") node.appendChild(document.createTextNode(c));
+      else node.appendChild(c);
+    });
+    return node;
+  }
+
+  // ====== Listing rendering ======
+  function normalizeProp(p){
+    const o = Object.assign({}, p || {});
+    if(!o.id) o.id = uid("P_");
+    if(!o.title && o.name) o.title = o.name;
+    if(!o.status) o.status = "pending";
+    if(!o.createdAt) o.createdAt = new Date().toISOString();
+    return o;
+  }
+
+  function listingSummary(p){
+    const title = p.title || "Listing";
+    const meta = [p.type, p.city, p.area].filter(Boolean).join(" • ");
+    const price = p.price ? formatINR(p.price) : "Price on request";
+    return `${title}\n${meta || "—"}\n${price}\nID: ${p.id || "-"}`;
+  }
+
+  function renderTile(p){
+    const tile = el("div", { class:"tile" });
+
+    tile.appendChild(el("div", { class:"title", text: String(p.title || "Listing") }));
+
+    const meta = [p.type, p.city, p.area].filter(Boolean).join(" • ");
+    tile.appendChild(el("div", { class:"mini", text: meta || "—" }));
+
+    tile.appendChild(el("div", { class:"price", text: p.price ? formatINR(p.price) : "Price on request" }));
+    tile.appendChild(el("div", { class:"mini", text: "ID: " + String(p.id || "-"), style:"margin-top:8px;" }));
+
+    const actions = el("div", { class:"actions" });
+
+    const requestBtn = el("button", {
+      type:"button",
+      "data-action":"openLead",
+      "data-id": String(p.id || ""),
+      "data-title": String(p.title || "Listing")
+    }, ["Request / Contact"]);
+
+    const moreBtn = el("button", {
+      type:"button",
+      class:"iconBtn",
+      "aria-haspopup":"menu",
+      "aria-expanded":"false",
+      "data-action":"openMenu",
+      "data-id": String(p.id || ""),
+      "data-title": String(p.title || "Listing")
+    }, ["⋯"]);
+
+    actions.appendChild(requestBtn);
+    actions.appendChild(moreBtn);
+
+    tile.appendChild(actions);
+    return tile;
+  }
+
+  function applyFilters(list){
+    const q = ($("q").value || "").trim().toLowerCase();
+    const tf = ($("typeFilter").value || "").trim().toLowerCase();
+    const sf = ($("sortFilter").value || "NEWEST");
+
+    let out = (list || [])
+      .filter(p => (p.status || "").toLowerCase() === "approved")
+      .filter(p => tf ? (String(p.type||"").toLowerCase() === tf) : true)
+      .filter(p => {
+        if(!q) return true;
+        const hay = [p.title, p.name, p.city, p.area, p.type, p.price].join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+
+    // Sorting
+    if(sf === "NEWEST"){
+      out.sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    }else if(sf === "PRICE_LOW"){
+      out.sort((a,b) => {
+        const pa = parsePriceToNumber(a.price);
+        const pb = parsePriceToNumber(b.price);
+        const na = Number.isFinite(pa) ? pa : Number.POSITIVE_INFINITY;
+        const nb = Number.isFinite(pb) ? pb : Number.POSITIVE_INFINITY;
+        return na - nb;
+      });
+    }else if(sf === "PRICE_HIGH"){
+      out.sort((a,b) => {
+        const pa = parsePriceToNumber(a.price);
+        const pb = parsePriceToNumber(b.price);
+        const na = Number.isFinite(pa) ? pa : Number.NEGATIVE_INFINITY;
+        const nb = Number.isFinite(pb) ? pb : Number.NEGATIVE_INFINITY;
+        return nb - na;
+      });
+    }
+
+    return out;
+  }
+
+  function refresh(){
+    const props = readJSON(PROPS_KEY, []).map(normalizeProp);
+    const approved = applyFilters(props);
+    STATE.approved = approved;
+
+    $("count").textContent = String(approved.length);
+
+    const grid = $("grid");
+    grid.innerHTML = "";
+    if(approved.length === 0){
+      const empty = el("div", { class:"card", style:"grid-column:1/-1;" }, [
+        el("div", { class:"muted", text:"No approved listings yet. Admin approval needed ✅" })
+      ]);
+      grid.appendChild(empty);
+      return;
+    }
+
+    approved.forEach(p => grid.appendChild(renderTile(p)));
+  }
+
+  // ====== Accessible dialog (lead modal) ======
+  function focusables(root){
+    return qsa('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', root)
+      .filter(x => !x.disabled && x.offsetParent !== null);
+  }
+
+  function openLeadModal(listing){
+    STATE.lastFocus = document.activeElement;
+    STATE.currentListing = listing;
+
+    $("leadListingTitle").textContent = listing.title || "Listing";
+
+    $("buyerName").value = "";
+    $("buyerPhone").value = "";
+    $("buyerMsg").value = "";
+    $("buyerConsent").checked = false;
+
+    setLeadError("buyerName", "");
+    setLeadError("buyerPhone", "");
+    setLeadError("buyerConsent", "");
+
+    $("leadToast").hidden = true;
+
+    $("leadModalBack").hidden = false;
+    $("app").setAttribute("aria-hidden","true");
+
+    // Focus first field
+    setTimeout(() => $("buyerName").focus(), 0);
+  }
+
+  function closeLeadModal(){
+    $("leadModalBack").hidden = true;
+    $("app").removeAttribute("aria-hidden");
+
+    STATE.currentListing = null;
+
+    if(STATE.lastFocus && typeof STATE.lastFocus.focus === "function"){
+      STATE.lastFocus.focus();
+    }
+    STATE.lastFocus = null;
+  }
+
+  function trapModalFocus(e){
+    if($("leadModalBack").hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeLeadModal();
+      return;
+    }
+    if(e.key !== "Tab") return;
+
+    const dialog = qs(".modalCard", $("leadModalBack"));
+    const f = focusables(dialog);
+    if(!f.length) return;
+
+    const first = f[0];
+    const last = f[f.length - 1];
+
+    if(e.shiftKey && document.activeElement === first){
+      e.preventDefault();
+      last.focus();
+    }else if(!e.shiftKey && document.activeElement === last){
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  document.addEventListener("keydown", trapModalFocus);
+
+  $("leadModalBack").addEventListener("mousedown", (e) => {
+    if(e.target === $("leadModalBack")) closeLeadModal();
+  });
+
+  // Lead form validation
+  function setLeadError(field, msg){
+    const errId = field + "Err";
+    const err = $(errId);
+    const input = $(field);
+
+    if(!msg){
+      err.hidden = true;
+      err.textContent = "";
+      if(input) input.removeAttribute("aria-invalid");
+      return;
+    }
+
+    err.hidden = false;
+    err.textContent = msg;
+    if(input) input.setAttribute("aria-invalid","true");
+  }
+
+  // Demo-only rate limit: per (phone|listing) 30s
+  function canSubmitLead(phone, listingId){
+    const m = readJSON(RATE_KEY, {});
+    const key = String(phone) + "|" + String(listingId);
+    const now = Date.now();
+    const last = Number(m[key] || 0);
+    const cooldownMs = 30_000;
+
+    if(now - last < cooldownMs){
+      return { ok:false, waitMs: cooldownMs - (now - last) };
+    }
+
+    m[key] = now;
+    writeJSON(RATE_KEY, m);
+    return { ok:true, waitMs:0 };
+  }
+
+  async function submitLead(){
+    const listing = STATE.currentListing;
+    if(!listing){
+      toast("No listing selected.");
+      return;
+    }
+
+    const name = ($("buyerName").value || "").trim();
+    const phoneRaw = ($("buyerPhone").value || "").trim();
+    const msg = ($("buyerMsg").value || "").trim();
+    const consent = !!$("buyerConsent").checked;
+
+    let ok = true;
+
+    if(!name){
+      ok = false;
+      setLeadError("buyerName","Name is required.");
+    }else setLeadError("buyerName","");
+
+    if(!phoneRaw){
+      ok = false;
+      setLeadError("buyerPhone","Phone is required.");
+    }else if(!isValidPhone(phoneRaw)){
+      ok = false;
+      setLeadError("buyerPhone","Enter 10 digits (or +91XXXXXXXXXX).");
+    }else setLeadError("buyerPhone","");
+
+    if(!consent){
+      ok = false;
+      setLeadError("buyerConsent","Consent is required to submit.");
+    }else setLeadError("buyerConsent","");
+
+    if(!ok) return;
+
+    const phone = normalizePhone(phoneRaw);
+
+    // Client-side throttle (demo only)
+    const throttle = canSubmitLead(phone, listing.id);
+    if(!throttle.ok){
+      $("leadToastMsg").textContent = `Please wait ${Math.ceil(throttle.waitMs/1000)}s and try again.`;
+      $("leadToast").hidden = false;
+      return;
+    }
+
+    const lead = {
+      id: uid("L_"),
+      listingId: listing.id,
+      listingTitle: listing.title,
+      buyerName: name,
+      buyerPhone: phone,
+      message: msg,
+      consent: true,
+      status: "NEW",
+      source: "buyer_portal",
+      createdAt: new Date().toISOString()
+    };
+
+    const leads = readJSON(LEADS_KEY, []);
+    leads.unshift(lead);
+    writeJSON(LEADS_KEY, leads);
+
+    $("leadToastMsg").textContent = "✅ Request sent. Broker/Admin will contact you.";
+    $("leadToast").hidden = false;
+
+    toast("✅ Request submitted");
+
+    setTimeout(closeLeadModal, 900);
+  }
+
+  // ====== Shared menu (APG menu-button style) ======
+  const MENU = { open:false, listing:null, anchor:null };
+
+  function closeMenu(){
+    $("overflowMenu").hidden = true;
+    $("overflowMenu").innerHTML = "";
+    MENU.open = false;
+
+    if(MENU.anchor){
+      MENU.anchor.setAttribute("aria-expanded","false");
+      MENU.anchor = null;
+    }
+    MENU.listing = null;
+  }
+
+  function openMenuForListing(listing, anchor){
+    closeMenu();
+    MENU.open = true;
+    MENU.listing = listing;
+    MENU.anchor = anchor;
+    anchor.setAttribute("aria-expanded","true");
+
+    const menu = $("overflowMenu");
+    const title = el("div", { class:"menuTitle", text:`Listing actions • ${listing.id}` });
+    menu.appendChild(title);
+
+    const items = [
+      {
+        key:"copyId",
+        label:"📋 Copy listing ID",
+        sub:"Clipboard",
+        run: async () => {
+          const ok = await copyToClipboard(String(listing.id || ""));
+          toast(ok ? "Copied ID ✅" : "Copy failed ❌");
+        }
+      },
+      {
+        key:"copySummary",
+        label:"📋 Copy listing summary",
+        sub:"Clipboard",
+        run: async () => {
+          const ok = await copyToClipboard(listingSummary(listing));
+          toast(ok ? "Copied summary ✅" : "Copy failed ❌");
+        }
+      },
+      {
+        key:"share",
+        label:"🔗 Share (if supported)",
+        sub:"Share sheet",
+        run: async () => {
+          const text = listingSummary(listing);
+          if(navigator.share){
+            try{
+              await navigator.share({ title: listing.title || "Listing", text });
+              toast("Shared ✅");
+              return;
+            }catch(e){
+              // fall through to copy
+            }
+          }
+          const ok = await copyToClipboard(text);
+          toast(ok ? "Copied for sharing ✅" : "Share not available ❌");
+        }
+      }
+    ];
+
+    items.forEach((it) => {
+      const btn = el("button", { type:"button", class:"menuItem", role:"menuitem", "data-menu": it.key }, [
+        el("span", { text: it.label }),
+        el("span", { class:"sub", text: it.sub })
+      ]);
+      btn.addEventListener("click", async () => {
+        closeMenu();
+        await it.run();
+      });
+      menu.appendChild(btn);
+    });
+
+    // position near anchor
+    const r = anchor.getBoundingClientRect();
+    menu.style.left = Math.min(window.innerWidth - 14, Math.max(14, r.left)) + "px";
+    menu.style.top = Math.min(window.innerHeight - 14, r.bottom + 8) + "px";
+    menu.hidden = false;
+
+    // focus first item
+    const first = qs('[role="menuitem"]', menu);
+    if(first) first.focus();
+  }
+
+  document.addEventListener("click", (e) => {
+    if($("overflowMenu").hidden) return;
+    const menu = $("overflowMenu");
+    const inside = menu.contains(e.target);
+    const anchor = MENU.anchor && MENU.anchor.contains(e.target);
+    if(!inside && !anchor) closeMenu();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const menu = $("overflowMenu");
+    if(menu.hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    const items = qsa('[role="menuitem"]', menu);
+    if(!items.length) return;
+
+    const idx = items.indexOf(document.activeElement);
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      items[(idx + 1 + items.length) % items.length].focus();
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      items[(idx - 1 + items.length) % items.length].focus();
+    }else if(e.key === "Home"){
+      e.preventDefault();
+      items[0].focus();
+    }else if(e.key === "End"){
+      e.preventDefault();
+      items[items.length - 1].focus();
+    }
+  });
+
+  // Clipboard API + fallback
+  async function copyToClipboard(text){
+    const t = String(text ?? "");
+    if(!t.trim()) return false;
+
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(t);
+        return true;
+      }
+    }catch(e){}
+
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // ====== Action dispatcher (event delegation) ======
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if(!btn) return;
+
+    const action = btn.getAttribute("data-action");
+
+    if(action === "refresh"){
+      refresh();
+      toast("🔄 Refreshed");
+    }
+
+    if(action === "openLead"){
+      const id = btn.getAttribute("data-id");
+      const title = btn.getAttribute("data-title");
+      openLeadModal({ id, title });
+    }
+
+    if(action === "closeLead"){
+      closeLeadModal();
+    }
+
+    if(action === "openMenu"){
+      const id = btn.getAttribute("data-id");
+      const listing = (STATE.approved || []).find(x => String(x.id) === String(id));
+      if(!listing) return;
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      if(expanded) closeMenu();
+      else openMenuForListing(listing, btn);
+    }
+  });
+
+  $("leadForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    submitLead();
+  });
+
+  // Filters
+  function wireFilters(){
+    $("q").addEventListener("input", refresh);
+    $("typeFilter").addEventListener("change", refresh);
+    $("sortFilter").addEventListener("change", refresh);
+  }
+
+  // Init
+  document.addEventListener("DOMContentLoaded", () => {
+    wireFilters();
+    refresh();
+  });
+
+})();
+</script>
+</body>
+</html>
