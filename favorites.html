@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MEI Estate — Property Details</title>
-  <meta name="description" content="View approved property details on MEI Estate." />
-  <link rel="stylesheet" href="property.css" />
+  <title>MEI Estate — Favorites</title>
+  <meta name="description" content="Saved favorite properties on MEI Estate." />
+  <link rel="stylesheet" href="favorites.css" />
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -16,23 +16,38 @@
         <div class="logo">MEI</div>
         <div class="brandText">
           <div class="brandTitle">MEI Estate</div>
-          <div class="brandSub">Property • Approved Listing • Cloud CRM Enquiry</div>
+          <div class="brandSub">Favorite Listings • Saved Shortlist</div>
         </div>
       </div>
 
       <nav class="nav">
         <a class="btn small ghost" href="index.html">🏠 Home</a>
-        <a class="btn small ghost" href="listings.html">⬅ Back to Listings</a>
-        <a class="btn small ghost" href="seller.html">📢 Sell Property</a>
+        <a class="btn small ghost" href="listings.html">📋 Listings</a>
+        <a class="btn small ghost" href="compare.html">📊 Compare</a>
         <a class="btn small primary" href="dashboard.html">🛡 Dashboard</a>
       </nav>
     </div>
   </header>
 
   <main id="main" class="wrap mainWrap">
-    <div id="modeBanner" class="banner">Loading property source...</div>
-    <div id="pageInfo" class="banner warn" style="display:none;"></div>
-    <div id="propertyRoot"></div>
+    <section class="hero card">
+      <div class="cardBody">
+        <div class="heroTop">
+          <div>
+            <h1 class="heroTitle">Favorites</h1>
+            <p class="heroText">
+              Saved properties shortlist. Quick view, remove, and add to compare from one place.
+            </p>
+          </div>
+
+          <div class="actions">
+            <button class="btn warn" id="clearFavoritesBtn" type="button">Clear Favorites</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="favoritesRoot"></section>
   </main>
 
   <footer class="footer">
@@ -41,19 +56,13 @@
       <div class="footerLinks">
         <a href="index.html">Home</a>
         <a href="listings.html">Listings</a>
-        <a href="seller.html">Sell Property</a>
+        <a href="compare.html">Compare</a>
         <a href="dashboard.html">Dashboard</a>
       </div>
     </div>
   </footer>
 
-  <div id="mobileStickyBar" class="mobileStickyBar" style="display:none;"></div>
-
-  <script src="property.js"></script>
+  <script src="favorites.js"></script>
 </body>
 </html>
-
-
-
-
 

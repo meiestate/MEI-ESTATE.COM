@@ -5,6 +5,7 @@
   const DEFAULT_WHATSAPP_NUMBER = "919876543210";
   const FAVORITES_KEY = "mei_favorite_properties_v1";
   const COMPARE_KEY = "mei_compare_properties_v1";
+  const VISIT_REQUESTS_KEY = "mei_visit_requests_v1";
   const $ = (id) => document.getElementById(id);
 
   document.addEventListener("DOMContentLoaded", init);
@@ -88,7 +89,7 @@
     clearTimeout(showInfo._t);
     showInfo._t = setTimeout(() => {
       el.style.display = "none";
-    }, 2400);
+    }, 2600);
   }
 
   function cleanNumber(val) {
@@ -134,6 +135,41 @@
     return cleaned;
   }
 
+  function normalizeDocuments(p) {
+    const raw = Array.isArray(p.documents) ? p.documents : [];
+    if (raw.length) {
+      return raw.map((d) => ({
+        title: String(d.title || "Document").trim(),
+        status: String(d.status || "pending").trim().toLowerCase()
+      }));
+    }
+
+    return [
+      { title: "Title Deed", status: "ok" },
+      { title: "EC / Encumbrance", status: "ok" },
+      { title: "Tax Receipt", status: "pending" },
+      { title: "Approval Copy", status: "ok" }
+    ];
+  }
+
+  function normalizeAmenities(p) {
+    const raw = Array.isArray(p.amenities) ? p.amenities : [];
+    if (raw.length) {
+      return raw.map((a) => ({
+        title: String(a.title || "Amenity").trim(),
+        text: String(a.text || "").trim(),
+        icon: String(a.icon || "📍").trim()
+      }));
+    }
+
+    return [
+      { title: "School Access", text: "Nearby schools within quick reach.", icon: "🏫" },
+      { title: "Hospital", text: "Medical support available in the area.", icon: "🏥" },
+      { title: "Transport", text: "Good road and travel connectivity.", icon: "🚌" },
+      { title: "Shopping", text: "Daily essentials and stores nearby.", icon: "🛍" }
+    ];
+  }
+
   function normalizeProperty(p) {
     return {
       id: String(p.id || "").trim(),
@@ -156,7 +192,10 @@
       furnishing: String(p.furnishing || "").trim(),
       purpose: String(p.purpose || "").trim(),
       mobile: String(p.mobile || p.phone || "").trim(),
-      whatsapp: normalizePhone(p.whatsapp || p.mobile || p.phone || "")
+      whatsapp: normalizePhone(p.whatsapp || p.mobile || p.phone || ""),
+      brochure: String(p.brochure || "").trim(),
+      documents: normalizeDocuments(p),
+      amenities: normalizeAmenities(p)
     };
   }
 
@@ -267,9 +306,7 @@
     if (arr.includes(id)) {
       arr = arr.filter((v) => v !== id);
     } else {
-      if (arr.length >= 3) {
-        arr.shift();
-      }
+      if (arr.length >= 3) arr.shift();
       arr.push(id);
     }
     setCompare(arr);
@@ -281,9 +318,7 @@
     const r = Number(annualRate) / 12 / 100;
     const n = Number(months);
 
-    if (!p || !n) {
-      return { emi: 0, interest: 0, total: 0 };
-    }
+    if (!p || !n) return { emi: 0, interest: 0, total: 0 };
 
     if (!r) {
       const total = p;
@@ -295,6 +330,12 @@
     const total = emi * n;
     const interest = total - p;
     return { emi, interest, total };
+  }
+
+  function saveVisitRequest(payload) {
+    const arr = readJSON(VISIT_REQUESTS_KEY, []);
+    arr.unshift(payload);
+    writeJSON(VISIT_REQUESTS_KEY, arr);
   }
 
   function metaItem(label, value) {
@@ -380,6 +421,7 @@
             <button class="btn share" id="sharePropertyBtn" type="button">🔗 Share / Copy Link</button>
             <button class="btn favorite ${isFavorite(item.id) ? "active" : ""}" id="favoriteBtn" type="button">${isFavorite(item.id) ? "❤️ Saved" : "🤍 Save"}</button>
             <button class="btn compare ${isCompare(item.id) ? "active" : ""}" id="compareBtn" type="button">${isCompare(item.id) ? "📊 Added" : "📊 Compare"}</button>
+            ${item.brochure ? `<a class="btn ghost" href="${escapeAttr(item.brochure)}" download>📄 Brochure</a>` : `<button class="btn ghost" id="brochureBtn" type="button">📄 Brochure</button>`}
           </div>
         </div>
       </section>
@@ -512,6 +554,86 @@
         </div>
       </section>
 
+      <section class="section">
+        <div class="sectionCard">
+          <div class="threeCol">
+            <div class="agentCard">
+              <h3>Agent Profile</h3>
+              <div class="agentTop">
+                <div class="agentAvatar">${escapeHtml(getAgentInitial(item))}</div>
+                <div>
+                  <div class="agentName">${escapeHtml(item.brokerName || item.sellerName || "MEI Advisor")}</div>
+                  <div class="agentRole">Property Consultant</div>
+                </div>
+              </div>
+
+              <div class="agentMeta">
+                <div class="agentMetaItem">
+                  <div class="agentMetaLabel">Location</div>
+                  <div class="agentMetaValue">${escapeHtml(buildLocation(item))}</div>
+                </div>
+                <div class="agentMetaItem">
+                  <div class="agentMetaLabel">Contact</div>
+                  <div class="agentMetaValue">${escapeHtml(item.mobile || "Available on enquiry")}</div>
+                </div>
+                <div class="agentMetaItem">
+                  <div class="agentMetaLabel">Speciality</div>
+                  <div class="agentMetaValue">${escapeHtml(item.type || "Property Sales")}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="visitCard">
+              <h3>Schedule a Visit</h3>
+              <form id="visitForm" class="formGrid">
+                <div class="formRow">
+                  <label class="formLabel" for="visitName">Full Name</label>
+                  <input class="formInput" id="visitName" type="text" placeholder="Enter your name" required />
+                </div>
+
+                <div class="formRow">
+                  <label class="formLabel" for="visitPhone">Phone Number</label>
+                  <input class="formInput" id="visitPhone" type="tel" placeholder="Enter phone number" required />
+                </div>
+
+                <div class="formRow">
+                  <label class="formLabel" for="visitDate">Preferred Date</label>
+                  <input class="formInput" id="visitDate" type="date" required />
+                </div>
+
+                <div class="formRow">
+                  <label class="formLabel" for="visitNote">Note</label>
+                  <textarea class="formTextarea" id="visitNote" placeholder="Any preferred time or note"></textarea>
+                </div>
+
+                <button class="btn primary" type="submit">Book Site Visit</button>
+              </form>
+              <div id="visitSuccess" class="visitSuccess">Visit request saved successfully.</div>
+            </div>
+
+            <div class="documentsCard">
+              <h3>Property Documents</h3>
+              <ul class="documentsList">
+                ${item.documents.map(renderDocumentItem).join("")}
+              </ul>
+
+              <div class="actionRow" style="margin-top:16px;">
+                ${item.brochure ? `<a class="btn ghost" href="${escapeAttr(item.brochure)}" download>📄 Download Brochure</a>` : `<button class="btn ghost" id="brochureBtn2" type="button">📄 Request Brochure</button>`}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="sectionCard">
+          <h2 class="sectionTitle">Nearby Amenities</h2>
+          <div class="amenityGrid">
+            ${item.amenities.map(renderAmenityCard).join("")}
+          </div>
+        </div>
+      </section>
+
       ${related.length ? `
         <section class="section">
           <div class="sectionCard relatedSectionFix">
@@ -527,6 +649,12 @@
     bindActions(item);
     bindGallery(item);
     bindEMI();
+    bindVisitForm(item);
+  }
+
+  function getAgentInitial(item) {
+    const name = String(item.brokerName || item.sellerName || "M").trim();
+    return (name.charAt(0) || "M").toUpperCase();
   }
 
   function renderHeroMedia(item) {
@@ -586,6 +714,29 @@
     `;
   }
 
+  function renderDocumentItem(doc) {
+    const ok = doc.status === "ok";
+    return `
+      <li class="documentItem">
+        <div class="documentLeft">
+          <span>📄</span>
+          <span>${escapeHtml(doc.title)}</span>
+        </div>
+        <span class="documentStatus ${ok ? "ok" : "pending"}">${ok ? "Verified" : "Pending"}</span>
+      </li>
+    `;
+  }
+
+  function renderAmenityCard(item) {
+    return `
+      <div class="amenityCard">
+        <div class="amenityIcon">${escapeHtml(item.icon || "📍")}</div>
+        <div class="amenityTitle">${escapeHtml(item.title)}</div>
+        <div class="amenityText">${escapeHtml(item.text)}</div>
+      </div>
+    `;
+  }
+
   function renderRelatedCard(item) {
     const thumb = item.image
       ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" onerror="this.parentNode.innerHTML='No Image';">`
@@ -631,6 +782,16 @@
         compareBtn.textContent = active ? "📊 Added" : "📊 Compare";
         showInfo(active ? "Property added to compare list." : "Property removed from compare list.");
       });
+    }
+
+    const brochureBtn = $("brochureBtn");
+    if (brochureBtn) {
+      brochureBtn.addEventListener("click", () => showInfo("Brochure can be shared during enquiry."));
+    }
+
+    const brochureBtn2 = $("brochureBtn2");
+    if (brochureBtn2) {
+      brochureBtn2.addEventListener("click", () => showInfo("Brochure request noted."));
     }
   }
 
@@ -687,6 +848,40 @@
     });
 
     update();
+  }
+
+  function bindVisitForm(item) {
+    const form = $("visitForm");
+    const success = $("visitSuccess");
+    if (!form || !success) return;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const payload = {
+        propertyId: item.id,
+        propertyTitle: item.title,
+        name: String($("visitName")?.value || "").trim(),
+        phone: String($("visitPhone")?.value || "").trim(),
+        date: String($("visitDate")?.value || "").trim(),
+        note: String($("visitNote")?.value || "").trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      if (!payload.name || !payload.phone || !payload.date) {
+        showInfo("Please fill all required visit details.");
+        return;
+      }
+
+      saveVisitRequest(payload);
+      form.reset();
+      success.style.display = "block";
+      showInfo("Visit request saved successfully.");
+
+      setTimeout(() => {
+        success.style.display = "none";
+      }, 2500);
+    });
   }
 
   function bindStickyBar(item) {

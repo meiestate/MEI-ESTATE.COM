@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Estate — Compare Properties</title>
+  <meta name="description" content="Compare selected MEI Estate properties side by side." />
+  <link rel="stylesheet" href="compare.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap topbarInner">
+      <div class="brand">
+        <div class="logo">MEI</div>
+        <div class="brandText">
+          <div class="brandTitle">MEI Estate</div>
+          <div class="brandSub">Property Comparison • Saved Compare List</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="btn small ghost" href="index.html">🏠 Home</a>
+        <a class="btn small ghost" href="listings.html">📋 Listings</a>
+        <a class="btn small ghost" href="favorites.html">❤ Favorites</a>
+        <a class="btn small primary" href="dashboard.html">🛡 Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap mainWrap">
+    <section class="hero card">
+      <div class="cardBody">
+        <div class="heroTop">
+          <div>
+            <h1 class="heroTitle">Compare Properties</h1>
+            <p class="heroText">
+              Compare saved listings side-by-side and spot the strongest deal faster.
+            </p>
+          </div>
+
+          <div class="actions">
+            <button class="btn warn" id="clearCompareBtn" type="button">Clear Compare</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compareRoot"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footerRow">
+      <div>© <span id="yr"></span> MEI Estate</div>
+      <div class="footerLinks">
+        <a href="index.html">Home</a>
+        <a href="listings.html">Listings</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="dashboard.html">Dashboard</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="compare.js"></script>
+</body>
+</html>
+

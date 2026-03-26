@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Estate — Visit Requests Admin</title>
+  <meta name="description" content="Admin view for site visit requests." />
+  <link rel="stylesheet" href="visit-requests.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <header class="topbar">
+    <div class="wrap topbarInner">
+      <div class="brand">
+        <div class="logo">MEI</div>
+        <div class="brandText">
+          <div class="brandTitle">MEI Estate</div>
+          <div class="brandSub">Admin • Site Visit Requests • Lead Pipeline</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="btn small ghost" href="dashboard.html">🛡 Dashboard</a>
+        <a class="btn small ghost" href="listings.html">📋 Listings</a>
+        <a class="btn small ghost" href="favorites.html">❤ Favorites</a>
+        <a class="btn small primary" href="compare.html">📊 Compare</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap mainWrap">
+    <section class="hero card">
+      <div class="cardBody">
+        <div class="heroTop">
+          <div>
+            <h1 class="heroTitle">Visit Requests Admin View</h1>
+            <p class="heroText">
+              View, filter, manage, and update customer site visit requests in one place.
+            </p>
+          </div>
+
+          <div class="heroStats">
+            <div class="statCard">
+              <div class="statLabel">Total Requests</div>
+              <div class="statValue" id="totalCount">0</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Filtered</div>
+              <div class="statValue" id="filteredCount">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls card">
+      <div class="cardBody controlsGrid">
+        <div class="field">
+          <label class="label" for="searchInput">Search</label>
+          <input id="searchInput" class="input" type="text" placeholder="Name, phone, property title, property ID" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="statusFilter">Status Filter</label>
+          <select id="statusFilter" class="select">
+            <option value="all">All Status</option>
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="visited">Visited</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div class="field actionsField">
+          <button id="clearFiltersBtn" class="btn ghost" type="button">Reset Filters</button>
+          <button id="clearAllBtn" class="btn warn" type="button">Clear All Requests</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="requestsRoot"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footerRow">
+      <div>© <span id="yr"></span> MEI Estate</div>
+      <div class="footerLinks">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="listings.html">Listings</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="compare.html">Compare</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="visit-requests.js"></script>
+</body>
+</html>
+
