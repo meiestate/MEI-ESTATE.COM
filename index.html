@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#0b0f17" />
-  <title>Real Estate Broker Network — Whitefield</title>
-  <meta name="description" content="Verified Broker Network + Deal Room. Whitefield launch. Post a lead or join as a broker." />
+  <title>Broker Network — Whitefield • Browse Listings + Post Lead</title>
+  <meta name="description" content="Trust-first real estate. Browse approved listings and post a lead. Verified brokers only." />
 
   <!--
-    Production notes (server-side, unspecified):
-    - Deliver CSP via Content-Security-Policy response header; set on all responses.
-    - Enforce HTTPS + HSTS (Strict-Transport-Security).
-    - Validate/rate-limit form submissions server-side; client-side checks can be bypassed.
+    SERVER-SIDE MUSTS (PRODUCTION) — UNSPECIFIED IN THIS DEMO FILE:
+    - Rate limiting + abuse controls on POST /leads and POST /brokers/onboard (server-side; client throttles are bypassable).
+    - Input validation (server-side) and audit logging.
+    - CSP delivered via HTTP response header (avoid inline scripts in prod), HSTS, secure cookies if sessions exist.
+    - If you add file uploads later: allowlist extensions/MIME, file size limits, store outside webroot, scan/sandbox.
   -->
 
   <style>
@@ -32,7 +33,11 @@
       --warnBg: rgba(251,191,36,.10);
       --badBorder: rgba(251,113,133,.38);
       --badBg: rgba(251,113,133,.12);
+
+      --shadow: 0 18px 60px rgba(0,0,0,.25);
+      --radius: 22px;
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -58,16 +63,16 @@
     }
     .skipLink:focus{left:16px}
 
-    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    /* Accessible focus */
+    :focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+
+    .wrap{max-width:1120px;margin:0 auto;padding:24px}
+
     header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
       position:sticky;
       top:0;
       background:rgba(11,15,23,.68);
-      backdrop-filter:blur(10px);
+      backdrop-filter: blur(10px);
       border-bottom:1px solid rgba(31,42,61,.6);
       z-index:10;
     }
@@ -75,17 +80,39 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      width:100%;
       gap:14px;
       flex-wrap:wrap;
+      padding-top:14px;
+      padding-bottom:14px;
     }
-    .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.3px}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:1000;
+      letter-spacing:.3px;
+    }
     .logo{
       width:36px;height:36px;border-radius:12px;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
-      box-shadow:0 10px 35px rgba(110,231,255,.18)
+      box-shadow:0 10px 35px rgba(110,231,255,.18);
+      flex:0 0 auto;
     }
-    nav{display:flex;gap:14px;flex-wrap:wrap}
+    .brand .sub{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      margin-top:2px;
+      line-height:1.2;
+    }
+
+    nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
     .btn{
       display:inline-flex;
       align-items:center;
@@ -105,9 +132,10 @@
     .btn:active{transform:translateY(1px)}
     .btn.primary{
       background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
-      border-color:rgba(110,231,255,.35)
+      border-color:rgba(110,231,255,.35);
     }
     .btn.small{padding:8px 12px;border-radius:12px;font-size:14px;min-height:36px}
+    .btn.ghost{background:transparent}
     .btn.danger{
       border-color: var(--badBorder);
       background: var(--badBg);
@@ -115,33 +143,58 @@
     .btn.danger:hover{background:rgba(251,113,133,.18)}
     .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none}
 
-    :focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(15,22,36,.55);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+    }
+    .pill.ok{border-color:rgba(52,211,153,.35);color:rgba(52,211,153,.95)}
+    .pill.warn{border-color:rgba(251,191,36,.35);color:rgba(251,191,36,.95)}
 
-    .hero{padding:44px 0 18px}
-    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
-    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    main{padding-bottom:20px}
+    section{padding:18px 0; scroll-margin-top:110px;}
 
-    .h1{font-size:44px;line-height:1.05;margin:0 0 10px}
-    .sub{color:var(--muted);font-size:16px;line-height:1.6;margin:0 0 18px}
-    .pill{display:inline-flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .hero{padding:34px 0 10px}
+    .grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      align-items:start;
+    }
+    @media (max-width: 940px){.grid{grid-template-columns:1fr}}
+
+    .h1{font-size:44px;line-height:1.05;margin:0 0 10px;font-weight:1000}
+    .muted{color:var(--muted);line-height:1.65}
+    .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .chip{
       font-size:13px;
       color:var(--muted);
       border:1px solid rgba(31,42,61,.85);
       padding:8px 10px;
       border-radius:999px;
-      background:rgba(15,22,36,.55)
+      background:rgba(15,22,36,.55);
+      font-weight:800;
     }
+
     .card{
       background:rgba(15,22,36,.55);
       border:1px solid rgba(31,42,61,.85);
-      border-radius:22px;
-      padding:18px;
-      box-shadow:0 18px 60px rgba(0,0,0,.25)
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
     }
-    .card h3{margin:0 0 10px;font-size:18px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width: 520px){.row{grid-template-columns:1fr}}
+    .card h2, .card h3{margin:0 0 10px}
+    .card h3{font-size:18px}
+
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:520px){.row2{grid-template-columns:1fr}}
 
     label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px;font-weight:800}
     input,select,textarea{
@@ -157,41 +210,124 @@
     input::placeholder, textarea::placeholder{color: rgba(168,179,199,.78)}
     textarea{min-height:92px;resize:vertical}
 
-    .hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px}
-    .err{
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
       margin-top:6px;
-      color:rgba(251,113,133,.95);
+    }
+    .err{
+      margin-top:8px;
+      color:rgba(251,113,133,.98);
       font-weight:900;
       font-size:12px;
       line-height:1.35;
     }
     .err[hidden]{display:none}
 
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
-    @media (max-width: 650px){.kpis{grid-template-columns:1fr}}
-    .kpi{
-      padding:14px;
-      border-radius:18px;
-      border:1px solid rgba(31,42,61,.85);
-      background:rgba(11,15,23,.45)
+    .formActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:12px;
     }
-    .kpi .n{font-size:20px;font-weight:1000}
-    .kpi .t{font-size:12px;color:var(--muted);margin-top:4px}
 
-    section{padding:18px 0; scroll-margin-top:100px;}
-    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    @media (max-width: 900px){.features{grid-template-columns:1fr}}
-    .feat{padding:16px;border-radius:20px;border:1px solid rgba(31,42,61,.85);background:rgba(15,22,36,.45)}
+    .preview{
+      margin-top:12px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.35);
+    }
+    .preview pre{
+      margin:0;
+      white-space:pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color:rgba(232,238,252,.88);
+      line-height:1.5;
+    }
+
+    .listingsTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .filterBar{
+      display:grid;
+      grid-template-columns: 1.2fr .7fr .7fr auto;
+      gap:10px;
+      margin-top:12px;
+      align-items:center;
+    }
+    @media (max-width: 980px){ .filterBar{ grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px){ .filterBar{ grid-template-columns: 1fr; } }
+
+    .gridListings{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    @media (max-width:950px){.gridListings{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:650px){.gridListings{grid-template-columns:1fr}}
+
+    .tile{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      min-height:210px;
+    }
+    .title{font-weight:1000;font-size:16px}
+    .mini{font-size:12px;color:rgba(232,238,252,.72);margin-top:4px;line-height:1.35}
+    .price{margin-top:10px;font-weight:1000}
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:auto;
+      padding-top:12px;
+      align-items:center;
+    }
+    .iconBtn{
+      padding:8px;
+      min-width:40px;
+      min-height:40px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+    @media (max-width:900px){.features{grid-template-columns:1fr}}
+    .feat{
+      padding:16px;
+      border-radius:20px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(15,22,36,.45);
+    }
     .feat b{display:block;margin-bottom:6px}
 
-    footer{padding:24px 0;color:var(--muted);border-top:1px solid rgba(31,42,61,.6);margin-top:22px}
+    footer{
+      padding:22px 0;
+      color:var(--muted);
+      border-top:1px solid rgba(31,42,61,.6);
+      margin-top:22px;
+    }
 
-    /* Toast: accessible status message (role=status is set in HTML) */
+    /* Toast (WCAG status message technique) */
     .toast{
       position:fixed;
       right:18px;
       bottom:18px;
-      max-width:420px;
+      max-width:440px;
       background:rgba(15,22,36,.94);
       border:1px solid rgba(31,42,61,.9);
       padding:12px 14px;
@@ -200,6 +336,7 @@
       gap:10px;
       align-items:center;
       box-shadow:0 16px 50px rgba(0,0,0,.45);
+      z-index:9998;
     }
     .toast[hidden]{display:none}
     .toast .msg{font-size:13px; line-height:1.4}
@@ -217,7 +354,7 @@
     .toast .act:hover{background:rgba(255,255,255,.10)}
     .toast .act[hidden]{display:none}
 
-    /* Modal: accessible confirmation dialog */
+    /* Modal */
     .modalBack{
       position:fixed;
       inset:0;
@@ -227,11 +364,11 @@
       align-items:flex-start;
       justify-content:center;
       overflow:auto;
-      z-index:99999;
+      z-index:9999;
     }
     .modalBack[hidden]{display:none}
     .modalCard{
-      width:min(680px, 100%);
+      width:min(720px, 100%);
       margin:6vh auto;
       background:rgba(15,22,36,.98);
       border:1px solid rgba(31,42,61,.92);
@@ -239,10 +376,54 @@
       padding:14px;
       box-shadow:0 20px 80px rgba(0,0,0,.60);
     }
-    .modalTop{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .modalTop{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
     .modalTitle{font-weight:1000;font-size:16px}
     .modalBody{margin-top:10px;color:var(--muted);line-height:1.7}
     .modalActions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+
+    /* Menu */
+    .menu{
+      position:fixed;
+      min-width:220px;
+      max-width:320px;
+      background:rgba(15,22,36,.98);
+      border:1px solid rgba(31,42,61,.92);
+      border-radius:14px;
+      padding:6px;
+      box-shadow:0 12px 40px rgba(0,0,0,.6);
+      z-index:99999;
+    }
+    .menu[hidden]{display:none}
+    .menuTitle{
+      padding:8px 10px;
+      font-size:12px;
+      color:rgba(232,238,252,.70);
+      font-weight:900;
+    }
+    .menuItem{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--text);
+      cursor:pointer;
+      text-align:left;
+      font-weight:900;
+      min-height:38px;
+    }
+    .menuItem:hover{background:rgba(255,255,255,.07)}
+    .menuItem[disabled]{opacity:.55; cursor:not-allowed}
+    .menuItem .sub{margin-left:auto;font-size:12px;color:rgba(232,238,252,.65);font-weight:800}
 
     .srOnly{
       position:absolute;
@@ -264,24 +445,30 @@
 
   <header>
     <div class="wrap">
-      <div class="brand" aria-label="Broker Network">
+      <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div>Broker Network</div>
-          <div style="font-size:12px;color:var(--muted);font-weight:700">Whitefield • Verified • Deal Room</div>
+          <div class="sub">Whitefield • Verified • Deal Room • Approved Listings</div>
         </div>
       </div>
 
       <nav aria-label="Primary navigation">
         <a class="btn small" href="#features">Features</a>
         <a class="btn small" href="#how">How it works</a>
-        <a class="btn small" href="#lead">Post Lead</a>
-        <a class="btn primary small" href="#broker">Join as Broker</a>
+        <a class="btn small" href="#listings">Browse Listings</a>
+        <a class="btn primary small" href="#lead">Post Lead</a>
+        <a class="btn small" href="#broker">Join Broker</a>
         <a class="btn small" href="broker.html">Broker Portal</a>
-        <button class="btn small" type="button" id="apiToggle" aria-pressed="false" data-action="toggleApi" title="API mode OFF = demo local. API mode ON = try backend (fallback to local).">
+
+        <button class="btn small ghost" type="button" data-action="toggleApi" id="apiToggle" aria-pressed="false" title="API mode OFF = demo local. API mode ON = try backend and queue failures.">
           🔌 API: OFF
         </button>
-        <button class="btn small danger" type="button" data-action="clearLocal" title="Remove only submissions created from this page (demo).">
+
+        <span class="pill warn" id="queuePill" title="Offline queue for API-mode retries">Queue: <span id="queueCount">0</span></span>
+        <button class="btn small" type="button" data-action="retryQueue" title="Try to send queued requests (API mode).">🔁 Retry</button>
+
+        <button class="btn small danger" type="button" data-action="clearLocal" title="Clear merged-page demo drafts + throttles + leads created by this page.">
           🧹 Clear Local Demo
         </button>
       </nav>
@@ -292,64 +479,49 @@
     <section class="hero">
       <div class="grid">
         <div>
-          <h1 class="h1">Trust-first Real Estate.<br/>Deal Room ready.</h1>
-          <p class="sub">
+          <h1 class="h1">Trust-first Real Estate.<br/>Approved listings. Serious leads.</h1>
+          <p class="muted">
             Whitefield launch: Verified brokers only. Clean listings. Serious leads.
-            Every deal gets a step-by-step Deal Room — no chaos, no fake promises.
+            Every deal can move into a step-by-step Deal Room — no chaos, no fake promises.
           </p>
 
-          <div class="pill" aria-label="Key benefits">
-            <span class="chip">✅ KYC Verified Brokers</span>
-            <span class="chip">🔁 Lead ↔ Match System</span>
-            <span class="chip">🤝 Deal Room Timeline</span>
-            <span class="chip">⚖️ Dispute Control</span>
-          </div>
-
-          <div class="kpis" aria-label="Key performance indicators">
-            <div class="kpi">
-              <div class="n">MVP</div>
-              <div class="t">Launch-ready in weeks</div>
-            </div>
-            <div class="kpi">
-              <div class="n">Whitefield</div>
-              <div class="t">Local dominance first</div>
-            </div>
-            <div class="kpi">
-              <div class="n">Trust</div>
-              <div class="t">Verification + audit trail</div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <a class="btn primary" href="#lead">Post a Lead</a>
-            <a class="btn" href="#broker">Become a Verified Broker</a>
+          <div class="chips" aria-label="Key benefits">
+            <span class="chip">✅ Approved listings only</span>
+            <span class="chip">🔁 Lead ↔ Match pipeline</span>
+            <span class="chip">🤝 Deal Room timeline</span>
+            <span class="chip">⚖️ Dispute control</span>
           </div>
 
           <div class="hint" style="margin-top:12px">
-            Demo privacy note: If API mode is OFF (default), submissions are stored locally in this browser for testing.
-            In production, do not store sensitive personal data in browser storage.
+            Demo note: This merged page reads listings from <b class="srOnly">mei_properties_v1</b> and writes leads into <b class="srOnly">mei_leads_v1</b>.
+            In production, do not treat browser storage as secure for personal data.
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <a class="btn primary" href="#listings">Browse Approved Listings</a>
+            <a class="btn" href="#lead">Post a Lead</a>
           </div>
         </div>
 
         <div class="card" id="lead">
           <h3>📩 Post a Lead (Buyer / Seller)</h3>
-          <p class="sub" style="margin-top:-4px">We’ll connect you to a verified broker.</p>
+          <p class="muted" style="margin-top:-4px">We’ll connect you to a verified broker.</p>
 
-          <form id="leadForm" novalidate aria-label="Post a lead form">
-            <div class="row">
+          <form id="landingLeadForm" novalidate>
+            <div class="row2">
               <div>
                 <label for="leadName">Your Name *</label>
-                <input id="leadName" name="name" placeholder="Name" autocomplete="name" maxlength="60" required />
+                <input id="leadName" name="name" autocomplete="name" maxlength="60" placeholder="Name" required />
               </div>
               <div>
                 <label for="leadPhone">Phone *</label>
                 <input id="leadPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
-                       placeholder="10-digit mobile" maxlength="13" required />
-                <div class="hint">Example: 9876543210 (India). You may also enter +91XXXXXXXXXX.</div>
+                       maxlength="13" placeholder="10-digit mobile (or +91...)" required />
+                <div class="hint">Example: 9876543210. Formats vary; we validate lightly client-side.</div>
               </div>
             </div>
 
-            <div class="row" style="margin-top:10px">
+            <div class="row2" style="margin-top:10px">
               <div>
                 <label for="leadType">Lead Type *</label>
                 <select id="leadType" name="leadType" required>
@@ -359,11 +531,11 @@
               </div>
               <div>
                 <label for="leadLocality">Locality *</label>
-                <input id="leadLocality" name="locality" placeholder="Whitefield / ITPL / Hoodi…" maxlength="80" required />
+                <input id="leadLocality" name="locality" maxlength="80" placeholder="Whitefield / ITPL / Hoodi…" required />
               </div>
             </div>
 
-            <div class="row" style="margin-top:10px">
+            <div class="row2" style="margin-top:10px">
               <div>
                 <label for="budgetMin">Budget Min (₹)</label>
                 <input id="budgetMin" name="budgetMin" type="number" min="0" inputmode="numeric" placeholder="e.g. 5000000" />
@@ -380,7 +552,6 @@
             </div>
 
             <div style="margin-top:10px">
-              <label class="srOnly" for="leadConsent">Consent</label>
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <input id="leadConsent" type="checkbox" style="width:18px;height:18px;margin-top:2px" />
                 <div class="hint" style="margin-top:0">
@@ -389,14 +560,68 @@
               </div>
             </div>
 
-            <div id="leadErr" class="err" hidden></div>
+            <div id="landingLeadErr" class="err" hidden></div>
 
-            <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-              <button class="btn primary" type="submit" id="leadSubmitBtn">Submit Lead</button>
-              <span style="font-size:12px;color:var(--muted)">No spam. Verified brokers only.</span>
+            <div class="formActions">
+              <button class="btn primary" type="submit" id="landingLeadSubmit">Submit Lead</button>
+              <button class="btn" type="button" data-action="saveLandingDraft">💾 Save Draft</button>
+              <button class="btn" type="button" data-action="clearLandingForm">🧽 Clear</button>
+            </div>
+
+            <div class="preview" aria-label="Landing lead preview">
+              <div class="hint" style="margin-top:0">
+                Preview (safe text). XSS test: paste <code>&lt;img src=x onerror=alert(1)&gt;</code> in Notes; it will render as text here.
+              </div>
+              <pre id="landingLeadPreview">—</pre>
             </div>
           </form>
         </div>
+      </div>
+    </section>
+
+    <section id="listings">
+      <div class="card">
+        <div class="listingsTop">
+          <div>
+            <h2 style="margin:0 0 6px">Browse Approved Listings</h2>
+            <div class="muted">Only listings with status <b>approved</b> are shown.</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end">
+            <span class="pill">Approved: <span id="approvedCount">0</span></span>
+            <button class="btn small" type="button" data-action="refreshListings">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <div class="filterBar" aria-label="Listing filters">
+          <div>
+            <label class="srOnly" for="q">Search listings</label>
+            <input id="q" placeholder="Search: title / city / area / type / price" />
+          </div>
+
+          <div>
+            <label class="srOnly" for="typeFilter">Type filter</label>
+            <select id="typeFilter">
+              <option value="">All Types</option>
+              <option value="plot">Plot</option>
+              <option value="house">House</option>
+              <option value="apartment">Apartment</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="srOnly" for="sortFilter">Sort filter</label>
+            <select id="sortFilter">
+              <option value="NEWEST">Sort: Newest</option>
+              <option value="PRICE_LOW">Sort: Price low → high</option>
+              <option value="PRICE_HIGH">Sort: Price high → low</option>
+            </select>
+          </div>
+
+          <button class="btn ok" type="button" data-action="clearFilters">↩ Reset Filters</button>
+        </div>
+
+        <div id="grid" class="gridListings" aria-label="Approved listings grid"></div>
       </div>
     </section>
 
@@ -405,15 +630,15 @@
       <div class="features">
         <div class="feat">
           <b>✅ Broker Verification</b>
-          <div style="color:var(--muted);line-height:1.6">KYC-based onboarding. Bad actors get suspended fast.</div>
+          <div class="muted">KYC-based onboarding. Bad actors get suspended fast.</div>
         </div>
         <div class="feat">
           <b>🔁 Lead ↔ Property Matching</b>
-          <div style="color:var(--muted);line-height:1.6">Simple matching now, smarter scoring later. Clean pipeline.</div>
+          <div class="muted">Simple matching now, smarter scoring later. Clean pipeline.</div>
         </div>
         <div class="feat">
           <b>🤝 Deal Room Timeline</b>
-          <div style="color:var(--muted);line-height:1.6">Visit → Token → Agreement → Registration. Track every step.</div>
+          <div class="muted">Visit → Token → Agreement → Registration. Track every step.</div>
         </div>
       </div>
     </section>
@@ -422,7 +647,7 @@
       <div class="card">
         <h3>How it works (MVP)</h3>
         <ol style="color:var(--muted);line-height:1.8;margin:10px 0 0">
-          <li>Buyer/Seller posts a lead.</li>
+          <li>Buyer/Seller posts a lead (or requests a listing).</li>
           <li>Admin assigns a verified broker.</li>
           <li>Broker shares matching options + schedules visit.</li>
           <li>Deal Room opens for serious clients.</li>
@@ -434,25 +659,25 @@
     <section id="broker">
       <div class="card">
         <h3>🪪 Join as a Verified Broker</h3>
-        <p class="sub" style="margin-top:-4px">Submit details — we’ll call you for KYC verification.</p>
+        <p class="muted" style="margin-top:-4px">Submit details — we’ll call you for KYC verification.</p>
 
-        <form id="brokerForm" novalidate aria-label="Join as broker form">
-          <div class="row">
+        <form id="brokerJoinForm" novalidate>
+          <div class="row2">
             <div>
               <label for="brokerName">Broker Name *</label>
-              <input id="brokerName" name="brokerName" placeholder="Full name" autocomplete="name" maxlength="60" required />
+              <input id="brokerName" name="brokerName" autocomplete="name" maxlength="60" placeholder="Full name" required />
             </div>
             <div>
               <label for="brokerPhone">Phone *</label>
               <input id="brokerPhone" name="phone" type="tel" inputmode="numeric" autocomplete="tel"
-                     placeholder="10-digit mobile" maxlength="13" required />
+                     maxlength="13" placeholder="10-digit mobile (or +91...)" required />
             </div>
           </div>
 
-          <div class="row" style="margin-top:10px">
+          <div class="row2" style="margin-top:10px">
             <div>
               <label for="brokerArea">Primary Area *</label>
-              <input id="brokerArea" name="area" placeholder="Whitefield / Bangalore East…" maxlength="80" required />
+              <input id="brokerArea" name="area" maxlength="80" placeholder="Whitefield / Bangalore East…" required />
             </div>
             <div>
               <label for="brokerExp">Experience (years)</label>
@@ -462,11 +687,10 @@
 
           <div style="margin-top:10px">
             <label for="brokerCompany">Office / Company (optional)</label>
-            <input id="brokerCompany" name="company" placeholder="Company / office name" maxlength="80" />
+            <input id="brokerCompany" name="company" maxlength="80" placeholder="Company / office name" />
           </div>
 
           <div style="margin-top:10px">
-            <label class="srOnly" for="brokerConsent">Consent</label>
             <div style="display:flex;gap:10px;align-items:flex-start">
               <input id="brokerConsent" type="checkbox" style="width:18px;height:18px;margin-top:2px" />
               <div class="hint" style="margin-top:0">
@@ -477,9 +701,15 @@
 
           <div id="brokerErr" class="err" hidden></div>
 
-          <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-            <button class="btn primary" type="submit" id="brokerSubmitBtn">Request Verification</button>
-            <span style="font-size:12px;color:var(--muted)">KYC + approval required before posting listings.</span>
+          <div class="formActions">
+            <button class="btn primary" type="submit" id="brokerSubmit">Request Verification</button>
+            <button class="btn" type="button" data-action="saveBrokerDraft">💾 Save Draft</button>
+            <button class="btn" type="button" data-action="clearBrokerForm">🧽 Clear</button>
+          </div>
+
+          <div class="preview" aria-label="Broker request preview">
+            <div class="hint" style="margin-top:0">Preview (safe text).</div>
+            <pre id="brokerPreview">—</pre>
           </div>
         </form>
       </div>
@@ -489,6 +719,7 @@
       <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
         <div>© <span id="yr"></span> Broker Network • Whitefield</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="#listings">Browse Listings</a>
           <a href="#lead">Post Lead</a>
           <a href="#broker">Join Broker</a>
         </div>
@@ -496,536 +727,1409 @@
     </footer>
   </main>
 
-  <!-- Toast: accessible status message -->
-  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+  <!-- Shared overflow menu -->
+  <div id="overflowMenu" class="menu" role="menu" aria-label="Listing actions" hidden></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
     <div class="msg" id="toastMsg">✅ Updated</div>
     <button class="act" id="toastAct" type="button" hidden>Undo</button>
   </div>
 
-  <!-- Modal: accessible confirmation dialog -->
-  <div id="modalBack" class="modalBack" hidden>
-    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+  <!-- Confirm modal -->
+  <div id="confirmBack" class="modalBack" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDesc">
       <div class="modalTop">
         <div>
-          <div id="modalTitle" class="modalTitle">Confirm</div>
-          <div id="modalDesc" class="srOnly">Modal dialog. Tab stays inside. Escape closes.</div>
+          <div id="confirmTitle" class="modalTitle">Confirm</div>
+          <div id="confirmDesc" class="srOnly">Confirmation dialog. Tab stays inside. Escape closes.</div>
         </div>
-        <button class="btn small" type="button" data-action="modalClose">✕ Close</button>
+        <button class="btn small" type="button" data-action="closeConfirm">✕ Close</button>
       </div>
-      <div id="modalBody" class="modalBody"></div>
+      <div id="confirmBody" class="modalBody"></div>
       <div class="modalActions">
-        <button class="btn" id="modalSecondary" type="button">Cancel</button>
-        <button class="btn primary" id="modalPrimary" type="button">Confirm</button>
+        <button class="btn" id="confirmSecondary" type="button">Cancel</button>
+        <button class="btn primary" id="confirmPrimary" type="button">Confirm</button>
       </div>
     </div>
   </div>
 
-  <script>
-  (() => {
-    // ========= Config (unspecified backend) =========
-    const API_BASE = "https://api.yourplatform.in"; // placeholder
-    const CITY_DEFAULT = "Bangalore";
+  <!-- Listing Lead Modal -->
+  <div id="leadModalBack" class="modalBack" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="leadModalTitle" aria-describedby="leadModalDesc">
+      <div class="modalTop">
+        <div>
+          <div id="leadModalTitle" class="modalTitle">Buyer Request</div>
+          <div id="leadModalDesc" class="hint" style="margin-top:6px">Request for: <span id="leadListingTitle"></span></div>
+        </div>
+        <button class="btn small" type="button" data-action="closeLeadModal">✕ Close</button>
+      </div>
 
-    // ========= Storage keys =========
-    const KEYS = {
-      API_MODE: "mei_index_api_mode_v1",
-      RATE: "mei_index_rate_v1",
-      CREATED_IDS: "mei_index_created_lead_ids_v1",
-      LEADS: "mei_leads_v1"
-    };
+      <form id="listingLeadForm" style="margin-top:12px" novalidate>
+        <div class="row2">
+          <div>
+            <label for="buyerName">Your Name *</label>
+            <input id="buyerName" name="buyerName" autocomplete="name" maxlength="60" placeholder="Your Name" required />
+          </div>
+          <div>
+            <label for="buyerPhone">Phone Number *</label>
+            <input id="buyerPhone" name="buyerPhone" type="tel" inputmode="numeric" autocomplete="tel"
+                   maxlength="13" placeholder="10-digit mobile (or +91...)" required />
+          </div>
+        </div>
 
-    // Demo throttling: 30s per phone per form
-    const THROTTLE_MS = 30_000;
+        <div style="margin-top:10px">
+          <label for="buyerMsg">Message (optional)</label>
+          <textarea id="buyerMsg" name="buyerMsg" placeholder="Budget / move-in date / preferences…"></textarea>
+        </div>
 
-    // ========= DOM helpers =========
-    const $ = (id) => document.getElementById(id);
-    const qs = (sel, root=document) => root.querySelector(sel);
+        <div style="margin-top:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <input id="buyerConsent" type="checkbox" style="width:18px;height:18px;margin-top:2px" />
+            <div class="hint" style="margin-top:0">I agree to be contacted about this request.</div>
+          </div>
+        </div>
 
-    // ========= JSON storage helpers =========
-    function readJSON(key, fallback) {
-      try {
-        const v = localStorage.getItem(key);
-        return v ? JSON.parse(v) : fallback;
-      } catch (e) {
-        return fallback;
-      }
+        <div id="listingLeadErr" class="err" hidden></div>
+
+        <div class="formActions">
+          <button class="btn primary" type="submit" id="listingLeadSubmit">Submit Request</button>
+          <button class="btn" type="button" data-action="saveListingDraft">💾 Save Draft</button>
+          <button class="btn" type="button" data-action="clearListingModal">🧽 Clear</button>
+        </div>
+
+        <div class="preview" aria-label="Listing request preview">
+          <div class="hint" style="margin-top:0">Preview (safe text).</div>
+          <pre id="listingLeadPreview">—</pre>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ==========================
+  // Storage keys (preserved + added)
+  // ==========================
+  const STORAGE = {
+    PROPS: "mei_properties_v1",      // preserved
+    LEADS: "mei_leads_v1",           // preserved
+
+    API_MODE: "mei_merged_api_mode_v1",
+    OFFLINE_QUEUE: "mei_merged_offline_queue_v1",
+    RATE: "mei_merged_rate_v1",
+    CREATED_IDS: "mei_merged_created_lead_ids_v1",
+    FILTERS: "mei_merged_filters_v1",
+
+    DRAFT_LANDING: "mei_merged_draft_landing_lead_v1",
+    DRAFT_BROKER: "mei_merged_draft_broker_join_v1",
+    DRAFT_LISTING: "mei_merged_draft_listing_request_v1"
+  };
+
+  // ==========================
+  // Configuration (unspecified backend)
+  // ==========================
+  const CONFIG = {
+    API_BASE: "https://api.yourplatform.in", // placeholder; unspecified
+    CITY_DEFAULT: "Bangalore",
+    THROTTLE_MS: 30_000,
+    FETCH_TIMEOUT_MS: 8000
+  };
+
+  // ==========================
+  // Platform policy constants (for consistency across app)
+  // Note: OTP & upload policies are not used in this merged page, but are documented here as shared defaults.
+  // ==========================
+  const POLICIES = {
+    accessibility: {
+      contrastTextMin: 4.5,   // WCAG text
+      targetSizeMinCssPx: 24, // WCAG 2.5.8
+      nonTextContrastMin: 3   // WCAG 1.4.11
+    },
+    otp: {
+      ttlSec: 5 * 60,
+      resendCooldownSec: 30,
+      maxAttempts: 5,
+      lockSec: 120
+    },
+    uploads: {
+      docMaxBytes: 5 * 1024 * 1024,
+      selfieMaxBytes: 3 * 1024 * 1024
     }
-    function writeJSON(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  // ==========================
+  // DOM helpers
+  // ==========================
+  const $ = (id) => document.getElementById(id);
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function el(tag, attrs={}, children=[]){
+    const node = document.createElement(tag);
+    for(const [k,v] of Object.entries(attrs)){
+      if(k === "class") node.className = v;
+      else if(k === "text") node.textContent = v;
+      else if(k === "style") node.setAttribute("style", v);
+      else if(k.startsWith("data-")) node.setAttribute(k, v);
+      else if(v === true) node.setAttribute(k, "");
+      else if(v !== false && v != null) node.setAttribute(k, String(v));
     }
-    function nowMs(){ return Date.now(); }
-
-    function uid(prefix="") {
-      try {
-        if (window.crypto && crypto.randomUUID) return prefix + crypto.randomUUID();
-      } catch (e) {}
-      return prefix + Date.now().toString(16) + "_" + Math.random().toString(16).slice(2);
-    }
-
-    // ========= Toast with optional action =========
-    let TOAST_T = null;
-    let TOAST_FN = null;
-
-    function toast(msg, opts={}) {
-      const { actionText="", actionFn=null, timeout=3200 } = opts;
-
-      $("toastMsg").textContent = String(msg || "✅ Updated");
-
-      TOAST_FN = (typeof actionFn === "function") ? actionFn : null;
-      if (actionText && TOAST_FN) {
-        $("toastAct").textContent = actionText;
-        $("toastAct").hidden = false;
-      } else {
-        $("toastAct").hidden = true;
-      }
-
-      $("toast").hidden = false;
-
-      if (TOAST_T) clearTimeout(TOAST_T);
-      TOAST_T = setTimeout(() => {
-        $("toast").hidden = true;
-        $("toastAct").hidden = true;
-        TOAST_FN = null;
-      }, timeout);
-    }
-
-    $("toastAct").addEventListener("click", () => {
-      if (typeof TOAST_FN === "function") {
-        const fn = TOAST_FN;
-        $("toast").hidden = true;
-        $("toastAct").hidden = true;
-        TOAST_FN = null;
-        try { fn(); } catch (e) {}
-      }
+    (children || []).forEach(c => {
+      if(c == null) return;
+      if(typeof c === "string") node.appendChild(document.createTextNode(c));
+      else node.appendChild(c);
     });
+    return node;
+  }
 
-    // ========= Modal (confirmation) =========
-    const MODAL = { open:false, lastFocus:null, onPrimary:null, onSecondary:null };
-
-    function focusablesWithin(root){
-      return Array.from(root.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
-        .filter(el => !el.disabled && el.offsetParent !== null);
+  // ==========================
+  // Storage helpers
+  // ==========================
+  function readJSON(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    }catch(e){
+      return fallback;
     }
+  }
+  function writeJSON(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+  function delKey(key){ localStorage.removeItem(key); }
 
-    function openModal({ title="Confirm", bodyText="", primaryText="Confirm", secondaryText="Cancel", onPrimary, onSecondary }){
-      MODAL.open = true;
-      MODAL.lastFocus = document.activeElement;
-      MODAL.onPrimary = (typeof onPrimary === "function") ? onPrimary : null;
-      MODAL.onSecondary = (typeof onSecondary === "function") ? onSecondary : null;
+  function uid(prefix=""){
+    try{
+      if(window.crypto && crypto.randomUUID) return prefix + crypto.randomUUID();
+    }catch(e){}
+    return prefix + Date.now().toString(16) + "_" + Math.random().toString(16).slice(2);
+  }
 
-      $("modalTitle").textContent = title;
-      $("modalBody").textContent = bodyText;
-      $("modalPrimary").textContent = primaryText;
-      $("modalSecondary").textContent = secondaryText;
+  function nowMs(){ return Date.now(); }
+  function cleanDigits(s){ return String(s || "").replace(/[^\d]/g,""); }
+  function normalizePhone(raw){
+    const t = String(raw || "").trim();
+    const digits = cleanDigits(t);
+    if(digits.length === 10) return digits;
+    if(digits.length === 12 && digits.startsWith("91")) return "+" + digits;
+    if(t.startsWith("+") && digits.length >= 10) return "+" + digits;
+    return digits;
+  }
+  function isValidPhone(raw){
+    const t = String(raw || "").trim();
+    const digits = cleanDigits(t);
+    if(digits.length === 10) return true;
+    if(digits.length === 12 && digits.startsWith("91")) return true;
+    if(t.startsWith("+") && digits.length >= 10) return true;
+    return false;
+  }
 
-      $("modalBack").hidden = false;
-      $("main").setAttribute("aria-hidden","true");
-
-      const dialog = qs(".modalCard", $("modalBack"));
-      const f = focusablesWithin(dialog);
-      setTimeout(() => (f[0] || $("modalPrimary")).focus(), 0);
+  function parsePriceToNumber(p){
+    const digits = cleanDigits(p);
+    if(!digits) return NaN;
+    return Number(digits);
+  }
+  function formatINR(p){
+    const n = parsePriceToNumber(p);
+    if(!Number.isFinite(n)) return "Price on request";
+    try{
+      return new Intl.NumberFormat("en-IN", { style:"currency", currency:"INR", maximumFractionDigits:0 }).format(n);
+    }catch(e){
+      return "₹" + String(p);
     }
+  }
 
-    function closeModal(){
-      $("modalBack").hidden = true;
-      $("main").removeAttribute("aria-hidden");
-      MODAL.open = false;
-
-      if (MODAL.lastFocus && typeof MODAL.lastFocus.focus === "function") MODAL.lastFocus.focus();
-      MODAL.lastFocus = null;
-      MODAL.onPrimary = null;
-      MODAL.onSecondary = null;
-    }
-
-    $("modalPrimary").addEventListener("click", () => {
-      const fn = MODAL.onPrimary;
-      closeModal();
-      if (fn) { try { fn(); } catch (e) {} }
-    });
-
-    $("modalSecondary").addEventListener("click", () => {
-      const fn = MODAL.onSecondary;
-      closeModal();
-      if (fn) { try { fn(); } catch (e) {} }
-    });
-
-    $("modalBack").addEventListener("mousedown", (e) => {
-      if (e.target === $("modalBack")) closeModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if ($("modalBack").hidden) return;
-
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeModal();
-        return;
+  // ==========================
+  // Clipboard + secure open
+  // ==========================
+  async function copyToClipboard(text){
+    const t = String(text ?? "");
+    if(!t.trim()) return false;
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(t);
+        return true;
       }
-      if (e.key !== "Tab") return;
-
-      const dialog = qs(".modalCard", $("modalBack"));
-      const f = focusablesWithin(dialog);
-      if (!f.length) return;
-
-      const first = f[0];
-      const last = f[f.length - 1];
-
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault(); last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault(); first.focus();
-      }
-    });
-
-    // ========= API mode =========
-    const STATE = { apiMode:false };
-
-    function setApiMode(on){
-      STATE.apiMode = !!on;
-      writeJSON(KEYS.API_MODE, STATE.apiMode);
-
-      const btn = $("apiToggle");
-      btn.setAttribute("aria-pressed", STATE.apiMode ? "true" : "false");
-      btn.textContent = STATE.apiMode ? "🔌 API: ON" : "🔌 API: OFF";
-
-      toast(STATE.apiMode ? "API mode ON (will try backend)." : "API mode OFF (demo local).");
-    }
-
-    async function safePost(path, payload){
-      // Server-side requirements are unspecified and must include validation and rate limiting.
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 8000);
-
-      try {
-        const res = await fetch(API_BASE + path, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload || {}),
-          signal: controller.signal
-        });
-        if (!res.ok) throw new Error("API error");
-        const data = await res.json().catch(() => ({}));
-        return { ok:true, data, offline:false };
-      } catch (e) {
-        return { ok:false, offline:true, error:String(e) };
-      } finally {
-        clearTimeout(t);
-      }
-    }
-
-    // ========= Validation helpers =========
-    function cleanDigits(s){ return String(s || "").replace(/[^\d]/g,""); }
-    function normalizePhone(s){
-      const raw = String(s || "").trim();
-      const digits = cleanDigits(raw);
-      if (digits.length === 10) return digits;
-      if (digits.length === 12 && digits.startsWith("91")) return "+" + digits;
-      if (raw.startsWith("+") && digits.length >= 10) return "+" + digits;
-      return digits;
-    }
-    function isValidPhone(s){
-      const digits = cleanDigits(s);
-      if (digits.length === 10) return true;
-      if (digits.length === 12 && digits.startsWith("91")) return true;
-      if (String(s||"").trim().startsWith("+") && digits.length >= 10) return true;
+    }catch(e){}
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }catch(e){
       return false;
     }
+  }
 
-    function setFormError(elId, msg){
-      const el = $(elId);
-      if (!msg){
-        el.hidden = true;
-        el.textContent = "";
-      } else {
-        el.hidden = false;
-        el.textContent = msg;
-      }
+  function openInNewTab(url){
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if(w) w.opener = null;
+    return w;
+  }
+
+  // ==========================
+  // Toast (status) with optional action
+  // ==========================
+  let TOAST_T = null;
+  let TOAST_FN = null;
+
+  function toast(msg, opts={}){
+    const { actionText="", actionFn=null, timeout=3200 } = opts;
+    $("toastMsg").textContent = String(msg || "✅ Updated");
+    TOAST_FN = (typeof actionFn === "function") ? actionFn : null;
+
+    const act = $("toastAct");
+    if(actionText && TOAST_FN){
+      act.textContent = actionText;
+      act.hidden = false;
+    }else{
+      act.hidden = true;
     }
 
-    function throttleKey(kind, phone){
-      return `${kind}|${normalizePhone(phone)}`;
+    $("toast").hidden = false;
+
+    if(TOAST_T) clearTimeout(TOAST_T);
+    TOAST_T = setTimeout(() => {
+      $("toast").hidden = true;
+      act.hidden = true;
+      TOAST_FN = null;
+    }, timeout);
+  }
+
+  $("toastAct").addEventListener("click", () => {
+    if(typeof TOAST_FN === "function"){
+      const fn = TOAST_FN;
+      $("toast").hidden = true;
+      $("toastAct").hidden = true;
+      TOAST_FN = null;
+      try{ fn(); }catch(e){}
     }
+  });
 
-    function checkThrottle(kind, phone){
-      const m = readJSON(KEYS.RATE, {});
-      const key = throttleKey(kind, phone);
-      const now = nowMs();
-      const last = Number(m[key] || 0);
+  // ==========================
+  // Confirmation modal
+  // ==========================
+  const CONFIRM = { open:false, lastFocus:null, onPrimary:null, onSecondary:null };
 
-      if (now - last < THROTTLE_MS){
-        return { ok:false, waitMs: THROTTLE_MS - (now - last) };
-      }
+  function focusablesWithin(root){
+    return qsa('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', root)
+      .filter(el => !el.disabled && el.offsetParent !== null);
+  }
 
-      m[key] = now;
-      writeJSON(KEYS.RATE, m);
-      return { ok:true, waitMs:0 };
+  function openConfirm({ title="Confirm", bodyText="", primaryText="Confirm", secondaryText="Cancel", onPrimary, onSecondary }){
+    CONFIRM.open = true;
+    CONFIRM.lastFocus = document.activeElement;
+    CONFIRM.onPrimary = (typeof onPrimary === "function") ? onPrimary : null;
+    CONFIRM.onSecondary = (typeof onSecondary === "function") ? onSecondary : null;
+
+    $("confirmTitle").textContent = title;
+    $("confirmBody").textContent = bodyText;
+    $("confirmPrimary").textContent = primaryText;
+    $("confirmSecondary").textContent = secondaryText;
+
+    $("confirmBack").hidden = false;
+    $("main").setAttribute("aria-hidden","true");
+
+    const dialog = qs(".modalCard", $("confirmBack"));
+    const f = focusablesWithin(dialog);
+    setTimeout(() => (f[0] || $("confirmPrimary")).focus(), 0);
+  }
+
+  function closeConfirm(){
+    $("confirmBack").hidden = true;
+    $("main").removeAttribute("aria-hidden");
+    CONFIRM.open = false;
+
+    if(CONFIRM.lastFocus && typeof CONFIRM.lastFocus.focus === "function"){
+      CONFIRM.lastFocus.focus();
     }
+    CONFIRM.lastFocus = null;
+    CONFIRM.onPrimary = null;
+    CONFIRM.onSecondary = null;
+  }
 
-    // ========= Local lead storage (demo) =========
-    function rememberCreatedId(id){
-      const ids = readJSON(KEYS.CREATED_IDS, []);
-      ids.unshift(String(id));
-      // keep small
-      writeJSON(KEYS.CREATED_IDS, ids.slice(0, 500));
-    }
+  $("confirmPrimary").addEventListener("click", () => {
+    const fn = CONFIRM.onPrimary;
+    closeConfirm();
+    if(fn) { try{ fn(); }catch(e){} }
+  });
+  $("confirmSecondary").addEventListener("click", () => {
+    const fn = CONFIRM.onSecondary;
+    closeConfirm();
+    if(fn) { try{ fn(); }catch(e){} }
+  });
+  $("confirmBack").addEventListener("mousedown", (e) => {
+    if(e.target === $("confirmBack")) closeConfirm();
+  });
 
-    function saveLeadLocal(lead){
-      const leads = readJSON(KEYS.LEADS, []);
-      leads.unshift(lead);
-      writeJSON(KEYS.LEADS, leads);
-      rememberCreatedId(lead.id);
-    }
+  document.addEventListener("keydown", (e) => {
+    if($("confirmBack").hidden) return;
 
-    function removeLeadLocalById(id){
-      const leads = readJSON(KEYS.LEADS, []);
-      const next = leads.filter(x => String(x.id) !== String(id));
-      writeJSON(KEYS.LEADS, next);
-
-      const ids = readJSON(KEYS.CREATED_IDS, []);
-      writeJSON(KEYS.CREATED_IDS, ids.filter(x => String(x) !== String(id)));
-    }
-
-    // ========= Build lead objects compatible with your Admin CRM =========
-    function buildInboundLead({ name, phone, leadType, locality, budgetMin, budgetMax, notes }){
-      const cleanPhone = normalizePhone(phone);
-
-      const budgetText =
-        (budgetMin || budgetMax)
-          ? `Budget: ${budgetMin || "—"} to ${budgetMax || "—"}`
-          : "";
-
-      const messageParts = [
-        `Inbound ${leadType || "LEAD"} • Locality: ${locality || "—"}`,
-        budgetText,
-        (notes || "").trim()
-      ].filter(Boolean);
-
-      return {
-        id: uid("L_"),
-        listingId: "WEB",
-        listingTitle: `Inbound Lead (${leadType || "LEAD"}) — ${locality || "Unknown"}`,
-        buyerName: String(name || "").trim(),
-        buyerPhone: cleanPhone,
-        message: messageParts.join("\n"),
-        status: "NEW",
-        source: "WEB_INDEX",
-        createdAt: new Date().toISOString()
-      };
-    }
-
-    function buildBrokerRequestLead({ brokerName, phone, area, exp, company }){
-      const cleanPhone = normalizePhone(phone);
-
-      const messageParts = [
-        `Broker verification request`,
-        `Primary area: ${area || "—"}`,
-        exp ? `Experience: ${exp} years` : "",
-        company ? `Company: ${company}` : ""
-      ].filter(Boolean);
-
-      return {
-        id: uid("L_"),
-        listingId: "BROKER-KYC",
-        listingTitle: `Broker KYC Request — ${area || "Unknown"}`,
-        buyerName: String(brokerName || "").trim(),
-        buyerPhone: cleanPhone,
-        message: messageParts.join("\n"),
-        status: "NEW",
-        source: "WEB_INDEX",
-        createdAt: new Date().toISOString()
-      };
-    }
-
-    // ========= Submit handlers =========
-    async function submitLeadForm(e){
+    if(e.key === "Escape"){
       e.preventDefault();
-
-      const errEl = "leadErr";
-      setFormError(errEl, "");
-
-      const name = $("leadName").value.trim();
-      const phone = $("leadPhone").value.trim();
-      const leadType = $("leadType").value.trim();
-      const locality = $("leadLocality").value.trim();
-      const budgetMin = $("budgetMin").value ? Number($("budgetMin").value) : null;
-      const budgetMax = $("budgetMax").value ? Number($("budgetMax").value) : null;
-      const notes = $("leadNotes").value || "";
-      const consent = $("leadConsent").checked;
-
-      if (!name) { setFormError(errEl, "Name is required."); $("leadName").focus(); return; }
-      if (!phone || !isValidPhone(phone)) { setFormError(errEl, "Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("leadPhone").focus(); return; }
-      if (!locality) { setFormError(errEl, "Locality is required."); $("leadLocality").focus(); return; }
-      if (!consent) { setFormError(errEl, "Please confirm you agree to be contacted."); $("leadConsent").focus(); return; }
-
-      if (budgetMin != null && budgetMin < 0) { setFormError(errEl, "Budget Min cannot be negative."); $("budgetMin").focus(); return; }
-      if (budgetMax != null && budgetMax < 0) { setFormError(errEl, "Budget Max cannot be negative."); $("budgetMax").focus(); return; }
-      if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) { setFormError(errEl, "Budget Min cannot be greater than Budget Max."); $("budgetMin").focus(); return; }
-
-      const throttle = checkThrottle("lead", phone);
-      if (!throttle.ok) {
-        setFormError(errEl, `Please wait ${Math.ceil(throttle.waitMs/1000)}s before submitting again.`);
-        return;
-      }
-
-      const lead = buildInboundLead({
-        name, phone, leadType, locality,
-        budgetMin: budgetMin != null ? String(Math.floor(budgetMin)) : "",
-        budgetMax: budgetMax != null ? String(Math.floor(budgetMax)) : "",
-        notes
-      });
-
-      const btn = $("leadSubmitBtn");
-      btn.disabled = true;
-
-      try{
-        if (STATE.apiMode){
-          const res = await safePost("/leads", {
-            name, phone: normalizePhone(phone), leadType, locality,
-            budgetMin, budgetMax, notes,
-            city: CITY_DEFAULT,
-            source: "WEB",
-            consent: true
-          });
-
-          if (res.ok){
-            toast("Lead submitted ✅ We’ll connect you soon.");
-          }else{
-            saveLeadLocal(lead);
-            toast("Offline: saved locally ✅", {
-              actionText: "Undo",
-              actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
-              timeout: 6500
-            });
-          }
-        }else{
-          // Demo local
-          saveLeadLocal(lead);
-          toast("Lead submitted ✅ (demo local)", {
-            actionText: "Undo",
-            actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
-            timeout: 6500
-          });
-        }
-
-        e.target.reset();
-      } finally {
-        btn.disabled = false;
-      }
+      closeConfirm();
+      return;
     }
+    if(e.key !== "Tab") return;
 
-    async function submitBrokerForm(e){
+    const dialog = qs(".modalCard", $("confirmBack"));
+    const f = focusablesWithin(dialog);
+    if(!f.length) return;
+
+    const first = f[0];
+    const last = f[f.length - 1];
+
+    if(e.shiftKey && document.activeElement === first){
+      e.preventDefault(); last.focus();
+    }else if(!e.shiftKey && document.activeElement === last){
+      e.preventDefault(); first.focus();
+    }
+  });
+
+  // ==========================
+  // Lead modal (listing request) — accessible dialog
+  // ==========================
+  const LEAD_MODAL = { open:false, lastFocus:null, listing:null };
+
+  function openLeadModal(listing){
+    LEAD_MODAL.open = true;
+    LEAD_MODAL.lastFocus = document.activeElement;
+    LEAD_MODAL.listing = listing;
+
+    $("leadListingTitle").textContent = listing?.title || "Listing";
+
+    // restore draft
+    const draft = readJSON(STORAGE.DRAFT_LISTING, null);
+    $("buyerName").value = (draft && draft.buyerName) ? draft.buyerName : "";
+    $("buyerPhone").value = (draft && draft.buyerPhone) ? draft.buyerPhone : "";
+    $("buyerMsg").value = (draft && draft.buyerMsg) ? draft.buyerMsg : "";
+    $("buyerConsent").checked = !!(draft && draft.buyerConsent);
+
+    setErr("listingLeadErr", "");
+    renderListingLeadPreview();
+
+    $("leadModalBack").hidden = false;
+    $("main").setAttribute("aria-hidden","true");
+
+    setTimeout(() => $("buyerName").focus(), 0);
+  }
+
+  function closeLeadModal(){
+    $("leadModalBack").hidden = true;
+    $("main").removeAttribute("aria-hidden");
+    LEAD_MODAL.open = false;
+
+    if(LEAD_MODAL.lastFocus && typeof LEAD_MODAL.lastFocus.focus === "function"){
+      LEAD_MODAL.lastFocus.focus();
+    }
+    LEAD_MODAL.lastFocus = null;
+    LEAD_MODAL.listing = null;
+  }
+
+  // focus trap for lead modal
+  document.addEventListener("keydown", (e) => {
+    if($("leadModalBack").hidden) return;
+
+    if(e.key === "Escape"){
       e.preventDefault();
+      closeLeadModal();
+      return;
+    }
+    if(e.key !== "Tab") return;
 
-      const errEl = "brokerErr";
-      setFormError(errEl, "");
+    const dialog = qs(".modalCard", $("leadModalBack"));
+    const f = focusablesWithin(dialog);
+    if(!f.length) return;
 
-      const brokerName = $("brokerName").value.trim();
-      const phone = $("brokerPhone").value.trim();
-      const area = $("brokerArea").value.trim();
-      const exp = $("brokerExp").value ? Number($("brokerExp").value) : null;
-      const company = $("brokerCompany").value.trim();
-      const consent = $("brokerConsent").checked;
+    const first = f[0];
+    const last = f[f.length - 1];
 
-      if (!brokerName) { setFormError(errEl, "Broker name is required."); $("brokerName").focus(); return; }
-      if (!phone || !isValidPhone(phone)) { setFormError(errEl, "Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("brokerPhone").focus(); return; }
-      if (!area) { setFormError(errEl, "Primary area is required."); $("brokerArea").focus(); return; }
-      if (!consent) { setFormError(errEl, "Please confirm you agree to be contacted."); $("brokerConsent").focus(); return; }
-      if (exp != null && exp < 0) { setFormError(errEl, "Experience cannot be negative."); $("brokerExp").focus(); return; }
+    if(e.shiftKey && document.activeElement === first){
+      e.preventDefault(); last.focus();
+    }else if(!e.shiftKey && document.activeElement === last){
+      e.preventDefault(); first.focus();
+    }
+  });
 
-      const throttle = checkThrottle("broker", phone);
-      if (!throttle.ok) {
-        setFormError(errEl, `Please wait ${Math.ceil(throttle.waitMs/1000)}s before submitting again.`);
-        return;
-      }
+  $("leadModalBack").addEventListener("mousedown", (e) => {
+    if(e.target === $("leadModalBack")) closeLeadModal();
+  });
 
-      const lead = buildBrokerRequestLead({
-        brokerName, phone, area,
-        exp: exp != null ? String(Math.floor(exp)) : "",
-        company
-      });
+  // ==========================
+  // Menu button + shared menu for listing actions
+  // ==========================
+  const MENU = { open:false, listing:null, anchor:null };
 
-      const btn = $("brokerSubmitBtn");
-      btn.disabled = true;
+  function closeMenu(){
+    $("overflowMenu").hidden = true;
+    $("overflowMenu").innerHTML = "";
+    MENU.open = false;
+    MENU.listing = null;
 
-      try{
-        if (STATE.apiMode){
-          const res = await safePost("/brokers/onboard", {
-            brokerName, phone: normalizePhone(phone), area,
-            exp, company,
-            city: CITY_DEFAULT,
-            source: "WEB",
-            consent: true
-          });
+    if(MENU.anchor){
+      MENU.anchor.setAttribute("aria-expanded","false");
+      MENU.anchor = null;
+    }
+  }
 
-          if (res.ok){
-            toast("Request received ✅ Verification team will call you.");
-          }else{
-            saveLeadLocal(lead);
-            toast("Offline: saved locally ✅", {
-              actionText: "Undo",
-              actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
-              timeout: 6500
-            });
-          }
-        }else{
-          saveLeadLocal(lead);
-          toast("Request received ✅ (demo local)", {
-            actionText: "Undo",
-            actionFn: () => { removeLeadLocalById(lead.id); toast("Undone ↩"); },
-            timeout: 6500
-          });
+  function listingSummary(p){
+    const title = String(p.title || "Listing");
+    const meta = [p.type, p.city, p.area].filter(Boolean).join(" • ");
+    const price = p.price ? formatINR(p.price) : "Price on request";
+    return `${title}\n${meta || "—"}\n${price}\nID: ${p.id || "-"}`;
+  }
+
+  function openMenuFor(listing, anchor){
+    closeMenu();
+    MENU.open = true;
+    MENU.listing = listing;
+    MENU.anchor = anchor;
+    anchor.setAttribute("aria-expanded","true");
+
+    const menu = $("overflowMenu");
+    menu.appendChild(el("div", { class:"menuTitle", text:`Listing actions • ${listing.id || ""}` }));
+
+    const items = [
+      { key:"copyId", label:"📋 Copy listing ID", sub:"Clipboard", run: async () => {
+        const ok = await copyToClipboard(String(listing.id || ""));
+        toast(ok ? "Copied ID ✅" : "Copy failed ❌");
+      }},
+      { key:"copySummary", label:"📋 Copy listing summary", sub:"Clipboard", run: async () => {
+        const ok = await copyToClipboard(listingSummary(listing));
+        toast(ok ? "Copied summary ✅" : "Copy failed ❌");
+      }},
+      { key:"share", label:"🔗 Share (if supported)", sub:"Share sheet", run: async () => {
+        const text = listingSummary(listing);
+        if(navigator.share){
+          try{
+            await navigator.share({ title: listing.title || "Listing", text });
+            toast("Shared ✅");
+            return;
+          }catch(e){}
         }
+        const ok = await copyToClipboard(text);
+        toast(ok ? "Copied for sharing ✅" : "Share not available ❌");
+      }},
+      { key:"open", label:"🧭 Open details (new tab)", sub:"noopener", run: async () => {
+        // Demo deep-link; in production route to /listing/:id
+        const url = location.origin + location.pathname + "#listings";
+        openInNewTab(url);
+        toast("Opened in new tab ✅");
+      }},
+    ];
 
-        e.target.reset();
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    // ========= Clear local demo submissions created by this page =========
-    function clearLocalDemo(){
-      openModal({
-        title: "Clear local demo data",
-        bodyText: "This removes only leads created from this index page (demo). It will not affect other pages unless they share the same objects. Continue?",
-        primaryText: "Clear",
-        secondaryText: "Cancel",
-        onPrimary: () => {
-          const ids = readJSON(KEYS.CREATED_IDS, []);
-          ids.forEach(id => removeLeadLocalById(id));
-
-          writeJSON(KEYS.CREATED_IDS, []);
-          // clear client throttle and api mode toggle for clean slate
-          localStorage.removeItem(KEYS.RATE);
-          localStorage.removeItem(KEYS.API_MODE);
-
-          setApiMode(false);
-          toast("Local demo cleared ✅");
-        },
-        onSecondary: () => {}
+    items.forEach(it => {
+      const btn = el("button", { type:"button", class:"menuItem", role:"menuitem" }, [
+        el("span", { text: it.label }),
+        el("span", { class:"sub", text: it.sub })
+      ]);
+      btn.addEventListener("click", async () => {
+        closeMenu();
+        await it.run();
       });
-    }
-
-    // ========= Event delegation =========
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-action]");
-      if (!btn) return;
-      const act = btn.getAttribute("data-action");
-
-      if (act === "toggleApi") setApiMode(!STATE.apiMode);
-      if (act === "clearLocal") clearLocalDemo();
-      if (act === "modalClose") closeModal();
+      menu.appendChild(btn);
     });
 
-    // ========= Init =========
-    $("yr").textContent = new Date().getFullYear();
+    // position near anchor
+    const r = anchor.getBoundingClientRect();
+    const left = Math.min(window.innerWidth - 14, Math.max(14, r.left));
+    const top = Math.min(window.innerHeight - 14, r.bottom + 8);
+    menu.style.left = left + "px";
+    menu.style.top = top + "px";
+    menu.hidden = false;
 
-    const savedMode = readJSON(KEYS.API_MODE, false);
-    setApiMode(!!savedMode);
+    // focus first item
+    const first = qs('[role="menuitem"]', menu);
+    if(first) first.focus();
+  }
 
-    $("leadForm").addEventListener("submit", submitLeadForm);
-    $("brokerForm").addEventListener("submit", submitBrokerForm);
+  document.addEventListener("click", (e) => {
+    if($("overflowMenu").hidden) return;
+    const menu = $("overflowMenu");
+    const inside = menu.contains(e.target);
+    const isAnchor = MENU.anchor && MENU.anchor.contains(e.target);
+    if(!inside && !isAnchor) closeMenu();
+  });
 
-  })();
-  </script>
+  document.addEventListener("keydown", (e) => {
+    const menu = $("overflowMenu");
+    if(menu.hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    const items = qsa('[role="menuitem"]', menu).filter(x => !x.disabled);
+    if(!items.length) return;
+
+    const idx = items.indexOf(document.activeElement);
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      items[(idx + 1 + items.length) % items.length].focus();
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      items[(idx - 1 + items.length) % items.length].focus();
+    }else if(e.key === "Home"){
+      e.preventDefault();
+      items[0].focus();
+    }else if(e.key === "End"){
+      e.preventDefault();
+      items[items.length - 1].focus();
+    }
+  });
+
+  // ==========================
+  // API mode + offline queue
+  // ==========================
+  const STATE = {
+    apiMode: false,
+    listings: []
+  };
+
+  function setApiMode(on){
+    STATE.apiMode = !!on;
+    writeJSON(STORAGE.API_MODE, STATE.apiMode);
+
+    const btn = $("apiToggle");
+    btn.setAttribute("aria-pressed", STATE.apiMode ? "true" : "false");
+    btn.textContent = STATE.apiMode ? "🔌 API: ON" : "🔌 API: OFF";
+
+    toast(STATE.apiMode ? "API mode ON (will try backend)." : "API mode OFF (demo local).");
+  }
+
+  async function safePost(path, payload){
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_MS);
+
+    try{
+      const res = await fetch(CONFIG.API_BASE + path, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload || {}),
+        signal: controller.signal
+      });
+      if(!res.ok) throw new Error("API status " + res.status);
+      const data = await res.json().catch(() => ({}));
+      return { ok:true, data };
+    }catch(e){
+      return { ok:false, error: String(e) };
+    }finally{
+      clearTimeout(t);
+    }
+  }
+
+  function getQueue(){ return readJSON(STORAGE.OFFLINE_QUEUE, []); }
+  function setQueue(q){ writeJSON(STORAGE.OFFLINE_QUEUE, q || []); updateQueuePill(); }
+
+  function enqueue(item){
+    const q = getQueue();
+    q.push({
+      id: uid("Q_"),
+      tries: 0,
+      createdAt: new Date().toISOString(),
+      ...item
+    });
+    setQueue(q);
+  }
+
+  function removeQueuedByLeadId(leadId){
+    const q = getQueue().filter(x => String(x.leadId) !== String(leadId));
+    setQueue(q);
+  }
+
+  function updateQueuePill(){
+    const n = getQueue().length;
+    $("queueCount").textContent = String(n);
+    $("queuePill").className = "pill " + (n ? "warn" : "ok");
+  }
+
+  async function retryQueue(){
+    if(!STATE.apiMode){
+      toast("Turn API mode ON to retry queue.");
+      return;
+    }
+
+    const q = getQueue();
+    if(!q.length){
+      toast("Queue empty ✅");
+      return;
+    }
+
+    toast("Retrying queue…");
+
+    const next = [];
+    for(const item of q){
+      const tries = (item.tries || 0) + 1;
+      const res = await safePost(item.endpoint, item.payload);
+
+      if(res.ok){
+        markLeadDelivered(item.leadId, "api_ok");
+      }else{
+        next.push({ ...item, tries });
+        markLeadDelivered(item.leadId, "queued");
+      }
+    }
+
+    setQueue(next);
+    toast(next.length ? `Queue remaining: ${next.length}` : "Queue sent ✅");
+  }
+
+  // ==========================
+  // Leads storage (preserved key)
+  // ==========================
+  function readLeads(){ return readJSON(STORAGE.LEADS, []); }
+  function writeLeads(leads){ writeJSON(STORAGE.LEADS, leads || []); }
+
+  function trackCreatedLeadId(id){
+    const ids = readJSON(STORAGE.CREATED_IDS, []);
+    ids.unshift(String(id));
+    writeJSON(STORAGE.CREATED_IDS, ids.slice(0, 2000));
+  }
+
+  function addLead(lead){
+    const leads = readLeads();
+    leads.unshift(lead);
+    writeLeads(leads);
+    trackCreatedLeadId(lead.id);
+  }
+
+  function removeLeadById(id){
+    const leads = readLeads().filter(l => String(l.id) !== String(id));
+    writeLeads(leads);
+
+    // remove from created id list
+    const ids = readJSON(STORAGE.CREATED_IDS, []);
+    writeJSON(STORAGE.CREATED_IDS, ids.filter(x => String(x) !== String(id)));
+
+    // also remove queued entry if exists
+    removeQueuedByLeadId(id);
+  }
+
+  function markLeadDelivered(leadId, status){
+    if(!leadId) return;
+    const leads = readLeads();
+    const idx = leads.findIndex(l => String(l.id) === String(leadId));
+    if(idx === -1) return;
+
+    leads[idx].deliveryStatus = status;
+    leads[idx].deliveredAt = new Date().toISOString();
+    writeLeads(leads);
+  }
+
+  // ==========================
+  // Throttling (demo-only)
+  // ==========================
+  function throttleKey(kind, phone, listingId=""){
+    return `${kind}|${normalizePhone(phone)}|${String(listingId||"")}`;
+  }
+
+  function checkThrottle(kind, phone, listingId=""){
+    const m = readJSON(STORAGE.RATE, {});
+    const key = throttleKey(kind, phone, listingId);
+    const now = nowMs();
+    const last = Number(m[key] || 0);
+
+    if(now - last < CONFIG.THROTTLE_MS){
+      return { ok:false, waitMs: CONFIG.THROTTLE_MS - (now - last) };
+    }
+    m[key] = now;
+    writeJSON(STORAGE.RATE, m);
+    return { ok:true, waitMs:0 };
+  }
+
+  // ==========================
+  // Error helper
+  // ==========================
+  function setErr(id, msg){
+    const el = $(id);
+    if(!msg){
+      el.hidden = true;
+      el.textContent = "";
+    }else{
+      el.hidden = false;
+      el.textContent = msg;
+    }
+  }
+
+  // ==========================
+  // Listings: read props and render approved grid
+  // ==========================
+  function normalizeProp(p){
+    const o = Object.assign({}, p || {});
+    if(!o.id) o.id = uid("P_");
+    if(!o.title && o.name) o.title = o.name;
+    if(!o.status) o.status = "pending";
+    return o;
+  }
+
+  function readProps(){
+    return readJSON(STORAGE.PROPS, []).map(normalizeProp);
+  }
+
+  function saveFilters(){
+    writeJSON(STORAGE.FILTERS, {
+      q: $("q").value || "",
+      type: $("typeFilter").value || "",
+      sort: $("sortFilter").value || "NEWEST"
+    });
+  }
+
+  function loadFilters(){
+    const f = readJSON(STORAGE.FILTERS, null);
+    if(!f) return;
+    $("q").value = f.q || "";
+    $("typeFilter").value = f.type || "";
+    $("sortFilter").value = f.sort || "NEWEST";
+  }
+
+  function applyListingFilters(list){
+    const q = ($("q").value || "").trim().toLowerCase();
+    const tf = ($("typeFilter").value || "").trim().toLowerCase();
+    const sf = ($("sortFilter").value || "NEWEST");
+
+    let out = (list || [])
+      .filter(p => (p.status || "").toLowerCase() === "approved")
+      .filter(p => tf ? (String(p.type||"").toLowerCase() === tf) : true)
+      .filter(p => {
+        if(!q) return true;
+        const hay = [p.title, p.name, p.city, p.area, p.type, p.price].join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+
+    if(sf === "NEWEST"){
+      out.sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+    }else if(sf === "PRICE_LOW"){
+      out.sort((a,b) => {
+        const pa = parsePriceToNumber(a.price);
+        const pb = parsePriceToNumber(b.price);
+        const na = Number.isFinite(pa) ? pa : Number.POSITIVE_INFINITY;
+        const nb = Number.isFinite(pb) ? pb : Number.POSITIVE_INFINITY;
+        return na - nb;
+      });
+    }else if(sf === "PRICE_HIGH"){
+      out.sort((a,b) => {
+        const pa = parsePriceToNumber(a.price);
+        const pb = parsePriceToNumber(b.price);
+        const na = Number.isFinite(pa) ? pa : Number.NEGATIVE_INFINITY;
+        const nb = Number.isFinite(pb) ? pb : Number.NEGATIVE_INFINITY;
+        return nb - na;
+      });
+    }
+
+    return out;
+  }
+
+  function renderTile(p){
+    const tile = el("div", { class:"tile" });
+
+    tile.appendChild(el("div", { class:"title", text: String(p.title || "Listing") }));
+
+    const meta = [p.type, p.city, p.area].filter(Boolean).join(" • ");
+    tile.appendChild(el("div", { class:"mini", text: meta || "—" }));
+
+    tile.appendChild(el("div", { class:"price", text: p.price ? formatINR(p.price) : "Price on request" }));
+    tile.appendChild(el("div", { class:"mini", text: "ID: " + String(p.id || "-"), style:"margin-top:8px;" }));
+
+    const actions = el("div", { class:"actions" });
+
+    const requestBtn = el("button", {
+      type:"button",
+      class:"btn small primary",
+      "data-action":"openListingLead",
+      "data-id": String(p.id || "")
+    }, ["Request / Contact"]);
+
+    const moreBtn = el("button", {
+      type:"button",
+      class:"btn small iconBtn",
+      "aria-haspopup":"menu",
+      "aria-expanded":"false",
+      "data-action":"openListingMenu",
+      "data-id": String(p.id || ""),
+      title: "More actions"
+    }, ["⋯"]);
+
+    actions.appendChild(requestBtn);
+    actions.appendChild(moreBtn);
+    tile.appendChild(actions);
+
+    return tile;
+  }
+
+  function refreshListings(){
+    const props = readProps();
+    const approved = applyListingFilters(props);
+    STATE.listings = approved;
+
+    $("approvedCount").textContent = String(approved.length);
+
+    const grid = $("grid");
+    grid.innerHTML = "";
+
+    if(!approved.length){
+      grid.appendChild(el("div", { class:"card", style:"grid-column:1/-1;" }, [
+        el("div", { class:"muted", text:"No approved listings yet. Admin approval needed ✅" })
+      ]));
+      return;
+    }
+
+    approved.forEach(p => grid.appendChild(renderTile(p)));
+  }
+
+  // ==========================
+  // Preview renderers (safe text)
+  // ==========================
+  function buildLandingPayload(){
+    const name = $("leadName").value.trim();
+    const phoneRaw = $("leadPhone").value.trim();
+    const leadType = $("leadType").value.trim() || "BUYER";
+    const locality = $("leadLocality").value.trim();
+    const budgetMin = $("budgetMin").value ? Number($("budgetMin").value) : null;
+    const budgetMax = $("budgetMax").value ? Number($("budgetMax").value) : null;
+    const notes = $("leadNotes").value || "";
+    const consent = !!$("leadConsent").checked;
+
+    return {
+      name,
+      phone: normalizePhone(phoneRaw),
+      leadType,
+      locality,
+      budgetMin,
+      budgetMax,
+      notes,
+      consent,
+      city: CONFIG.CITY_DEFAULT,
+      source: "WEB_MERGED",
+      sourceDetail: "LANDING_LEAD"
+    };
+  }
+
+  function renderLandingLeadPreview(){
+    $("landingLeadPreview").textContent = JSON.stringify(buildLandingPayload(), null, 2);
+  }
+
+  function buildBrokerPayload(){
+    const brokerName = $("brokerName").value.trim();
+    const phoneRaw = $("brokerPhone").value.trim();
+    const area = $("brokerArea").value.trim();
+    const exp = $("brokerExp").value ? Number($("brokerExp").value) : null;
+    const company = $("brokerCompany").value.trim();
+    const consent = !!$("brokerConsent").checked;
+
+    return {
+      brokerName,
+      phone: normalizePhone(phoneRaw),
+      area,
+      exp,
+      company,
+      consent,
+      city: CONFIG.CITY_DEFAULT,
+      source: "WEB_MERGED",
+      sourceDetail: "BROKER_JOIN"
+    };
+  }
+
+  function renderBrokerPreview(){
+    $("brokerPreview").textContent = JSON.stringify(buildBrokerPayload(), null, 2);
+  }
+
+  function buildListingLeadPayload(){
+    const listing = LEAD_MODAL.listing || {};
+    const buyerName = $("buyerName").value.trim();
+    const buyerPhoneRaw = $("buyerPhone").value.trim();
+    const buyerMsg = $("buyerMsg").value || "";
+    const consent = !!$("buyerConsent").checked;
+
+    return {
+      listingId: String(listing.id || ""),
+      listingTitle: String(listing.title || ""),
+      buyerName,
+      buyerPhone: normalizePhone(buyerPhoneRaw),
+      message: buyerMsg,
+      consent,
+      city: CONFIG.CITY_DEFAULT,
+      source: "WEB_MERGED",
+      sourceDetail: "LISTING_REQUEST"
+    };
+  }
+
+  function renderListingLeadPreview(){
+    $("listingLeadPreview").textContent = JSON.stringify(buildListingLeadPayload(), null, 2);
+  }
+
+  // ==========================
+  // Drafts
+  // ==========================
+  function saveLandingDraft(){
+    const d = {
+      leadName: $("leadName").value,
+      leadPhone: $("leadPhone").value,
+      leadType: $("leadType").value,
+      leadLocality: $("leadLocality").value,
+      budgetMin: $("budgetMin").value,
+      budgetMax: $("budgetMax").value,
+      leadNotes: $("leadNotes").value,
+      leadConsent: $("leadConsent").checked
+    };
+    writeJSON(STORAGE.DRAFT_LANDING, d);
+    toast("💾 Landing draft saved");
+  }
+
+  function loadLandingDraft(){
+    const d = readJSON(STORAGE.DRAFT_LANDING, null);
+    if(!d) return;
+    $("leadName").value = d.leadName || "";
+    $("leadPhone").value = d.leadPhone || "";
+    $("leadType").value = d.leadType || "BUYER";
+    $("leadLocality").value = d.leadLocality || "";
+    $("budgetMin").value = d.budgetMin || "";
+    $("budgetMax").value = d.budgetMax || "";
+    $("leadNotes").value = d.leadNotes || "";
+    $("leadConsent").checked = !!d.leadConsent;
+  }
+
+  function clearLandingForm(){
+    $("landingLeadForm").reset();
+    setErr("landingLeadErr", "");
+    renderLandingLeadPreview();
+  }
+
+  function saveBrokerDraft(){
+    const d = {
+      brokerName: $("brokerName").value,
+      brokerPhone: $("brokerPhone").value,
+      brokerArea: $("brokerArea").value,
+      brokerExp: $("brokerExp").value,
+      brokerCompany: $("brokerCompany").value,
+      brokerConsent: $("brokerConsent").checked
+    };
+    writeJSON(STORAGE.DRAFT_BROKER, d);
+    toast("💾 Broker draft saved");
+  }
+
+  function loadBrokerDraft(){
+    const d = readJSON(STORAGE.DRAFT_BROKER, null);
+    if(!d) return;
+    $("brokerName").value = d.brokerName || "";
+    $("brokerPhone").value = d.brokerPhone || "";
+    $("brokerArea").value = d.brokerArea || "";
+    $("brokerExp").value = d.brokerExp || "";
+    $("brokerCompany").value = d.brokerCompany || "";
+    $("brokerConsent").checked = !!d.brokerConsent;
+  }
+
+  function clearBrokerForm(){
+    $("brokerJoinForm").reset();
+    setErr("brokerErr", "");
+    renderBrokerPreview();
+  }
+
+  function saveListingDraft(){
+    const d = {
+      buyerName: $("buyerName").value,
+      buyerPhone: $("buyerPhone").value,
+      buyerMsg: $("buyerMsg").value,
+      buyerConsent: $("buyerConsent").checked
+    };
+    writeJSON(STORAGE.DRAFT_LISTING, d);
+    toast("💾 Listing request draft saved");
+  }
+
+  function clearListingModal(){
+    $("listingLeadForm").reset();
+    setErr("listingLeadErr", "");
+    renderListingLeadPreview();
+  }
+
+  // autosave drafts on input (demo convenience)
+  function wireDraftAutosave(){
+    ["leadName","leadPhone","leadType","leadLocality","budgetMin","budgetMax","leadNotes","leadConsent"].forEach(id => {
+      $(id).addEventListener("input", () => { renderLandingLeadPreview(); writeJSON(STORAGE.DRAFT_LANDING, {
+        leadName: $("leadName").value,
+        leadPhone: $("leadPhone").value,
+        leadType: $("leadType").value,
+        leadLocality: $("leadLocality").value,
+        budgetMin: $("budgetMin").value,
+        budgetMax: $("budgetMax").value,
+        leadNotes: $("leadNotes").value,
+        leadConsent: $("leadConsent").checked
+      }); });
+      $(id).addEventListener("change", () => renderLandingLeadPreview());
+    });
+
+    ["brokerName","brokerPhone","brokerArea","brokerExp","brokerCompany","brokerConsent"].forEach(id => {
+      $(id).addEventListener("input", () => { renderBrokerPreview(); writeJSON(STORAGE.DRAFT_BROKER, {
+        brokerName: $("brokerName").value,
+        brokerPhone: $("brokerPhone").value,
+        brokerArea: $("brokerArea").value,
+        brokerExp: $("brokerExp").value,
+        brokerCompany: $("brokerCompany").value,
+        brokerConsent: $("brokerConsent").checked
+      }); });
+      $(id).addEventListener("change", () => renderBrokerPreview());
+    });
+
+    ["buyerName","buyerPhone","buyerMsg","buyerConsent"].forEach(id => {
+      $(id).addEventListener("input", () => { renderListingLeadPreview(); writeJSON(STORAGE.DRAFT_LISTING, {
+        buyerName: $("buyerName").value,
+        buyerPhone: $("buyerPhone").value,
+        buyerMsg: $("buyerMsg").value,
+        buyerConsent: $("buyerConsent").checked
+      }); });
+      $(id).addEventListener("change", () => renderListingLeadPreview());
+    });
+  }
+
+  // ==========================
+  // Submit pipelines
+  // ==========================
+  async function submitLandingLead(e){
+    e.preventDefault();
+    setErr("landingLeadErr", "");
+
+    const payload = buildLandingPayload();
+
+    if(!payload.name){ setErr("landingLeadErr","Name is required."); $("leadName").focus(); return; }
+    if(!payload.phone || !isValidPhone($("leadPhone").value)){ setErr("landingLeadErr","Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("leadPhone").focus(); return; }
+    if(!payload.locality){ setErr("landingLeadErr","Locality is required."); $("leadLocality").focus(); return; }
+    if(!payload.consent){ setErr("landingLeadErr","Please confirm you agree to be contacted."); $("leadConsent").focus(); return; }
+
+    if(payload.budgetMin != null && payload.budgetMin < 0){ setErr("landingLeadErr","Budget Min cannot be negative."); $("budgetMin").focus(); return; }
+    if(payload.budgetMax != null && payload.budgetMax < 0){ setErr("landingLeadErr","Budget Max cannot be negative."); $("budgetMax").focus(); return; }
+    if(payload.budgetMin != null && payload.budgetMax != null && payload.budgetMin > payload.budgetMax){
+      setErr("landingLeadErr","Budget Min cannot be greater than Budget Max."); $("budgetMin").focus(); return;
+    }
+
+    const throttle = checkThrottle("landing_lead", payload.phone);
+    if(!throttle.ok){
+      setErr("landingLeadErr", `Please wait ${Math.ceil(throttle.waitMs/1000)}s and try again.`);
+      return;
+    }
+
+    const lead = {
+      id: uid("L_"),
+      listingId: "WEB",
+      listingTitle: `Inbound Lead (${payload.leadType}) — ${payload.locality}`,
+      buyerName: payload.name,
+      buyerPhone: payload.phone,
+      message: [
+        `LeadType: ${payload.leadType}`,
+        `Locality: ${payload.locality}`,
+        (payload.budgetMin != null || payload.budgetMax != null) ? `Budget: ${payload.budgetMin ?? "—"} to ${payload.budgetMax ?? "—"}` : "",
+        (payload.notes || "").trim()
+      ].filter(Boolean).join("\n"),
+      status: "NEW",
+      kind: "inbound_lead",
+      source: "WEB_MERGED",
+      sourceDetail: "LANDING_LEAD",
+      createdAt: new Date().toISOString()
+    };
+
+    addLead(lead);
+
+    const undo = () => removeLeadById(lead.id);
+
+    // delivery attempt
+    if(STATE.apiMode){
+      const res = await safePost("/leads", payload);
+      if(res.ok){
+        markLeadDelivered(lead.id, "api_ok");
+        toast("Lead submitted ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }else{
+        markLeadDelivered(lead.id, "queued");
+        enqueue({ endpoint:"/leads", payload, leadId: lead.id, kind:"landing_lead" });
+        toast("Offline/failed: queued ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }
+    }else{
+      markLeadDelivered(lead.id, "local_only");
+      toast("Lead submitted ✅ (demo local)", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+    }
+
+    // Keep drafts but clear visible form for trust; draft remains for convenience.
+    $("landingLeadForm").reset();
+    renderLandingLeadPreview();
+  }
+
+  async function submitBrokerJoin(e){
+    e.preventDefault();
+    setErr("brokerErr","");
+
+    const payload = buildBrokerPayload();
+
+    if(!payload.brokerName){ setErr("brokerErr","Broker name is required."); $("brokerName").focus(); return; }
+    if(!payload.phone || !isValidPhone($("brokerPhone").value)){ setErr("brokerErr","Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("brokerPhone").focus(); return; }
+    if(!payload.area){ setErr("brokerErr","Primary area is required."); $("brokerArea").focus(); return; }
+    if(!payload.consent){ setErr("brokerErr","Please confirm you agree to be contacted."); $("brokerConsent").focus(); return; }
+    if(payload.exp != null && payload.exp < 0){ setErr("brokerErr","Experience cannot be negative."); $("brokerExp").focus(); return; }
+
+    const throttle = checkThrottle("broker_join", payload.phone);
+    if(!throttle.ok){
+      setErr("brokerErr", `Please wait ${Math.ceil(throttle.waitMs/1000)}s and try again.`);
+      return;
+    }
+
+    const lead = {
+      id: uid("L_"),
+      listingId: "BROKER-KYC",
+      listingTitle: `Broker Verification Request — ${payload.area}`,
+      buyerName: payload.brokerName,
+      buyerPhone: payload.phone,
+      message: [
+        "BROKER VERIFICATION REQUEST",
+        `Primary area: ${payload.area}`,
+        (payload.exp != null ? `Experience: ${payload.exp} years` : ""),
+        (payload.company ? `Company: ${payload.company}` : "")
+      ].filter(Boolean).join("\n"),
+      status: "NEW",
+      kind: "broker_request",
+      source: "WEB_MERGED",
+      sourceDetail: "BROKER_JOIN",
+      createdAt: new Date().toISOString()
+    };
+
+    addLead(lead);
+    const undo = () => removeLeadById(lead.id);
+
+    if(STATE.apiMode){
+      const res = await safePost("/brokers/onboard", payload);
+      if(res.ok){
+        markLeadDelivered(lead.id, "api_ok");
+        toast("Request received ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }else{
+        markLeadDelivered(lead.id, "queued");
+        enqueue({ endpoint:"/brokers/onboard", payload, leadId: lead.id, kind:"broker_join" });
+        toast("Offline/failed: queued ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }
+    }else{
+      markLeadDelivered(lead.id, "local_only");
+      toast("Request received ✅ (demo local)", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+    }
+
+    $("brokerJoinForm").reset();
+    renderBrokerPreview();
+  }
+
+  async function submitListingLead(e){
+    e.preventDefault();
+    setErr("listingLeadErr","");
+
+    const listing = LEAD_MODAL.listing;
+    if(!listing){
+      setErr("listingLeadErr","No listing selected.");
+      return;
+    }
+
+    const payload = buildListingLeadPayload();
+
+    if(!payload.buyerName){ setErr("listingLeadErr","Name is required."); $("buyerName").focus(); return; }
+    if(!payload.buyerPhone || !isValidPhone($("buyerPhone").value)){ setErr("listingLeadErr","Enter a valid phone (10 digits or +91XXXXXXXXXX)."); $("buyerPhone").focus(); return; }
+    if(!payload.consent){ setErr("listingLeadErr","Consent is required to submit."); $("buyerConsent").focus(); return; }
+
+    const throttle = checkThrottle("listing_request", payload.buyerPhone, listing.id);
+    if(!throttle.ok){
+      setErr("listingLeadErr", `Please wait ${Math.ceil(throttle.waitMs/1000)}s and try again.`);
+      return;
+    }
+
+    const lead = {
+      id: uid("L_"),
+      listingId: String(listing.id || ""),
+      listingTitle: String(listing.title || ""),
+      buyerName: payload.buyerName,
+      buyerPhone: payload.buyerPhone,
+      message: (payload.message || "").trim(),
+      status: "NEW",
+      kind: "listing_request",
+      source: "WEB_MERGED",
+      sourceDetail: "LISTING_REQUEST",
+      createdAt: new Date().toISOString()
+    };
+
+    addLead(lead);
+    const undo = () => removeLeadById(lead.id);
+
+    if(STATE.apiMode){
+      const res = await safePost("/leads", payload);
+      if(res.ok){
+        markLeadDelivered(lead.id, "api_ok");
+        toast("Request submitted ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }else{
+        markLeadDelivered(lead.id, "queued");
+        enqueue({ endpoint:"/leads", payload, leadId: lead.id, kind:"listing_request" });
+        toast("Offline/failed: queued ✅", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+      }
+    }else{
+      markLeadDelivered(lead.id, "local_only");
+      toast("Request submitted ✅ (demo local)", { actionText:"Undo", actionFn: undo, timeout: 6500 });
+    }
+
+    // close dialog quickly
+    setTimeout(closeLeadModal, 300);
+  }
+
+  // ==========================
+  // Clear local demo (safe: does not delete listings by default)
+  // ==========================
+  function clearLocalDemo(){
+    openConfirm({
+      title: "Clear local demo data",
+      bodyText: "This clears drafts, throttles, offline queue, filters, and all leads created by THIS merged page. Approved listings remain unchanged. Continue?",
+      primaryText: "Clear",
+      secondaryText: "Cancel",
+      onPrimary: () => {
+        // remove leads created by this merged page
+        const ids = readJSON(STORAGE.CREATED_IDS, []);
+        ids.forEach(id => removeLeadById(id));
+
+        // remove internal keys
+        delKey(STORAGE.CREATED_IDS);
+        delKey(STORAGE.RATE);
+        delKey(STORAGE.OFFLINE_QUEUE);
+        delKey(STORAGE.FILTERS);
+        delKey(STORAGE.DRAFT_LANDING);
+        delKey(STORAGE.DRAFT_BROKER);
+        delKey(STORAGE.DRAFT_LISTING);
+
+        // keep API mode off after clear
+        delKey(STORAGE.API_MODE);
+        setApiMode(false);
+
+        // reset UI state
+        closeMenu();
+        closeLeadModal();
+        closeConfirm();
+
+        $("landingLeadForm").reset();
+        $("brokerJoinForm").reset();
+        renderLandingLeadPreview();
+        renderBrokerPreview();
+        renderListingLeadPreview();
+
+        $("q").value = "";
+        $("typeFilter").value = "";
+        $("sortFilter").value = "NEWEST";
+        refreshListings();
+
+        toast("Local demo cleared ✅");
+      }
+    });
+  }
+
+  // ==========================
+  // Event wiring
+  // ==========================
+  $("landingLeadForm").addEventListener("submit", submitLandingLead);
+  $("brokerJoinForm").addEventListener("submit", submitBrokerJoin);
+  $("listingLeadForm").addEventListener("submit", submitListingLead);
+
+  // Filters persist
+  ["q","typeFilter","sortFilter"].forEach(id => {
+    $(id).addEventListener("input", () => { saveFilters(); refreshListings(); });
+    $(id).addEventListener("change", () => { saveFilters(); refreshListings(); });
+  });
+
+  // Close buttons via data-action
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if(!btn) return;
+
+    const act = btn.getAttribute("data-action");
+
+    if(act === "toggleApi"){
+      setApiMode(!STATE.apiMode);
+      return;
+    }
+
+    if(act === "retryQueue"){ retryQueue(); return; }
+
+    if(act === "clearLocal"){ clearLocalDemo(); return; }
+
+    if(act === "refreshListings"){ refreshListings(); toast("🔄 Refreshed"); return; }
+
+    if(act === "clearFilters"){
+      $("q").value = "";
+      $("typeFilter").value = "";
+      $("sortFilter").value = "NEWEST";
+      saveFilters();
+      refreshListings();
+      toast("Filters reset ↩");
+      return;
+    }
+
+    if(act === "openListingLead"){
+      const id = btn.getAttribute("data-id");
+      const listing = (STATE.listings || []).find(x => String(x.id) === String(id));
+      if(!listing) { toast("Listing not found."); return; }
+      openLeadModal(listing);
+      return;
+    }
+
+    if(act === "openListingMenu"){
+      const id = btn.getAttribute("data-id");
+      const listing = (STATE.listings || []).find(x => String(x.id) === String(id));
+      if(!listing) return;
+
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      if(expanded) closeMenu();
+      else openMenuFor(listing, btn);
+      return;
+    }
+
+    if(act === "closeLeadModal"){ closeLeadModal(); return; }
+    if(act === "saveListingDraft"){ saveListingDraft(); return; }
+    if(act === "clearListingModal"){ clearListingModal(); return; }
+
+    if(act === "saveLandingDraft"){ saveLandingDraft(); return; }
+    if(act === "clearLandingForm"){ clearLandingForm(); return; }
+
+    if(act === "saveBrokerDraft"){ saveBrokerDraft(); return; }
+    if(act === "clearBrokerForm"){ clearBrokerForm(); return; }
+
+    if(act === "closeConfirm"){ closeConfirm(); return; }
+  });
+
+  // Close menu on focus leaving anchor
+  window.addEventListener("resize", closeMenu);
+
+  // ==========================
+  // Init
+  // ==========================
+  $("yr").textContent = new Date().getFullYear();
+
+  // restore api mode
+  const savedMode = readJSON(STORAGE.API_MODE, false);
+  setApiMode(!!savedMode);
+
+  // restore queue pill
+  updateQueuePill();
+
+  // restore drafts + filters
+  loadLandingDraft();
+  loadBrokerDraft();
+  loadFilters();
+
+  // initial previews
+  renderLandingLeadPreview();
+  renderBrokerPreview();
+  renderListingLeadPreview();
+
+  // wire autosave
+  wireDraftAutosave();
+
+  // initial listings
+  refreshListings();
+
+})();
+</script>
 </body>
 </html>

@@ -7,23 +7,30 @@
   <meta name="description" content="Broker OTP login and KYC upload for verification." />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#0b0f17" />
-  <meta name="referrer" content="no-referrer" />
+
   <!--
-    NOTE (Production):
-    - Serve over HTTPS.
-    - Add security headers (CSP, HSTS, X-Content-Type-Options, etc.) at the server/reverse-proxy layer.
-    - Never validate uploads only on the client; enforce allowlists, size limits, scanning, and safe storage server-side.
+    PRODUCTION NOTES (server-side; unspecified here):
+    - Force HTTPS + HSTS; set CSP; set secure cookies; rate limit OTP endpoints; scan uploads.
+    - This file includes API placeholders, but no backend is assumed (demo mode).
   -->
+
   <style>
     :root{
-      --bg:#0b0f17; --card:#0f1624; --text:#e7eefc; --muted:#a8b3c7;
-      --line:#1f2a3d; --accent:#6ee7ff; --accent2:#a78bfa;
-      --ok:#34d399; --warn:#fbbf24; --bad:#fb7185;
-
-      --focus: rgba(110,231,255,.90);
-      --shadow: 0 18px 60px rgba(0,0,0,.25);
+      --bg:#0b0f17;
+      --card:#0f1624;
+      --text:#e7eefc;
+      --muted:#a8b3c7;
+      --line:#1f2a3d;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --focus: rgba(110,231,255,.92);
       --radius: 22px;
+      --shadow: 0 18px 60px rgba(0,0,0,.25);
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -34,132 +41,111 @@
         var(--bg);
       color:var(--text);
     }
+
     a{color:inherit;text-decoration:none}
-
-    /* Accessible focus */
-    :focus-visible{
-      outline: 3px solid var(--focus);
-      outline-offset: 2px;
-    }
-
     .wrap{max-width:1050px;margin:0 auto;padding:22px}
+
+    /* Skip link */
+    .skipLink{
+      position:absolute;
+      left:-9999px;
+      top:10px;
+      padding:10px 12px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(15,22,36,.95);
+      border-radius:14px;
+      z-index:999;
+    }
+    .skipLink:focus{left:16px}
+
     header{
       position:sticky;
       top:0;
-      background:rgba(11,15,23,.65);
-      backdrop-filter:blur(10px);
+      background:rgba(11,15,23,.68);
+      backdrop-filter: blur(10px);
       border-bottom:1px solid rgba(31,42,61,.6);
       z-index:10;
     }
-    header .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .logo{
-      width:34px;height:34px;border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      box-shadow: 0 10px 30px rgba(110,231,255,.10);
+    header .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
     }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
     nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
+    /* Buttons: ensure target size >= 24x24; we make them larger (>=36-40px). */
     .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      padding:10px 14px;border-radius:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:14px;
       border:1px solid rgba(31,42,61,.9);
       background:rgba(15,22,36,.7);
       cursor:pointer;
       color:var(--text);
-      font-weight:800;
+      font-weight:900;
       min-height:40px;
+      user-select:none;
     }
     .btn:hover{background:rgba(15,22,36,.92)}
     .btn:active{transform:translateY(1px)}
     .btn.primary{
       background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
-      border-color:rgba(110,231,255,.35)
+      border-color:rgba(110,231,255,.35);
     }
     .btn.small{padding:8px 12px;border-radius:12px;font-size:14px;min-height:36px}
     .btn.ghost{background:transparent}
-    .btn.danger{
-      border-color: rgba(251,113,133,.40);
-      background: rgba(251,113,133,.12);
-    }
+    .btn.danger{border-color:rgba(251,113,133,.45);background:rgba(251,113,133,.12)}
     .btn.danger:hover{background:rgba(251,113,133,.18)}
     .btn[disabled]{opacity:.55; cursor:not-allowed; transform:none}
+
+    /* Focus indicator */
+    :focus-visible{outline:3px solid var(--focus); outline-offset:2px}
 
     .card{
       background:rgba(15,22,36,.55);
       border:1px solid rgba(31,42,61,.85);
       border-radius:var(--radius);
       padding:16px;
-      box-shadow:var(--shadow)
+      box-shadow:var(--shadow);
     }
     .layout{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
     @media (max-width: 980px){.layout{grid-template-columns:1fr}}
+
     h1{margin:0;font-size:26px}
-    .sub{margin:8px 0 0;color:var(--muted);line-height:1.6}
     h3{margin:0 0 8px}
+    .sub{margin:8px 0 0;color:var(--muted);line-height:1.6}
 
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-    input,select,textarea{
-      width:100%;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid rgba(31,42,61,.95);
-      background:rgba(11,15,23,.55);
-      color:var(--text);
-      outline:none;
-      min-height:42px;
+    .topRow{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      margin-top:14px;
     }
-    textarea{min-height:110px; resize:vertical}
-    input::placeholder, textarea::placeholder{color: rgba(168,179,199,.75)}
-
-    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width: 520px){.row2{grid-template-columns:1fr}}
-    .divider{height:1px;background:rgba(31,42,61,.85);margin:14px 0}
 
     .badge{
-      display:inline-flex;align-items:center;gap:8px;font-size:12px;
-      padding:6px 9px;border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      padding:6px 9px;
+      border-radius:999px;
       border:1px solid rgba(31,42,61,.85);
       background:rgba(11,15,23,.45);
-      color:var(--muted)
+      color:var(--muted);
     }
     .badge.ok{border-color:rgba(52,211,153,.35);color:rgba(52,211,153,.95)}
     .badge.warn{border-color:rgba(251,191,36,.35);color:rgba(251,191,36,.95)}
     .badge.bad{border-color:rgba(251,113,133,.35);color:rgba(251,113,133,.95)}
     .badge.info{border-color:rgba(110,231,255,.35);color:rgba(110,231,255,.95)}
-
-    .klist{display:grid;gap:10px;margin-top:10px}
-    .kitem{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px;border-radius:18px;
-      border:1px solid rgba(31,42,61,.85);
-      background:rgba(11,15,23,.45);
-      flex-wrap:wrap;
-    }
-    .kleft{display:flex;flex-direction:column;gap:4px;min-width:220px}
-    .kname{font-weight:900}
-    .kmeta{font-size:12px;color:var(--muted)}
-    .kright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-
-    .mini{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
-    .help{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
-    .error{font-size:12px;margin-top:6px;color:rgba(251,113,133,.95);font-weight:800}
-    .success{font-size:12px;margin-top:6px;color:rgba(52,211,153,.95);font-weight:800}
-
-    .toast{
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      max-width:380px;
-      background:rgba(15,22,36,.94);
-      border:1px solid rgba(31,42,61,.9);
-      padding:12px 14px;
-      border-radius:16px;
-      display:none;
-      box-shadow: 0 16px 50px rgba(0,0,0,.45);
-    }
-
-    .hide{display:none !important}
 
     .steps{
       display:flex;
@@ -177,21 +163,37 @@
       font-size:12px;
       font-weight:900;
     }
-    .step.active{
-      border-color:rgba(110,231,255,.35);
-      color:rgba(110,231,255,.95);
-      background:rgba(110,231,255,.10);
-    }
-    .step.done{
-      border-color:rgba(52,211,153,.35);
-      color:rgba(52,211,153,.95);
-      background:rgba(52,211,153,.10);
-    }
+    .step.active{border-color:rgba(110,231,255,.35);color:rgba(110,231,255,.95);background:rgba(110,231,255,.10)}
+    .step.done{border-color:rgba(52,211,153,.35);color:rgba(52,211,153,.95);background:rgba(52,211,153,.10)}
 
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input,select,textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid rgba(31,42,61,.95);
+      background:rgba(11,15,23,.55);
+      color:var(--text);
+      outline:none;
+      min-height:42px;
+    }
+    input::placeholder, textarea::placeholder{color: rgba(168,179,199,.78)}
+    textarea{min-height:110px; resize:vertical}
+
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 520px){.row2{grid-template-columns:1fr}}
+    .divider{height:1px;background:rgba(31,42,61,.85);margin:14px 0}
+
+    .mini{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+    .help{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+    .error{font-size:12px;margin-top:6px;color:rgba(251,113,133,.95);font-weight:900}
+    .hide{display:none !important}
+
+    /* OTP panel */
     .otpPanel{
       display:grid;
       gap:10px;
-      margin-top:10px;
+      margin-top:12px;
       padding:12px;
       border-radius:18px;
       border:1px solid rgba(31,42,61,.85);
@@ -206,13 +208,32 @@
     }
     .otpMetaRow .left{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
-    .srOnly{
-      position:absolute;
-      width:1px;height:1px;
-      padding:0;margin:-1px;
+
+    /* KYC documents */
+    .klist{display:grid;gap:10px;margin-top:10px}
+    .kitem{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(31,42,61,.85);
+      background:rgba(11,15,23,.45);
+      flex-wrap:wrap;
+    }
+    .kleft{display:flex;flex-direction:column;gap:4px;min-width:220px}
+    .kname{font-weight:900}
+    .kmeta{font-size:12px;color:var(--muted)}
+    .kright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .fileMeta{
+      font-size:12px;
+      color:var(--muted);
+      max-width:320px;
       overflow:hidden;
-      clip:rect(0,0,0,0);
-      white-space:nowrap;border:0;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
     .progressWrap{
@@ -241,14 +262,110 @@
       background:linear-gradient(90deg, rgba(110,231,255,.85), rgba(167,139,250,.80));
     }
 
-    .fileMeta{
+    /* Toast (aria-live) */
+    .toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      max-width:420px;
+      background:rgba(15,22,36,.94);
+      border:1px solid rgba(31,42,61,.9);
+      padding:12px 14px;
+      border-radius:16px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.45);
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .toast[hidden]{display:none}
+    .toast .msg{font-size:13px; line-height:1.4}
+    .toast .act{
+      margin-left:auto;
+      padding:8px 12px;
+      min-height:36px;
+      border-radius:12px;
+      border:1px solid rgba(31,42,61,.9);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .toast .act:hover{background:rgba(255,255,255,.10)}
+    .toast .act[hidden]{display:none}
+
+    /* Modal (accessible dialog) */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.58);
+      padding:20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      overflow:auto;
+      z-index:9999;
+    }
+    .modalBack[hidden]{display:none}
+    .modalCard{
+      width:min(760px, 100%);
+      margin:6vh auto;
+      background:rgba(15,22,36,.96);
+      border:1px solid rgba(31,42,61,.92);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 20px 80px rgba(0,0,0,.60);
+    }
+    .modalTop{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .modalTitle{font-weight:1000;font-size:16px}
+    .modalBody{margin-top:10px;color:var(--muted);line-height:1.7}
+    .modalActions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+
+    .srOnly{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+
+    /* Overflow menu (shared) */
+    .menu{
+      position:fixed;
+      min-width:220px;
+      max-width:320px;
+      background:rgba(15,22,36,.98);
+      border:1px solid rgba(31,42,61,.92);
+      border-radius:14px;
+      padding:6px;
+      box-shadow:0 12px 40px rgba(0,0,0,.6);
+      z-index:99999;
+    }
+    .menu[hidden]{display:none}
+    .menuTitle{
+      padding:8px 10px;
       font-size:12px;
       color:var(--muted);
-      max-width:320px;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+      letter-spacing:.2px;
     }
+    .menuItem{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:9px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--text);
+      cursor:pointer;
+      text-align:left;
+      font-weight:900;
+      min-height:38px;
+    }
+    .menuItem:hover{background:rgba(255,255,255,.07)}
+    .menuItem[disabled]{opacity:.55; cursor:not-allowed}
+    .menuItem .sub{margin-left:auto; font-size:12px; color:var(--muted); font-weight:800}
 
     footer{
       padding:22px 0;
@@ -265,65 +382,71 @@
 </head>
 
 <body>
+  <a class="skipLink" href="#main">Skip to content</a>
+
   <header>
     <div class="wrap row">
       <div class="brand" aria-label="Broker Portal">
         <div class="logo" aria-hidden="true"></div>
         <div>
           <div>Broker Portal</div>
-          <div style="font-size:12px;color:var(--muted);font-weight:600">OTP Login • KYC Verification</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:700">OTP Login • KYC Verification</div>
         </div>
       </div>
       <nav aria-label="Primary navigation">
         <a class="btn small" href="index.html">Home</a>
         <a class="btn small" href="listings.html">Listings</a>
         <a class="btn primary small" href="index.html#lead">Post Lead</a>
+        <button class="btn small ghost" type="button" data-action="toggleApi" aria-pressed="false" title="Demo uses local checks. Toggle to show API wiring placeholders.">
+          🔌 API: OFF
+        </button>
       </nav>
     </div>
   </header>
 
-  <main class="wrap" id="app">
-    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:14px">
+  <main class="wrap" id="main">
+    <div class="topRow">
       <div>
         <h1>Broker Login & KYC</h1>
         <p class="sub">
           MVP demo UI. Backend connect ஆனதும் OTP + document upload live ஆகும்.
-          City default: Bangalore.
+          <span class="mini">Demo பாதுகாப்பு: real Aadhaar/PAN upload பண்ணாதீங்க.</span>
         </p>
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end">
         <div id="sessionBadge" class="badge warn" aria-live="polite">● Not logged in</div>
-        <button class="btn small ghost" id="toggleApiBtn" type="button" aria-pressed="false" title="Demo uses local validation. Toggle to see API wiring placeholders.">
-          🔌 API: OFF
+        <button id="copyBrokerBtn" class="btn small" type="button" data-action="copyBrokerId" disabled title="Copy broker ID (requires HTTPS for Clipboard API, fallback included).">
+          📋 Copy Broker ID
+        </button>
+        <button class="btn small danger" type="button" data-action="clearLocal" title="Clear demo session + drafts from this device.">
+          🧹 Clear Local Demo
         </button>
       </div>
     </div>
 
     <div class="steps" aria-label="Onboarding steps">
-      <div id="step1" class="step active">1 • OTP Login</div>
-      <div id="step2" class="step">2 • KYC Upload</div>
-      <div id="step3" class="step">3 • Verified</div>
+      <div id="stepLogin" class="step active">1 • OTP Login</div>
+      <div id="stepKyc" class="step">2 • KYC Upload</div>
+      <div id="stepVerified" class="step">3 • Verified</div>
     </div>
 
     <section class="card" style="margin-top:12px">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between">
-        <div style="max-width:760px">
-          <div style="font-weight:900">Demo safety note</div>
+        <div style="max-width:780px">
+          <div style="font-weight:1000">Privacy note</div>
           <div class="mini">
-            This is a UI demo. Please do <b>not</b> upload real Aadhaar/PAN documents in demo mode.
-            For production, uploads must be encrypted in transit (HTTPS) and stored securely on the server.
+            Demo mode: documents are <b>not</b> stored in localStorage and will reset on refresh (browser behavior).
+            Profile drafts are saved locally to reduce re-entry. In production, show a proper notice/consent and store KYC securely on the server.
           </div>
         </div>
-        <button id="clearLocalBtn" class="btn small danger" type="button" title="Clears demo session + saved draft fields (files are never stored).">
-          🧹 Clear Local Demo
-        </button>
+        <div id="kycStatusBadge" class="badge warn">KYC: Not submitted</div>
       </div>
     </section>
 
     <div class="layout">
       <!-- LOGIN CARD -->
-      <section class="card" id="loginCard" aria-labelledby="loginTitle">
+      <section class="card" aria-labelledby="loginTitle">
         <h3 id="loginTitle">🔐 OTP Login</h3>
         <p class="sub" style="margin-top:0">Phone number enter பண்ணி OTP request பண்ணுங்க.</p>
 
@@ -362,12 +485,11 @@
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <button class="btn" id="sendOtpBtn" type="button">Send OTP</button>
+              <button class="btn" id="sendOtpBtn" type="button" data-action="sendOtp">Send OTP</button>
               <button class="btn primary" id="verifyBtn" type="submit" disabled>Verify</button>
-              <button class="btn small" id="logoutTopBtn" type="button">Logout</button>
+              <button class="btn small" id="logoutBtnTop" type="button" data-action="logout" disabled>Logout</button>
             </div>
-
-            <div id="loginMiniBadge" class="badge info hide">Demo OTP: <span class="mono">123456</span></div>
+            <div id="demoOtpBadge" class="badge info hide">Demo OTP: <span class="mono">123456</span></div>
           </div>
 
           <div id="otpPanel" class="otpPanel hide" aria-label="OTP entry panel">
@@ -377,7 +499,12 @@
                 <span class="badge warn" id="otpExpireBadge">Expires in —</span>
                 <span class="badge warn" id="otpResendBadge">Resend in —</span>
               </div>
-              <button class="btn small" id="resendBtn" type="button" disabled>Resend OTP</button>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <button class="btn small" id="resendBtn" type="button" data-action="resendOtp" disabled>Resend</button>
+                <button class="btn small ghost" id="webOtpBtn" type="button" data-action="webOtp" title="Try WebOTP autofill (supported browsers, HTTPS required).">
+                  ✨ Auto-fill
+                </button>
+              </div>
             </div>
 
             <div class="row2">
@@ -389,61 +516,52 @@
                   type="text"
                   inputmode="numeric"
                   autocomplete="one-time-code"
-                  placeholder="Enter OTP"
                   maxlength="6"
+                  pattern="[0-9]{4,6}"
+                  placeholder="Enter OTP"
                   aria-describedby="otpHelp otpErr"
                 />
-                <div id="otpHelp" class="help">Enter the 6-digit OTP you received. (Demo: <span class="mono">123456</span>)</div>
+                <div id="otpHelp" class="help">
+                  Enter the 4–6 digit OTP. (Demo: <span class="mono">123456</span>)
+                </div>
                 <div id="otpErr" class="error hide"></div>
               </div>
 
               <div>
                 <label>Attempts</label>
                 <div class="badge warn" id="attemptBadge">0 / 5</div>
-                <div class="help">Too many failed attempts will temporarily lock verification.</div>
+                <div class="help">Too many wrong OTPs will temporarily lock verification.</div>
               </div>
             </div>
           </div>
 
           <div class="mini">
-            ✅ Later API:
-            <b class="mono">POST /auth/send-otp</b> and <b class="mono">POST /auth/verify-otp</b><br/>
+            ✅ Later API (unspecified auth backend): <b class="mono">POST /auth/send-otp</b> and <b class="mono">POST /auth/verify-otp</b><br/>
             Demo mode: OTP = <b class="mono">123456</b>
           </div>
         </form>
       </section>
 
       <!-- KYC CARD -->
-      <section class="card" id="kycCard" aria-labelledby="kycTitle">
+      <section class="card" aria-labelledby="kycTitle">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between">
           <div>
             <h3 id="kycTitle">🪪 KYC Upload</h3>
             <p class="sub" style="margin-top:0">Login பிறகு documents upload செய்யலாம்.</p>
           </div>
-          <div id="kycStatusBadge" class="badge warn">KYC: Not submitted</div>
+          <div id="kycLockedBadge" class="badge warn">🔒 Login required</div>
         </div>
-
-        <div id="kycLocked" class="badge warn" style="margin-top:10px">🔒 Login required</div>
 
         <form id="kycForm" class="hide" style="margin-top:12px" novalidate>
           <div class="row2">
             <div>
               <label for="fullName">Full Name</label>
-              <input id="fullName" name="full_name" autocomplete="name" placeholder="Broker full name" required aria-describedby="nameErr"/>
+              <input id="fullName" name="full_name" autocomplete="name" placeholder="Broker full name" required aria-describedby="nameErr" />
               <div id="nameErr" class="error hide"></div>
             </div>
             <div>
               <label for="expYears">Experience (years)</label>
-              <input
-                id="expYears"
-                name="experience_years"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]{1,2}"
-                maxlength="2"
-                placeholder="e.g. 5"
-                aria-describedby="expHelp expErr"
-              />
+              <input id="expYears" name="experience_years" type="text" inputmode="numeric" maxlength="2" placeholder="e.g. 5" aria-describedby="expHelp expErr" />
               <div id="expHelp" class="help">Optional. 0–99 only.</div>
               <div id="expErr" class="error hide"></div>
             </div>
@@ -452,7 +570,7 @@
           <div class="row2" style="margin-top:10px">
             <div>
               <label for="primaryArea">Primary Area</label>
-              <input id="primaryArea" name="primary_area" placeholder="Whitefield / Bangalore East" required aria-describedby="areaErr"/>
+              <input id="primaryArea" name="primary_area" placeholder="Whitefield / Bangalore East" required aria-describedby="areaErr" />
               <div id="areaErr" class="error hide"></div>
             </div>
             <div>
@@ -461,26 +579,32 @@
             </div>
           </div>
 
+          <div style="margin-top:10px">
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" placeholder="Any notes for admin review... (XSS-safe preview supported)"></textarea>
+            <div class="help">This is displayed in the review preview using safe text rendering (no HTML execution).</div>
+          </div>
+
           <div class="divider"></div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
             <div>
-              <div style="font-weight:900">Documents</div>
-              <div class="help">Required: Aadhaar + PAN + Selfie. License is optional for MVP.</div>
+              <div style="font-weight:1000">Documents</div>
+              <div class="help">Required: Aadhaar + PAN + Selfie. License optional for MVP.</div>
             </div>
             <div class="badge info" id="docsCountBadge">0 / 3 required docs ready</div>
           </div>
 
           <div class="progressWrap" aria-label="Document progress">
             <div style="display:flex;flex-direction:column;gap:3px">
-              <div style="font-weight:900">Upload progress</div>
-              <div class="mini" id="progressHint">Select documents to enable submit.</div>
+              <div style="font-weight:1000">Upload readiness</div>
+              <div class="mini" id="progressHint">Select required documents to enable submit.</div>
             </div>
             <div class="bar" aria-hidden="true"><div id="barFill"></div></div>
           </div>
 
-          <div class="klist">
-            <div class="kitem">
+          <div class="klist" aria-label="Document uploads">
+            <div class="kitem" data-doc="aadhaar">
               <div class="kleft">
                 <div class="kname">Aadhaar</div>
                 <div class="kmeta">PDF / Image (max 5 MB)</div>
@@ -488,11 +612,12 @@
               <div class="kright">
                 <input type="file" id="aadhaar" name="aadhaar" accept=".pdf,image/*" aria-label="Upload Aadhaar document" />
                 <span class="badge warn" id="aadhaarStatus">Pending</span>
+                <button class="btn small" type="button" data-doc-menu="aadhaar" aria-haspopup="menu" aria-expanded="false">⋯</button>
                 <span class="fileMeta" id="aadhaarMeta">—</span>
               </div>
             </div>
 
-            <div class="kitem">
+            <div class="kitem" data-doc="pan">
               <div class="kleft">
                 <div class="kname">PAN</div>
                 <div class="kmeta">PDF / Image (max 5 MB)</div>
@@ -500,23 +625,25 @@
               <div class="kright">
                 <input type="file" id="pan" name="pan" accept=".pdf,image/*" aria-label="Upload PAN document" />
                 <span class="badge warn" id="panStatus">Pending</span>
+                <button class="btn small" type="button" data-doc-menu="pan" aria-haspopup="menu" aria-expanded="false">⋯</button>
                 <span class="fileMeta" id="panMeta">—</span>
               </div>
             </div>
 
-            <div class="kitem">
+            <div class="kitem" data-doc="license">
               <div class="kleft">
                 <div class="kname">Broker License</div>
                 <div class="kmeta">Optional (max 5 MB)</div>
               </div>
               <div class="kright">
-                <input type="file" id="license" name="license" accept=".pdf,image/*" aria-label="Upload broker license document" />
-                <span class="badge warn" id="licStatus">Pending</span>
-                <span class="fileMeta" id="licMeta">—</span>
+                <input type="file" id="license" name="license" accept=".pdf,image/*" aria-label="Upload broker license" />
+                <span class="badge warn" id="licenseStatus">Pending</span>
+                <button class="btn small" type="button" data-doc-menu="license" aria-haspopup="menu" aria-expanded="false">⋯</button>
+                <span class="fileMeta" id="licenseMeta">—</span>
               </div>
             </div>
 
-            <div class="kitem">
+            <div class="kitem" data-doc="selfie">
               <div class="kleft">
                 <div class="kname">Selfie</div>
                 <div class="kmeta">Image (max 3 MB)</div>
@@ -524,29 +651,37 @@
               <div class="kright">
                 <input type="file" id="selfie" name="selfie" accept="image/*" aria-label="Upload selfie image" />
                 <span class="badge warn" id="selfieStatus">Pending</span>
+                <button class="btn small" type="button" data-doc-menu="selfie" aria-haspopup="menu" aria-expanded="false">⋯</button>
                 <span class="fileMeta" id="selfieMeta">—</span>
               </div>
             </div>
           </div>
 
+          <div class="divider"></div>
+
+          <div style="font-weight:1000">Review preview</div>
+          <div class="mini">This is what will be submitted (demo). Use this for XSS testing too.</div>
+          <div class="card" style="background:rgba(11,15,23,.35);border-radius:18px;margin-top:10px">
+            <div id="reviewSummary" class="mini" style="margin-top:0"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn small" type="button" data-action="copyReview">📋 Copy review text</button>
+              <button class="btn small ghost" type="button" data-action="openReviewModal">🔍 Open review modal</button>
+            </div>
+          </div>
+
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center">
-            <button class="btn primary" id="submitKycBtn" type="submit" disabled>
+            <button class="btn primary" id="submitKycBtn" type="button" data-action="submitKyc" disabled>
               Submit for Verification
             </button>
-
-            <button class="btn" id="editKycBtn" type="button">Edit / Resubmit</button>
-            <button class="btn" id="logoutBtn" type="button">Logout</button>
+            <button class="btn" id="editResubmitBtn" type="button" data-action="editResubmit" disabled>Edit / Resubmit</button>
+            <button class="btn" id="logoutBtn" type="button" data-action="logout">Logout</button>
           </div>
 
           <div class="mini">
-            ✅ Later API mapping:<br/>
+            ✅ Later API mapping (unspecified storage backend):<br/>
             1) <b class="mono">POST /brokers/onboard</b> (profile create)<br/>
             2) <b class="mono">POST /brokers/{brokerId}/documents</b> (each upload)<br/>
             Admin approves in: <b class="mono">/admin/kyc/queue</b>
-          </div>
-
-          <div class="mini">
-            ℹ️ Files are not stored in your browser and will reset on refresh (browser security behavior). Draft fields are saved locally for demo convenience.
           </div>
         </form>
       </section>
@@ -555,923 +690,1390 @@
     <section class="card" style="margin-top:14px">
       <h3 style="margin:0 0 6px">What happens after KYC?</h3>
       <div style="color:var(--muted);line-height:1.9">
-        After submission, admin reviews documents + broker details. Status becomes <b>VERIFIED</b>.
-        Broker can add listings & receive leads. Every serious lead opens a Deal Room.
-      </div>
-      <div class="mini" style="margin-top:10px">
-        Note: “Verified” is shown as a step in this UI, but in production that state must come from the server/admin approval.
+        Admin reviews documents + broker details → status becomes <b>VERIFIED</b> → broker can add listings & receive leads.
       </div>
     </section>
 
     <footer>
-      © <span id="yr"></span> Broker Network • <span id="cityFoot"></span>
+      © <span id="yr"></span> Broker Network • <span id="cityFoot">Bangalore</span>
     </footer>
   </main>
 
+  <!-- Shared overflow menu -->
+  <div id="overflowMenu" class="menu" role="menu" aria-label="Document actions" hidden></div>
+
   <!-- Accessible toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <div class="msg" id="toastMsg">Updated</div>
+    <button class="act" id="toastAction" type="button" hidden>Undo</button>
+  </div>
 
-  <script>
-    // ====== Constants ======
-    const API_BASE = "https://api.yourplatform.in"; // placeholder
+  <!-- Accessible modal -->
+  <div id="modalBack" class="modalBack" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <div class="modalTop">
+        <div>
+          <div id="modalTitle" class="modalTitle">Confirm</div>
+          <div id="modalDesc" class="srOnly">Modal dialog. Use Tab to navigate. Escape to close.</div>
+        </div>
+        <button class="btn small" type="button" data-action="modalClose">✕ Close</button>
+      </div>
+      <div id="modalBody" class="modalBody"></div>
+      <div class="modalActions">
+        <button class="btn" id="modalSecondary" type="button">Cancel</button>
+        <button class="btn primary" id="modalPrimary" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
 
-    const STORAGE = {
-      SESSION: "mei_broker_session_v1",
-      OTP_META: "mei_broker_otp_meta_v1",
-      KYC_DRAFT_PREFIX: "mei_broker_kyc_draft_v1:",
-      KYC_STATUS_PREFIX: "mei_broker_kyc_status_v1:",
-      API_MODE: "mei_broker_api_mode_v1"
-    };
+<script>
+(() => {
+  // ====== Versioned keys (localStorage) ======
+  const KEYS = {
+    API_MODE: "mei_broker_api_mode_v1",
+    SESSION: "mei_broker_session_v1",
+    OTP: "mei_broker_otp_meta_v1",
+    KYC_STATUS_PREFIX: "mei_broker_kyc_status_v1:",
+    KYC_DRAFT_PREFIX: "mei_broker_kyc_draft_v1:"
+  };
 
-    const DEMO = {
-      OTP: "123456",
-      OTP_TTL_SEC: 5 * 60,
-      RESEND_COOLDOWN_SEC: 30,
-      MAX_ATTEMPTS: 5,
-      LOCK_SEC: 120
-    };
+  // ====== Unspecified backend settings (placeholders) ======
+  const API_BASE = "https://api.yourplatform.in"; // unspecified
+  const DEMO_OTP = "123456";
 
-    // Doc policies (client-side UX only; server must enforce)
-    const DOC_RULES = {
-      aadhaar: { required: true,  maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"] },
-      pan:     { required: true,  maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"] },
-      selfie:  { required: true,  maxBytes: 3 * 1024 * 1024, exts: ["jpg","jpeg","png","webp"] },
-      license: { required: false, maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"] },
-    };
+  // ====== OTP policy defaults ======
+  // Recommended defaults; server must enforce rate limiting + lockout.
+  // NIST notes OOB authentication must be invalid if not completed within 10 minutes (we use 5 minutes TTL).
+  const OTP_POLICY = {
+    ttlSec: 5 * 60,
+    resendCooldownSec: 30,
+    maxAttempts: 5,
+    lockSec: 120
+  };
 
-    // ====== Simple helpers ======
-    const $ = (id) => document.getElementById(id);
+  // ====== KYC document rules (client UX only; server MUST enforce & scan) ======
+  const DOC_RULES = {
+    aadhaar: { required: true,  maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"], mimeGroup: ["application/pdf","image/"] },
+    pan:     { required: true,  maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"], mimeGroup: ["application/pdf","image/"] },
+    license: { required: false, maxBytes: 5 * 1024 * 1024, exts: ["pdf","jpg","jpeg","png","webp"], mimeGroup: ["application/pdf","image/"] },
+    selfie:  { required: true,  maxBytes: 3 * 1024 * 1024, exts: ["jpg","jpeg","png","webp"],      mimeGroup: ["image/"] }
+  };
 
-    function readJSON(key, fallback){
-      try{
-        const v = localStorage.getItem(key);
-        return v ? JSON.parse(v) : fallback;
-      }catch(e){
-        return fallback;
+  // ====== DOM helpers ======
+  const $ = (id) => document.getElementById(id);
+  const qs = (sel, root=document) => root.querySelector(sel);
+  const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  // ====== Storage helpers ======
+  function readJSON(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    }catch(e){ return fallback; }
+  }
+  function writeJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+  function delKey(key){ localStorage.removeItem(key); }
+
+  function nowMs(){ return Date.now(); }
+  function pad2(n){ return String(n).padStart(2,"0"); }
+
+  function isTenDigits(phone){ return /^[0-9]{10}$/.test(String(phone||"").trim()); }
+  function maskPhone(p){
+    const s = String(p || "");
+    if(s.length < 4) return "******";
+    return "******" + s.slice(-4);
+  }
+  function formatBytes(bytes){
+    const b = Number(bytes || 0);
+    if(b < 1024) return b + " B";
+    const kb = b / 1024;
+    if(kb < 1024) return kb.toFixed(1) + " KB";
+    return (kb/1024).toFixed(2) + " MB";
+  }
+  function extOf(filename){
+    const s = String(filename || "");
+    const i = s.lastIndexOf(".");
+    return i === -1 ? "" : s.slice(i+1).toLowerCase();
+  }
+
+  // ====== Clipboard (secure context + fallback) ======
+  async function copyToClipboard(text){
+    const t = String(text ?? "");
+    if(!t.trim()) return false;
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(t);
+        return true;
       }
-    }
-    function writeJSON(key, value){
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-    function del(key){ localStorage.removeItem(key); }
-
-    function nowMs(){ return Date.now(); }
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function maskPhone(p){
-      const s = String(p || "");
-      if(s.length < 4) return "****";
-      return "******" + s.slice(-4);
-    }
-    function is10DigitPhone(p){
-      return /^[0-9]{10}$/.test(String(p || "").trim());
-    }
-    function clampInt(str, min, max){
-      const n = parseInt(String(str || "").trim(), 10);
-      if(Number.isNaN(n)) return null;
-      return Math.max(min, Math.min(max, n));
-    }
-    function formatBytes(bytes){
-      const b = Number(bytes || 0);
-      if(b < 1024) return b + " B";
-      const kb = b / 1024;
-      if(kb < 1024) return kb.toFixed(1) + " KB";
-      const mb = kb / 1024;
-      return mb.toFixed(2) + " MB";
-    }
-
-    // ====== Toast (WCAG-friendly status message) ======
-    function toast(msg){
-      const el = $("toast");
-      el.textContent = msg;
-      el.style.display = "block";
-      clearTimeout(window.__toastT);
-      window.__toastT = setTimeout(() => el.style.display = "none", 2600);
-    }
-
-    // ====== State ======
-    const state = {
-      apiMode: false,
-      session: null,   // { loggedIn, phone, city, brokerId, loginAt }
-      otpMeta: null,   // { phone, sentAt, expiresAt, resendAt, attempts, lockedUntil }
-      kycStatus: "NOT_SUBMITTED" // NOT_SUBMITTED | SUBMITTED | VERIFIED (demo)
-    };
-
-    let otpTicker = null;
-
-    // ====== Render ======
-    function setSteps(){
-      const s1 = $("step1"), s2 = $("step2"), s3 = $("step3");
-
-      s1.className = "step " + (state.session?.loggedIn ? "done" : "active");
-      s2.className = "step " + (!state.session?.loggedIn ? "" :
-        (state.kycStatus === "NOT_SUBMITTED" ? "active" :
-          (state.kycStatus === "SUBMITTED" ? "done" :
-            (state.kycStatus === "VERIFIED" ? "done" : "active")
-          )
-        )
-      );
-      s3.className = "step " + (state.kycStatus === "VERIFIED" ? "done" : "");
-    }
-
-    function setSessionUI(){
-      const badge = $("sessionBadge");
-      const city = state.session?.city || "Bangalore";
-      $("cityFoot").textContent = city;
-
-      if(state.session?.loggedIn){
-        badge.className = "badge ok";
-        badge.textContent = "● Logged in: " + maskPhone(state.session.phone);
-      }else{
-        badge.className = "badge warn";
-        badge.textContent = "● Not logged in";
-      }
-
-      // Login form toggles
-      $("logoutTopBtn").disabled = !state.session?.loggedIn;
-      $("phoneInput").disabled = !!state.session?.loggedIn;
-      $("citySelect").disabled = !!state.session?.loggedIn;
-
-      // KYC lock/unlock
-      const lock = $("kycLocked");
-      const form = $("kycForm");
-      if(state.session?.loggedIn){
-        lock.classList.add("hide");
-        form.classList.remove("hide");
-      }else{
-        lock.classList.remove("hide");
-        form.classList.add("hide");
-      }
-    }
-
-    function setKycStatusUI(){
-      const b = $("kycStatusBadge");
-      if(state.kycStatus === "VERIFIED"){
-        b.className = "badge ok";
-        b.textContent = "KYC: VERIFIED";
-      }else if(state.kycStatus === "SUBMITTED"){
-        b.className = "badge warn";
-        b.textContent = "KYC: Submitted (pending)";
-      }else{
-        b.className = "badge warn";
-        b.textContent = "KYC: Not submitted";
-      }
-
-      // When submitted/verified, keep submit disabled until user chooses Edit/Resubmit
-      if(state.kycStatus === "SUBMITTED" || state.kycStatus === "VERIFIED"){
-        $("submitKycBtn").disabled = true;
-        $("progressHint").textContent = "KYC already submitted. Click Edit / Resubmit to change details (demo).";
-      }else{
-        $("progressHint").textContent = "Select required documents to enable submit.";
-      }
-    }
-
-    function showErr(elId, msg){
-      const el = $(elId);
-      if(!msg){
-        el.textContent = "";
-        el.classList.add("hide");
-        return;
-      }
-      el.textContent = msg;
-      el.classList.remove("hide");
-    }
-
-    function setOtpUI(){
-      const panel = $("otpPanel");
-      const demoBadge = $("loginMiniBadge");
-      const verifyBtn = $("verifyBtn");
-
-      // Always show the "demo OTP" badge when otp panel displayed (demo clarity)
-      if(state.otpMeta){
-        panel.classList.remove("hide");
-        demoBadge.classList.remove("hide");
-        verifyBtn.disabled = false;
-      }else{
-        panel.classList.add("hide");
-        demoBadge.classList.add("hide");
-        verifyBtn.disabled = true;
-        $("otpInput").value = "";
-        showErr("otpErr", "");
-      }
-
-      if(state.otpMeta){
-        const m = state.otpMeta;
-        const attempts = m.attempts || 0;
-        $("attemptBadge").className = attempts >= DEMO.MAX_ATTEMPTS ? "badge bad" : "badge warn";
-        $("attemptBadge").textContent = attempts + " / " + DEMO.MAX_ATTEMPTS;
-
-        $("otpSentBadge").textContent = "OTP sent to " + maskPhone(m.phone);
-
-        const locked = (m.lockedUntil || 0) > nowMs();
-        if(locked){
-          $("otpSentBadge").className = "badge bad";
-        }else{
-          $("otpSentBadge").className = "badge info";
-        }
-      }
-
-      refreshOtpTimers();
-    }
-
-    function refreshOtpTimers(){
-      if(!state.otpMeta){
-        $("otpExpireBadge").textContent = "Expires in —";
-        $("otpResendBadge").textContent = "Resend in —";
-        $("resendBtn").disabled = true;
-        $("sendOtpBtn").disabled = !!state.session?.loggedIn;
-        $("sendOtpBtn").textContent = "Send OTP";
-        return;
-      }
-
-      const m = state.otpMeta;
-      const t = nowMs();
-
-      const expLeft = Math.max(0, (m.expiresAt || 0) - t);
-      const resendLeft = Math.max(0, (m.resendAt || 0) - t);
-      const lockedLeft = Math.max(0, (m.lockedUntil || 0) - t);
-
-      const expSec = Math.ceil(expLeft / 1000);
-      const resSec = Math.ceil(resendLeft / 1000);
-      const lockSec = Math.ceil(lockedLeft / 1000);
-
-      $("otpExpireBadge").className = expSec === 0 ? "badge bad" : "badge warn";
-      $("otpExpireBadge").textContent = "Expires in " + pad2(Math.floor(expSec/60)) + ":" + pad2(expSec%60);
-
-      if(lockSec > 0){
-        $("otpResendBadge").className = "badge bad";
-        $("otpResendBadge").textContent = "Locked " + pad2(Math.floor(lockSec/60)) + ":" + pad2(lockSec%60);
-      }else{
-        $("otpResendBadge").className = (resSec === 0) ? "badge ok" : "badge warn";
-        $("otpResendBadge").textContent = (resSec === 0) ? "Resend available" : ("Resend in " + resSec + "s");
-      }
-
-      const canResend = (resSec === 0) && (lockSec === 0) && !state.session?.loggedIn;
-      $("resendBtn").disabled = !canResend;
-
-      // Make main send button mirror resend state (UX)
-      $("sendOtpBtn").disabled = !!state.session?.loggedIn || (lockSec > 0);
-      $("sendOtpBtn").textContent = state.session?.loggedIn ? "Logged in" : (state.otpMeta ? "OTP Requested" : "Send OTP");
-
-      if(expSec === 0 && !state.session?.loggedIn){
-        showErr("otpErr", "OTP expired. Please resend OTP.");
-        $("verifyBtn").disabled = true;
-      }else if(!state.session?.loggedIn){
-        $("verifyBtn").disabled = false;
-      }
-    }
-
-    // ====== KYC doc status ======
-    function setDocBadge(id, mode, text){
-      const el = $(id);
-      el.className = "badge " + (mode || "warn");
-      el.textContent = text;
-    }
-
-    function extOf(filename){
-      const s = String(filename || "");
-      const i = s.lastIndexOf(".");
-      return i === -1 ? "" : s.slice(i+1).toLowerCase();
-    }
-
-    function validateFile(key, file){
-      const rule = DOC_RULES[key];
-      if(!file) return { ok:false, reason:"No file selected." };
-
-      const ext = extOf(file.name);
-      if(!rule.exts.includes(ext)){
-        return { ok:false, reason:`Invalid file type .${ext || "?"}. Allowed: ${rule.exts.join(", ")}.` };
-      }
-      if(file.size > rule.maxBytes){
-        return { ok:false, reason:`File too large. Max ${formatBytes(rule.maxBytes)}.` };
-      }
-      return { ok:true, reason:"" };
-    }
-
-    function updateDocUI(key){
-      const map = {
-        aadhaar: { status:"aadhaarStatus", meta:"aadhaarMeta" },
-        pan:     { status:"panStatus",     meta:"panMeta" },
-        license: { status:"licStatus",     meta:"licMeta" },
-        selfie:  { status:"selfieStatus",  meta:"selfieMeta" }
-      };
-      const input = $(key);
-      const out = map[key];
-      const file = input.files && input.files[0] ? input.files[0] : null;
-
-      if(state.kycStatus === "SUBMITTED" || state.kycStatus === "VERIFIED"){
-        // Demo: show locked state after submit
-        input.disabled = true;
-        setDocBadge(out.status, state.kycStatus === "VERIFIED" ? "ok" : "warn", state.kycStatus === "VERIFIED" ? "Verified" : "Submitted");
-        $(out.meta).textContent = "—";
-        return;
-      }else{
-        input.disabled = false;
-      }
-
-      if(!file){
-        setDocBadge(out.status, "warn", "Pending");
-        $(out.meta).textContent = "—";
-        return;
-      }
-
-      const v = validateFile(key, file);
-      if(!v.ok){
-        // reset
-        input.value = "";
-        setDocBadge(out.status, "warn", "Pending");
-        $(out.meta).textContent = "—";
-        toast("❌ " + key.toUpperCase() + ": " + v.reason);
-        return;
-      }
-
-      setDocBadge(out.status, "ok", "Ready");
-      $(out.meta).textContent = file.name + " • " + formatBytes(file.size);
-    }
-
-    function requiredDocsReady(){
-      // In submitted/verified, assume docs already handled on server in real life.
-      if(state.kycStatus === "SUBMITTED" || state.kycStatus === "VERIFIED") return true;
-
-      const required = Object.keys(DOC_RULES).filter(k => DOC_RULES[k].required);
-      const ready = required.filter(k => {
-        const i = $(k);
-        const f = i.files && i.files[0] ? i.files[0] : null;
-        if(!f) return false;
-        return validateFile(k, f).ok;
-      });
-      return ready.length === required.length;
-    }
-
-    function updateDocsProgress(){
-      const required = Object.keys(DOC_RULES).filter(k => DOC_RULES[k].required);
-
-      let readyCount = 0;
-      required.forEach(k => {
-        const i = $(k);
-        const f = i.files && i.files[0] ? i.files[0] : null;
-        if(f && validateFile(k, f).ok) readyCount++;
-      });
-
-      $("docsCountBadge").textContent = `${readyCount} / ${required.length} required docs ready`;
-
-      const pct = required.length ? Math.round((readyCount / required.length) * 100) : 0;
-      $("barFill").style.width = pct + "%";
-
-      // Enable submit only if logged in, not already submitted, and required docs ready and required fields filled.
-      const fieldsOk = validateProfileFields(false);
-      const canSubmit = !!state.session?.loggedIn &&
-                        state.kycStatus === "NOT_SUBMITTED" &&
-                        requiredDocsReady() &&
-                        fieldsOk;
-
-      $("submitKycBtn").disabled = !canSubmit;
-    }
-
-    function validateProfileFields(showErrors){
-      let ok = true;
-
-      const name = $("fullName").value.trim();
-      const area = $("primaryArea").value.trim();
-      const expRaw = $("expYears").value.trim();
-
-      if(!name){
-        ok = false;
-        if(showErrors) showErr("nameErr", "Full name is required.");
-      }else{
-        showErr("nameErr", "");
-      }
-
-      if(!area){
-        ok = false;
-        if(showErrors) showErr("areaErr", "Primary area is required.");
-      }else{
-        showErr("areaErr", "");
-      }
-
-      if(expRaw){
-        const n = clampInt(expRaw, 0, 99);
-        if(n == null){
-          ok = false;
-          if(showErrors) showErr("expErr", "Experience must be a number (0–99).");
-        }else{
-          showErr("expErr", "");
-        }
-      }else{
-        showErr("expErr", "");
-      }
-
+    }catch(e){}
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
       return ok;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // ====== Safe open (noopener) ======
+  function openInNewTab(url){
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if(w) w.opener = null;
+    return w;
+  }
+
+  // ====== Toast (aria-live) ======
+  let toastTimer = null;
+  let toastActionFn = null;
+
+  function toast(msg, opts={}){
+    const { actionText="", actionFn=null, timeout=2600 } = opts;
+    $("toastMsg").textContent = String(msg || "");
+    toastActionFn = (typeof actionFn === "function") ? actionFn : null;
+
+    const act = $("toastAction");
+    if(actionText && toastActionFn){
+      act.textContent = actionText;
+      act.hidden = false;
+    }else{
+      act.hidden = true;
     }
 
-    // ====== Draft save/load (profile fields only) ======
-    function kycDraftKey(){
-      const phone = state.session?.phone || "anon";
-      return STORAGE.KYC_DRAFT_PREFIX + phone;
+    $("toast").hidden = false;
+
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      $("toast").hidden = true;
+      act.hidden = true;
+      toastActionFn = null;
+    }, timeout);
+  }
+
+  $("toastAction").addEventListener("click", () => {
+    if(typeof toastActionFn === "function"){
+      const fn = toastActionFn;
+      $("toast").hidden = true;
+      $("toastAction").hidden = true;
+      toastActionFn = null;
+      try{ fn(); }catch(e){}
     }
-    function kycStatusKey(){
-      const phone = state.session?.phone || "anon";
-      return STORAGE.KYC_STATUS_PREFIX + phone;
+  });
+
+  // ====== Modal (accessible dialog) ======
+  const MODAL = { open:false, lastFocus:null, onPrimary:null, onSecondary:null };
+
+  function setModalBody(node){
+    const body = $("modalBody");
+    body.innerHTML = ""; // clearing container only; no user HTML inserted
+    body.appendChild(node);
+  }
+
+  function focusablesWithin(root){
+    return qsa('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', root)
+      .filter(el => !el.disabled && el.offsetParent !== null);
+  }
+
+  function openModal({ title="Confirm", bodyNode, primaryText="Confirm", secondaryText="Cancel", onPrimary, onSecondary }){
+    MODAL.open = true;
+    MODAL.lastFocus = document.activeElement;
+    MODAL.onPrimary = (typeof onPrimary === "function") ? onPrimary : null;
+    MODAL.onSecondary = (typeof onSecondary === "function") ? onSecondary : null;
+
+    $("modalTitle").textContent = title;
+    $("modalPrimary").textContent = primaryText;
+    $("modalSecondary").textContent = secondaryText;
+
+    setModalBody(bodyNode);
+
+    $("modalBack").hidden = false;
+    $("main").setAttribute("aria-hidden","true");
+
+    // Focus first focusable element in dialog
+    const dialog = qs(".modalCard", $("modalBack"));
+    const f = focusablesWithin(dialog);
+    setTimeout(() => {
+      (f[0] || $("modalPrimary")).focus();
+    }, 0);
+  }
+
+  function closeModal(){
+    $("modalBack").hidden = true;
+    $("main").removeAttribute("aria-hidden");
+
+    MODAL.open = false;
+
+    // Restore focus
+    if(MODAL.lastFocus && typeof MODAL.lastFocus.focus === "function"){
+      MODAL.lastFocus.focus();
     }
+    MODAL.lastFocus = null;
+    MODAL.onPrimary = null;
+    MODAL.onSecondary = null;
+  }
 
-    function saveDraft(){
-      if(!state.session?.loggedIn) return;
-      const draft = {
-        full_name: $("fullName").value.trim(),
-        experience_years: $("expYears").value.trim(),
-        primary_area: $("primaryArea").value.trim(),
-        company_name: $("companyName").value.trim()
-      };
-      writeJSON(kycDraftKey(), draft);
+  $("modalPrimary").addEventListener("click", () => {
+    const fn = MODAL.onPrimary;
+    closeModal();
+    if(fn) { try{ fn(); }catch(e){} }
+  });
+  $("modalSecondary").addEventListener("click", () => {
+    const fn = MODAL.onSecondary;
+    closeModal();
+    if(fn) { try{ fn(); }catch(e){} }
+  });
+
+  // Modal focus trap + Escape
+  document.addEventListener("keydown", (e) => {
+    if($("modalBack").hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeModal();
+      return;
     }
+    if(e.key !== "Tab") return;
 
-    function loadDraft(){
-      if(!state.session?.loggedIn) return;
-      const draft = readJSON(kycDraftKey(), null);
-      if(!draft) return;
+    const dialog = qs(".modalCard", $("modalBack"));
+    const f = focusablesWithin(dialog);
+    if(!f.length) return;
 
-      $("fullName").value = draft.full_name || "";
-      $("expYears").value = draft.experience_years || "";
-      $("primaryArea").value = draft.primary_area || "";
-      $("companyName").value = draft.company_name || "";
+    const first = f[0];
+    const last = f[f.length - 1];
+
+    if(e.shiftKey && document.activeElement === first){
+      e.preventDefault();
+      last.focus();
+    }else if(!e.shiftKey && document.activeElement === last){
+      e.preventDefault();
+      first.focus();
     }
+  });
 
-    // ====== OTP Meta persistence (demo) ======
-    function loadOtpMeta(){
-      const meta = readJSON(STORAGE.OTP_META, null);
-      if(!meta) return null;
+  // Click outside dialog closes
+  $("modalBack").addEventListener("mousedown", (e) => {
+    if(e.target === $("modalBack")) closeModal();
+  });
 
-      // If too old, drop
-      const t = nowMs();
-      if(meta.expiresAt && meta.expiresAt < (t - 60_000)) return null;
+  // ====== Overflow menu (shared) ======
+  const MENU = { open:false, docKey:null, anchor:null };
 
-      return meta;
+  function closeMenu(){
+    $("overflowMenu").hidden = true;
+    $("overflowMenu").innerHTML = "";
+    MENU.open = false;
+
+    if(MENU.anchor){
+      MENU.anchor.setAttribute("aria-expanded","false");
+      MENU.anchor = null;
     }
-    function saveOtpMeta(meta){
-      state.otpMeta = meta;
-      if(meta) writeJSON(STORAGE.OTP_META, meta);
-      else del(STORAGE.OTP_META);
-      setOtpUI();
-    }
+    MENU.docKey = null;
+  }
 
-    function startOtpTicker(){
-      if(otpTicker) clearInterval(otpTicker);
-      otpTicker = setInterval(() => {
-        refreshOtpTimers();
-      }, 250);
-    }
+  function openMenu(docKey, anchor){
+    closeMenu();
 
-    // ====== API mode toggle (wiring placeholder) ======
-    function setApiMode(on){
-      state.apiMode = !!on;
-      writeJSON(STORAGE.API_MODE, state.apiMode);
-      $("toggleApiBtn").setAttribute("aria-pressed", state.apiMode ? "true" : "false");
-      $("toggleApiBtn").textContent = state.apiMode ? "🔌 API: ON" : "🔌 API: OFF";
-      toast(state.apiMode ? "API mode ON (calls are stubbed)." : "API mode OFF (demo local).");
-    }
+    MENU.open = true;
+    MENU.docKey = docKey;
+    MENU.anchor = anchor;
 
-    // ====== Auth flows ======
-    async function apiSendOtp(payload){
-      // Placeholder: real implementation must include CSRF protections if cookies used, and rate limiting server-side.
-      const res = await fetch(API_BASE + "/auth/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+    anchor.setAttribute("aria-expanded","true");
+
+    const menu = $("overflowMenu");
+    const rule = DOC_RULES[docKey];
+    const input = $(docKey);
+    const file = (input && input.files && input.files[0]) ? input.files[0] : null;
+
+    const title = document.createElement("div");
+    title.className = "menuTitle";
+    title.textContent = `Actions • ${docKey.toUpperCase()}`;
+    menu.appendChild(title);
+
+    const previewBtn = document.createElement("button");
+    previewBtn.type = "button";
+    previewBtn.className = "menuItem";
+    previewBtn.setAttribute("role","menuitem");
+    previewBtn.textContent = "👀 Preview file";
+    const previewSub = document.createElement("span");
+    previewSub.className = "sub";
+    previewSub.textContent = file ? "Open" : "No file";
+    previewBtn.appendChild(previewSub);
+    previewBtn.disabled = !file;
+
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "menuItem";
+    clearBtn.setAttribute("role","menuitem");
+    clearBtn.textContent = "🧹 Clear selection";
+    const clearSub = document.createElement("span");
+    clearSub.className = "sub";
+    clearSub.textContent = file ? "Reset" : "No file";
+    clearBtn.appendChild(clearSub);
+    clearBtn.disabled = !file;
+
+    const reqBtn = document.createElement("button");
+    reqBtn.type = "button";
+    reqBtn.className = "menuItem";
+    reqBtn.setAttribute("role","menuitem");
+    reqBtn.textContent = "ℹ️ File requirements";
+    const reqSub = document.createElement("span");
+    reqSub.className = "sub";
+    reqSub.textContent = rule.required ? "Required" : "Optional";
+    reqBtn.appendChild(reqSub);
+
+    previewBtn.addEventListener("click", () => {
+      closeMenu();
+      if(!file) return;
+      const url = URL.createObjectURL(file);
+      openInNewTab(url);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      toast("Opened preview in new tab (demo).");
+    });
+
+    clearBtn.addEventListener("click", () => {
+      closeMenu();
+      if(!input) return;
+      input.value = "";
+      updateDocUI(docKey);
+      updateDocsProgress();
+      toast("File cleared.");
+    });
+
+    reqBtn.addEventListener("click", () => {
+      closeMenu();
+      const body = document.createElement("div");
+      body.textContent = `${docKey.toUpperCase()} allowed: ${rule.exts.join(", ")} • Max: ${formatBytes(rule.maxBytes)}.`;
+      openModal({
+        title: "File requirements",
+        bodyNode: body,
+        primaryText: "OK",
+        secondaryText: "Close",
+        onPrimary: () => {},
+        onSecondary: () => {}
       });
-      if(!res.ok) throw new Error("send-otp failed");
-      return await res.json();
+    });
+
+    menu.appendChild(previewBtn);
+    menu.appendChild(clearBtn);
+    menu.appendChild(reqBtn);
+
+    // Position near anchor
+    const r = anchor.getBoundingClientRect();
+    const left = Math.min(window.innerWidth - 14, Math.max(14, r.left));
+    const top = Math.min(window.innerHeight - 14, r.bottom + 8);
+    menu.style.left = left + "px";
+    menu.style.top = top + "px";
+
+    menu.hidden = false;
+
+    // Focus first enabled item
+    const items = qsa('[role="menuitem"]', menu).filter(x => !x.disabled);
+    if(items[0]) items[0].focus();
+  }
+
+  document.addEventListener("click", (e) => {
+    if($("overflowMenu").hidden) return;
+    const menu = $("overflowMenu");
+    const isInside = menu.contains(e.target);
+    const isAnchor = MENU.anchor && MENU.anchor.contains(e.target);
+    if(!isInside && !isAnchor) closeMenu();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const menu = $("overflowMenu");
+    if(menu.hidden) return;
+
+    if(e.key === "Escape"){
+      e.preventDefault();
+      closeMenu();
+      return;
     }
 
-    async function apiVerifyOtp(payload){
-      const res = await fetch(API_BASE + "/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error("verify-otp failed");
-      return await res.json();
+    const items = qsa('[role="menuitem"]', menu).filter(x => !x.disabled);
+    if(!items.length) return;
+
+    const idx = items.indexOf(document.activeElement);
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      items[(idx + 1) % items.length].focus();
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      items[(idx - 1 + items.length) % items.length].focus();
+    }else if(e.key === "Home"){
+      e.preventDefault();
+      items[0].focus();
+    }else if(e.key === "End"){
+      e.preventDefault();
+      items[items.length - 1].focus();
+    }
+  });
+
+  // ====== State ======
+  const STATE = {
+    apiMode: false,
+    session: null,   // { loggedIn, phone, city, brokerId, loginAt }
+    otp: null,       // { phone, city, sentAtMs, expiresAtMs, resendAtMs, attempts, lockUntilMs }
+    kycStatus: "NOT_SUBMITTED" // NOT_SUBMITTED | SUBMITTED | VERIFIED (demo)
+  };
+
+  function kycStatusKey(phone){ return KEYS.KYC_STATUS_PREFIX + String(phone || "anon"); }
+  function kycDraftKey(phone){ return KEYS.KYC_DRAFT_PREFIX + String(phone || "anon"); }
+
+  // ====== API placeholders ======
+  async function apiPost(path, payload){
+    // Unspecified: auth, tokens, CSRF/cookies, etc.
+    const res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(payload || {})
+    });
+    if(!res.ok) throw new Error("API error");
+    return await res.json();
+  }
+
+  // ====== UI rendering ======
+  function setSteps(){
+    const loginDone = !!STATE.session?.loggedIn;
+    const kycDone = (STATE.kycStatus === "SUBMITTED" || STATE.kycStatus === "VERIFIED");
+    const verifiedDone = (STATE.kycStatus === "VERIFIED");
+
+    $("stepLogin").className = "step " + (loginDone ? "done" : "active");
+    $("stepKyc").className = "step " + (!loginDone ? "" : (kycDone ? "done" : "active"));
+    $("stepVerified").className = "step " + (verifiedDone ? "done" : "");
+  }
+
+  function setSessionUI(){
+    const badge = $("sessionBadge");
+    const loggedIn = !!STATE.session?.loggedIn;
+
+    if(loggedIn){
+      badge.className = "badge ok";
+      badge.textContent = "● Logged in: " + maskPhone(STATE.session.phone);
+      $("logoutBtnTop").disabled = false;
+      $("copyBrokerBtn").disabled = false;
+
+      $("cityFoot").textContent = STATE.session.city || "Bangalore";
+    }else{
+      badge.className = "badge warn";
+      badge.textContent = "● Not logged in";
+      $("logoutBtnTop").disabled = true;
+      $("copyBrokerBtn").disabled = true;
+      $("cityFoot").textContent = $("citySelect").value || "Bangalore";
     }
 
-    function createDemoSession(phone, city){
-      return {
+    // Login inputs disabled while logged in
+    $("phoneInput").disabled = loggedIn;
+    $("citySelect").disabled = loggedIn;
+    $("sendOtpBtn").disabled = loggedIn;
+
+    // KYC lock/unlock
+    if(loggedIn){
+      $("kycLockedBadge").classList.add("hide");
+      $("kycForm").classList.remove("hide");
+    }else{
+      $("kycLockedBadge").classList.remove("hide");
+      $("kycForm").classList.add("hide");
+    }
+  }
+
+  function setKycStatusUI(){
+    const b = $("kycStatusBadge");
+    if(STATE.kycStatus === "VERIFIED"){
+      b.className = "badge ok";
+      b.textContent = "KYC: VERIFIED";
+    }else if(STATE.kycStatus === "SUBMITTED"){
+      b.className = "badge warn";
+      b.textContent = "KYC: Submitted (pending)";
+    }else{
+      b.className = "badge warn";
+      b.textContent = "KYC: Not submitted";
+    }
+
+    // Buttons/state
+    $("editResubmitBtn").disabled = !(STATE.kycStatus === "SUBMITTED" || STATE.kycStatus === "VERIFIED");
+  }
+
+  function showErr(elId, msg){
+    const el = $(elId);
+    if(!msg){
+      el.textContent = "";
+      el.classList.add("hide");
+      return;
+    }
+    el.textContent = msg;
+    el.classList.remove("hide");
+  }
+
+  // ====== OTP helpers ======
+  function saveOtp(meta){
+    STATE.otp = meta;
+    if(meta) writeJSON(KEYS.OTP, meta);
+    else delKey(KEYS.OTP);
+    renderOtpUI();
+  }
+
+  function renderOtpUI(){
+    const hasOtp = !!STATE.otp && !STATE.session?.loggedIn;
+
+    $("otpPanel").classList.toggle("hide", !hasOtp);
+    $("demoOtpBadge").classList.toggle("hide", !hasOtp);
+
+    if(!hasOtp){
+      $("verifyBtn").disabled = true;
+      $("resendBtn").disabled = true;
+      $("webOtpBtn").disabled = true;
+      $("otpInput").value = "";
+      showErr("otpErr","");
+      $("attemptBadge").textContent = `0 / ${OTP_POLICY.maxAttempts}`;
+      return;
+    }
+
+    // enable verify unless locked/expired
+    $("webOtpBtn").disabled = false;
+
+    const m = STATE.otp;
+    const t = nowMs();
+    const expLeft = Math.max(0, m.expiresAtMs - t);
+    const resendLeft = Math.max(0, m.resendAtMs - t);
+    const lockLeft = Math.max(0, m.lockUntilMs - t);
+
+    const expSec = Math.ceil(expLeft/1000);
+    const lockSec = Math.ceil(lockLeft/1000);
+
+    $("otpSentBadge").textContent = `OTP sent to ${maskPhone(m.phone)} (demo)`;
+
+    $("attemptBadge").textContent = `${m.attempts || 0} / ${OTP_POLICY.maxAttempts}`;
+    $("attemptBadge").className = (m.attempts >= OTP_POLICY.maxAttempts) ? "badge bad" : "badge warn";
+
+    if(lockSec > 0){
+      $("otpResendBadge").className = "badge bad";
+      $("otpResendBadge").textContent = `Locked ${pad2(Math.floor(lockSec/60))}:${pad2(lockSec%60)}`;
+      $("verifyBtn").disabled = true;
+      $("resendBtn").disabled = true;
+      showErr("otpErr","Locked due to too many attempts. Please wait.");
+    }else{
+      // Expiry
+      if(expSec === 0){
+        $("otpExpireBadge").className = "badge bad";
+        $("otpExpireBadge").textContent = "Expired";
+        $("verifyBtn").disabled = true;
+        showErr("otpErr","OTP expired. Please resend.");
+      }else{
+        $("otpExpireBadge").className = "badge warn";
+        $("otpExpireBadge").textContent = `Expires in ${pad2(Math.floor(expSec/60))}:${pad2(expSec%60)}`;
+        $("verifyBtn").disabled = false;
+        showErr("otpErr","");
+      }
+
+      // Resend
+      if(resendLeft <= 0){
+        $("otpResendBadge").className = "badge ok";
+        $("otpResendBadge").textContent = "Resend available";
+        $("resendBtn").disabled = false;
+      }else{
+        $("otpResendBadge").className = "badge warn";
+        $("otpResendBadge").textContent = `Resend in ${Math.ceil(resendLeft/1000)}s`;
+        $("resendBtn").disabled = true;
+      }
+    }
+  }
+
+  let otpTicker = null;
+  function startOtpTicker(){
+    if(otpTicker) clearInterval(otpTicker);
+    otpTicker = setInterval(() => {
+      if(!STATE.otp) return;
+      renderOtpUI();
+    }, 250);
+  }
+
+  function validatePhone(show){
+    const phone = $("phoneInput").value.trim();
+    // digits only
+    $("phoneInput").value = phone.replace(/[^\d]/g,"").slice(0,10);
+
+    const v = $("phoneInput").value.trim();
+    if(!v){
+      if(show) { showErr("phoneErr","Phone is required."); $("phoneInput").setAttribute("aria-invalid","true"); }
+      return false;
+    }
+    if(!isTenDigits(v)){
+      if(show) { showErr("phoneErr","Enter a valid 10-digit number."); $("phoneInput").setAttribute("aria-invalid","true"); }
+      return false;
+    }
+    showErr("phoneErr","");
+    $("phoneInput").removeAttribute("aria-invalid");
+    return true;
+  }
+
+  async function sendOtp(){
+    if(STATE.session?.loggedIn) return;
+    if(!validatePhone(true)) return;
+
+    const phone = $("phoneInput").value.trim();
+    const city = $("citySelect").value || "Bangalore";
+    const t = nowMs();
+
+    const meta = {
+      phone,
+      city,
+      sentAtMs: t,
+      expiresAtMs: t + OTP_POLICY.ttlSec * 1000,
+      resendAtMs: t + OTP_POLICY.resendCooldownSec * 1000,
+      attempts: 0,
+      lockUntilMs: 0
+    };
+
+    try{
+      if(STATE.apiMode){
+        await apiPost("/auth/send-otp", { phone, city }); // unspecified server behavior
+        toast("OTP sent ✅ (API)");
+      }else{
+        toast("OTP sent ✅ (demo OTP: 123456)");
+      }
+      saveOtp(meta);
+      startOtpTicker();
+      $("otpInput").focus();
+    }catch(e){
+      toast("OTP send failed ❌");
+    }
+  }
+
+  async function resendOtp(){
+    if(!STATE.otp) return sendOtp();
+    const t = nowMs();
+
+    if(STATE.otp.lockUntilMs && STATE.otp.lockUntilMs > t){
+      toast("Still locked. Please wait.");
+      return;
+    }
+    if(STATE.otp.resendAtMs && STATE.otp.resendAtMs > t){
+      toast("Please wait to resend.");
+      return;
+    }
+
+    // refresh window
+    STATE.otp.sentAtMs = t;
+    STATE.otp.expiresAtMs = t + OTP_POLICY.ttlSec * 1000;
+    STATE.otp.resendAtMs = t + OTP_POLICY.resendCooldownSec * 1000;
+    STATE.otp.attempts = 0;
+    STATE.otp.lockUntilMs = 0;
+
+    try{
+      if(STATE.apiMode){
+        await apiPost("/auth/send-otp", { phone: STATE.otp.phone, city: STATE.otp.city });
+        toast("OTP resent ✅ (API)");
+      }else{
+        toast("OTP resent ✅ (demo OTP: 123456)");
+      }
+      saveOtp(STATE.otp);
+      $("otpInput").focus();
+    }catch(e){
+      toast("Resend failed ❌");
+    }
+  }
+
+  async function verifyOtp(e){
+    e.preventDefault();
+    if(STATE.session?.loggedIn) return;
+
+    if(!validatePhone(true)) return;
+    if(!STATE.otp){
+      toast("Please send OTP first.");
+      return;
+    }
+
+    const phone = $("phoneInput").value.trim();
+    if(phone !== STATE.otp.phone){
+      toast("Phone changed. Please send OTP again.");
+      saveOtp(null);
+      return;
+    }
+
+    const t = nowMs();
+    if(STATE.otp.lockUntilMs && STATE.otp.lockUntilMs > t){
+      toast("Locked. Please wait.");
+      return;
+    }
+    if(STATE.otp.expiresAtMs && STATE.otp.expiresAtMs <= t){
+      toast("OTP expired. Please resend.");
+      renderOtpUI();
+      return;
+    }
+
+    const otp = ($("otpInput").value || "").trim();
+    if(!/^[0-9]{4,6}$/.test(otp)){
+      showErr("otpErr","Enter a valid OTP (4–6 digits).");
+      return;
+    }
+    showErr("otpErr","");
+
+    try{
+      if(STATE.apiMode){
+        const res = await apiPost("/auth/verify-otp", { phone, otp }); // unspecified server contract
+        const session = {
+          loggedIn: true,
+          phone,
+          city: $("citySelect").value || "Bangalore",
+          brokerId: (res && res.brokerId) ? res.brokerId : ("brk-" + phone),
+          loginAt: new Date().toISOString()
+        };
+        setLoggedIn(session);
+        toast("Login success ✅ (API)");
+        return;
+      }
+
+      // demo check
+      if(otp !== DEMO_OTP){
+        STATE.otp.attempts = (STATE.otp.attempts || 0) + 1;
+
+        if(STATE.otp.attempts >= OTP_POLICY.maxAttempts){
+          STATE.otp.lockUntilMs = nowMs() + OTP_POLICY.lockSec * 1000;
+          toast("Too many attempts ❌ Locked temporarily.");
+        }else{
+          toast("Invalid OTP ❌ (demo: 123456)");
+        }
+
+        saveOtp(STATE.otp);
+        return;
+      }
+
+      // success
+      const session = {
         loggedIn: true,
         phone,
-        city,
+        city: $("citySelect").value || "Bangalore",
         brokerId: "brk-" + phone,
         loginAt: new Date().toISOString()
       };
+      setLoggedIn(session);
+      toast("Login success ✅");
+    }catch(e){
+      toast("Verify failed ❌");
     }
+  }
 
-    function setLoggedIn(on, sessionObj){
-      if(on){
-        state.session = sessionObj;
-        writeJSON(STORAGE.SESSION, state.session);
+  // Optional: WebOTP autofill (best-effort)
+  async function webOtp(){
+    if(!STATE.otp) { toast("Send OTP first."); return; }
+    if(!window.isSecureContext){ toast("WebOTP requires HTTPS."); return; }
+    if(!navigator.credentials || !navigator.credentials.get){ toast("WebOTP not supported."); return; }
 
-        // Load KYC status for this phone (demo)
-        state.kycStatus = readJSON(kycStatusKey(), "NOT_SUBMITTED") || "NOT_SUBMITTED";
+    try{
+      const ac = new AbortController();
+      // Auto-abort after 60s
+      setTimeout(() => ac.abort(), 60_000);
 
-        loadDraft();
-        setKycStatusUI();
+      toast("Waiting for OTP SMS… (if supported)");
+      const cred = await navigator.credentials.get({
+        otp: { transport: ["sms"] },
+        signal: ac.signal
+      });
+
+      if(cred && cred.code){
+        $("otpInput").value = String(cred.code).trim();
+        toast("OTP auto-filled ✅");
+        $("verifyBtn").focus();
       }else{
-        state.session = null;
-        del(STORAGE.SESSION);
+        toast("No OTP received.");
       }
+    }catch(e){
+      toast("WebOTP cancelled / unsupported.");
+    }
+  }
 
-      // Reset OTP panel on login/logout
-      saveOtpMeta(null);
+  // ====== Session + KYC persistence ======
+  function loadKycForPhone(phone){
+    if(!phone) return "NOT_SUBMITTED";
+    const s = readJSON(kycStatusKey(phone), "NOT_SUBMITTED");
+    return s || "NOT_SUBMITTED";
+  }
 
-      setSessionUI();
-      setSteps();
-      updateDocsProgress();
+  function saveKycForPhone(phone, status){
+    if(!phone) return;
+    writeJSON(kycStatusKey(phone), status);
+  }
+
+  function loadDraft(phone){
+    const d = readJSON(kycDraftKey(phone), null);
+    if(!d) return;
+    $("fullName").value = d.fullName || "";
+    $("expYears").value = d.expYears || "";
+    $("primaryArea").value = d.primaryArea || "";
+    $("companyName").value = d.companyName || "";
+    $("notes").value = d.notes || "";
+  }
+
+  function saveDraft(){
+    if(!STATE.session?.loggedIn) return;
+    const d = {
+      fullName: $("fullName").value.trim(),
+      expYears: $("expYears").value.trim(),
+      primaryArea: $("primaryArea").value.trim(),
+      companyName: $("companyName").value.trim(),
+      notes: $("notes").value
+    };
+    writeJSON(kycDraftKey(STATE.session.phone), d);
+  }
+
+  function setLoggedIn(session){
+    STATE.session = session;
+    writeJSON(KEYS.SESSION, session);
+
+    // Restore KYC state for this phone
+    STATE.kycStatus = loadKycForPhone(session.phone);
+    setKycStatusUI();
+
+    // Load drafts
+    loadDraft(session.phone);
+
+    // Clear OTP meta after login
+    saveOtp(null);
+
+    setSessionUI();
+    setSteps();
+
+    // Refresh KYC UI
+    updateAllDocs();
+    updateDocsProgress();
+    renderReviewSummary();
+  }
+
+  function logout(){
+    if(!STATE.session?.loggedIn){
+      toast("Already logged out.");
+      return;
     }
 
-    function validatePhoneUI(){
-      const phone = $("phoneInput").value.trim();
-      if(!phone){
-        showErr("phoneErr", "Phone is required.");
-        $("phoneInput").setAttribute("aria-invalid","true");
-        return false;
-      }
-      if(!is10DigitPhone(phone)){
-        showErr("phoneErr", "Enter a valid 10-digit number.");
-        $("phoneInput").setAttribute("aria-invalid","true");
-        return false;
-      }
-      showErr("phoneErr", "");
-      $("phoneInput").removeAttribute("aria-invalid");
-      return true;
+    const body = document.createElement("div");
+    body.textContent = "Logout will end this session on this device. Draft profile fields will remain unless you clear local demo data.";
+
+    openModal({
+      title: "Confirm logout",
+      bodyNode: body,
+      primaryText: "Logout",
+      secondaryText: "Cancel",
+      onPrimary: () => {
+        STATE.session = null;
+        delKey(KEYS.SESSION);
+        toast("Logged out.");
+        setSessionUI();
+        setSteps();
+        closeMenu();
+        saveOtp(null);
+      },
+      onSecondary: () => {}
+    });
+  }
+
+  // ====== KYC validation ======
+  function validateProfileFields(show){
+    let ok = true;
+
+    const name = $("fullName").value.trim();
+    const area = $("primaryArea").value.trim();
+    const exp = $("expYears").value.trim();
+
+    if(!name){
+      ok = false;
+      if(show) showErr("nameErr","Full name is required.");
+    }else showErr("nameErr","");
+
+    if(!area){
+      ok = false;
+      if(show) showErr("areaErr","Primary area is required.");
+    }else showErr("areaErr","");
+
+    if(exp){
+      if(!/^[0-9]{1,2}$/.test(exp)){
+        ok = false;
+        if(show) showErr("expErr","Experience must be a number (0–99).");
+      }else showErr("expErr","");
+    }else showErr("expErr","");
+
+    return ok;
+  }
+
+  function validateFile(docKey, file){
+    const rule = DOC_RULES[docKey];
+    if(!file) return { ok:false, reason:"No file selected." };
+
+    const ext = extOf(file.name);
+    if(!rule.exts.includes(ext)){
+      return { ok:false, reason:`Invalid file extension ".${ext || "?"}". Allowed: ${rule.exts.join(", ")}.` };
+    }
+    if(file.size > rule.maxBytes){
+      return { ok:false, reason:`File too large. Max ${formatBytes(rule.maxBytes)}.` };
     }
 
-    function canSendOtp(){
-      if(state.session?.loggedIn) return false;
-      if(!state.otpMeta) return true;
-
-      const t = nowMs();
-      const locked = (state.otpMeta.lockedUntil || 0) > t;
-      return !locked;
-    }
-
-    async function sendOtp(){
-      if(!validatePhoneUI()) return;
-
-      const phone = $("phoneInput").value.trim();
-      const city = $("citySelect").value || "Bangalore";
-
-      // If there is existing meta for different phone, reset
-      if(state.otpMeta && state.otpMeta.phone !== phone){
-        saveOtpMeta(null);
-      }
-
-      // If locked, stop
-      const t = nowMs();
-      if(state.otpMeta && (state.otpMeta.lockedUntil || 0) > t){
-        toast("Too many attempts. Please wait before retry.");
-        return;
-      }
-
-      const meta = {
-        phone,
-        city,
-        sentAt: t,
-        expiresAt: t + (DEMO.OTP_TTL_SEC * 1000),
-        resendAt: t + (DEMO.RESEND_COOLDOWN_SEC * 1000),
-        attempts: 0,
-        lockedUntil: 0
-      };
-
-      try{
-        if(state.apiMode){
-          await apiSendOtp({ phone, city });
-          toast("OTP sent ✅");
-        }else{
-          toast("OTP sent ✅ (demo OTP: 123456)");
-        }
-
-        saveOtpMeta(meta);
-        $("otpInput").focus();
-        startOtpTicker();
-      }catch(e){
-        toast("OTP send failed ❌ (API)");
+    // Best-effort MIME group check (not a security control)
+    const mime = String(file.type || "");
+    if(mime){
+      const allowed = rule.mimeGroup.some(prefix => prefix.endsWith("/") ? mime.startsWith(prefix) : (mime === prefix));
+      if(!allowed){
+        return { ok:false, reason:`Unexpected file type "${mime}". Please upload the correct format.` };
       }
     }
 
-    async function resendOtp(){
-      // For demo UX: put same behavior as sendOtp but respect resend cooldown
-      if(!state.otpMeta){
-        await sendOtp();
-        return;
-      }
-      const t = nowMs();
-      if((state.otpMeta.resendAt || 0) > t){
-        toast("Please wait to resend OTP.");
-        return;
-      }
+    return { ok:true, reason:"" };
+  }
 
-      // Resend resets TTL but keeps lock/attempts sane
-      state.otpMeta.sentAt = t;
-      state.otpMeta.expiresAt = t + (DEMO.OTP_TTL_SEC * 1000);
-      state.otpMeta.resendAt = t + (DEMO.RESEND_COOLDOWN_SEC * 1000);
-      state.otpMeta.attempts = 0;
-      state.otpMeta.lockedUntil = 0;
+  function setDocRow(docKey, statusMode, statusText, metaText){
+    const statusId = docKey + "Status";
+    const metaId = docKey + "Meta";
 
-      try{
-        if(state.apiMode){
-          await apiSendOtp({ phone: state.otpMeta.phone, city: state.otpMeta.city });
-          toast("OTP resent ✅");
-        }else{
-          toast("OTP resent ✅ (demo OTP: 123456)");
-        }
-      }catch(e){
-        toast("OTP resend failed ❌ (API)");
-      }
+    const s = $(statusId);
+    const m = $(metaId);
 
-      saveOtpMeta(state.otpMeta);
-      $("otpInput").focus();
+    s.className = "badge " + statusMode;
+    s.textContent = statusText;
+
+    m.textContent = metaText || "—";
+  }
+
+  function updateDocUI(docKey){
+    const input = $(docKey);
+    const file = (input && input.files && input.files[0]) ? input.files[0] : null;
+
+    // If KYC already submitted/verified, disable inputs (demo behavior)
+    if(STATE.kycStatus === "SUBMITTED" || STATE.kycStatus === "VERIFIED"){
+      input.disabled = true;
+      const label = (STATE.kycStatus === "VERIFIED") ? "Verified" : "Submitted";
+      setDocRow(docKey, STATE.kycStatus === "VERIFIED" ? "ok" : "warn", label, "—");
+      return;
+    }else{
+      input.disabled = false;
     }
 
-    async function verifyOtp(e){
-      e.preventDefault();
+    if(!file){
+      setDocRow(docKey, "warn", "Pending", "—");
+      return;
+    }
 
-      if(state.session?.loggedIn){
-        toast("Already logged in.");
-        return;
+    const v = validateFile(docKey, file);
+    if(!v.ok){
+      // Clear invalid selection
+      input.value = "";
+      setDocRow(docKey, "warn", "Pending", "—");
+      toast(`❌ ${docKey.toUpperCase()}: ${v.reason}`);
+      return;
+    }
+
+    setDocRow(docKey, "ok", "Ready", `${file.name} • ${formatBytes(file.size)}${file.type ? (" • " + file.type) : ""}`);
+  }
+
+  function updateAllDocs(){
+    Object.keys(DOC_RULES).forEach(updateDocUI);
+  }
+
+  function requiredDocsReadyCount(){
+    const required = Object.keys(DOC_RULES).filter(k => DOC_RULES[k].required);
+    let ready = 0;
+
+    required.forEach(k => {
+      const input = $(k);
+      const file = (input && input.files && input.files[0]) ? input.files[0] : null;
+      if(!file) return;
+      if(validateFile(k, file).ok) ready++;
+    });
+
+    return { ready, total: required.length };
+  }
+
+  function updateDocsProgress(){
+    if(!STATE.session?.loggedIn) return;
+
+    const { ready, total } = requiredDocsReadyCount();
+    $("docsCountBadge").textContent = `${ready} / ${total} required docs ready`;
+
+    const pct = total ? Math.round((ready / total) * 100) : 0;
+    $("barFill").style.width = pct + "%";
+
+    const fieldsOk = validateProfileFields(false);
+    const canSubmit =
+      STATE.session?.loggedIn &&
+      STATE.kycStatus === "NOT_SUBMITTED" &&
+      fieldsOk &&
+      (ready === total);
+
+    $("submitKycBtn").disabled = !canSubmit;
+
+    if(STATE.kycStatus === "SUBMITTED"){
+      $("progressHint").textContent = "KYC already submitted. Click Edit / Resubmit to change (demo).";
+    }else if(STATE.kycStatus === "VERIFIED"){
+      $("progressHint").textContent = "KYC verified (demo).";
+    }else{
+      $("progressHint").textContent = canSubmit ? "Ready to submit." : "Select required documents to enable submit.";
+    }
+  }
+
+  function reviewText(){
+    const phone = STATE.session?.phone ? maskPhone(STATE.session.phone) : "—";
+    const city = STATE.session?.city || $("citySelect").value || "Bangalore";
+
+    const name = $("fullName").value.trim() || "—";
+    const area = $("primaryArea").value.trim() || "—";
+    const exp = $("expYears").value.trim() || "—";
+    const comp = $("companyName").value.trim() || "—";
+    const notes = ($("notes").value || "").trim() || "—";
+
+    const req = requiredDocsReadyCount();
+    return [
+      `Phone: ${phone}`,
+      `City: ${city}`,
+      `Full Name: ${name}`,
+      `Primary Area: ${area}`,
+      `Experience Years: ${exp}`,
+      `Company: ${comp}`,
+      `Notes: ${notes}`,
+      `Required documents ready: ${req.ready}/${req.total}`
+    ].join("\n");
+  }
+
+  function renderReviewSummary(){
+    const el = $("reviewSummary");
+    // Safe rendering: textContent means any HTML-like strings are shown as text, not executed.
+    el.textContent = reviewText();
+  }
+
+  function openReviewModal(){
+    const body = document.createElement("div");
+    const pre = document.createElement("pre");
+    pre.className = "mono";
+    pre.style.whiteSpace = "pre-wrap";
+    pre.style.margin = "0";
+    pre.textContent = reviewText();
+    body.appendChild(pre);
+
+    openModal({
+      title: "Review submission (demo)",
+      bodyNode: body,
+      primaryText: "Close",
+      secondaryText: "Copy",
+      onPrimary: () => {},
+      onSecondary: async () => {
+        const ok = await copyToClipboard(reviewText());
+        toast(ok ? "Copied review ✅" : "Copy failed ❌");
       }
-      if(!validatePhoneUI()) return;
-      if(!state.otpMeta){
-        toast("Please send OTP first.");
-        return;
-      }
+    });
+  }
 
-      const phone = $("phoneInput").value.trim();
-      if(state.otpMeta.phone !== phone){
-        toast("Phone changed. Please send OTP again.");
-        saveOtpMeta(null);
-        return;
-      }
+  function submitKyc(){
+    if(!STATE.session?.loggedIn){
+      toast("Login required.");
+      return;
+    }
 
-      const t = nowMs();
-      if((state.otpMeta.lockedUntil || 0) > t){
-        showErr("otpErr", "Temporarily locked. Please wait and resend OTP.");
-        return;
-      }
+    updateAllDocs();
+    const fieldsOk = validateProfileFields(true);
+    updateDocsProgress();
+    renderReviewSummary();
 
-      if((state.otpMeta.expiresAt || 0) <= t){
-        showErr("otpErr", "OTP expired. Please resend OTP.");
-        return;
-      }
+    const req = requiredDocsReadyCount();
+    if(!fieldsOk){
+      toast("Fix form errors before submitting.");
+      return;
+    }
+    if(req.ready !== req.total){
+      toast("Upload required docs (Aadhaar + PAN + Selfie).");
+      return;
+    }
 
-      const otp = ($("otpInput").value || "").trim();
-      if(!/^[0-9]{4,6}$/.test(otp)){
-        showErr("otpErr", "Enter a valid OTP (4–6 digits).");
-        return;
-      }
-      showErr("otpErr", "");
+    // Confirmation modal + privacy reminder
+    const body = document.createElement("div");
+    body.textContent = "Submit KYC for admin verification? In production, ensure consent/notice and secure upload handling. (Demo submits locally.)";
 
-      try{
-        if(state.apiMode){
-          const res = await apiVerifyOtp({ phone, otp });
-          const sessionObj = {
-            loggedIn: true,
-            phone,
-            city: $("citySelect").value || "Bangalore",
-            brokerId: res.brokerId || ("brk-" + phone),
-            loginAt: new Date().toISOString()
-          };
-          setLoggedIn(true, sessionObj);
-          toast("Login success ✅ (API)");
-          return;
-        }
+    openModal({
+      title: "Confirm KYC submission",
+      bodyNode: body,
+      primaryText: "Submit",
+      secondaryText: "Cancel",
+      onPrimary: async () => {
+        // Save profile draft (fields-only) for convenience
+        saveDraft();
 
-        // Demo verify
-        if(otp !== DEMO.OTP){
-          state.otpMeta.attempts = (state.otpMeta.attempts || 0) + 1;
+        try{
+          if(STATE.apiMode){
+            // Unspecified: implement profile + file uploads on real backend
+            await apiPost("/brokers/onboard", {
+              brokerId: STATE.session.brokerId,
+              phone: STATE.session.phone,
+              city: STATE.session.city,
+              profile: {
+                full_name: $("fullName").value.trim(),
+                experience_years: $("expYears").value.trim(),
+                primary_area: $("primaryArea").value.trim(),
+                company_name: $("companyName").value.trim(),
+                notes: $("notes").value
+              }
+            });
 
-          if(state.otpMeta.attempts >= DEMO.MAX_ATTEMPTS){
-            state.otpMeta.lockedUntil = nowMs() + (DEMO.LOCK_SEC * 1000);
-            showErr("otpErr", "Too many attempts. Locked temporarily. Please resend OTP after lock ends.");
-            toast("Too many attempts ❌ Locked temporarily.");
-          }else{
-            showErr("otpErr", "Invalid OTP ❌ (demo: 123456)");
-            toast("Invalid OTP ❌");
+            // Upload endpoints are unspecified; files needing multipart/form-data.
+            // Keep as placeholder for production integration.
           }
 
-          saveOtpMeta(state.otpMeta);
-          return;
-        }
+          // Demo: mark submitted and lock inputs
+          const prev = STATE.kycStatus;
+          STATE.kycStatus = "SUBMITTED";
+          saveKycForPhone(STATE.session.phone, STATE.kycStatus);
 
-        // Success
-        const sessionObj = createDemoSession(phone, $("citySelect").value || "Bangalore");
-        setLoggedIn(true, sessionObj);
-        toast("Login success ✅");
-      }catch(err){
-        toast("Verify failed ❌");
-      }
-    }
-
-    function logout(){
-      // Keep drafts by default; only clear with Clear Local Demo
-      setLoggedIn(false);
-      toast("Logged out.");
-      setKycStatusUI();
-      updateDocsProgress();
-    }
-
-    // ====== KYC submit ======
-    async function submitKyc(e){
-      e.preventDefault();
-      if(!state.session?.loggedIn){
-        toast("Login required.");
-        return;
-      }
-
-      // Validate fields and required docs
-      const fieldsOk = validateProfileFields(true);
-      // Update doc UIs before checking
-      ["aadhaar","pan","license","selfie"].forEach(updateDocUI);
-      updateDocsProgress();
-
-      if(!fieldsOk){
-        toast("Please fix form errors.");
-        return;
-      }
-
-      if(!requiredDocsReady()){
-        toast("Upload required documents (Aadhaar + PAN + Selfie).");
-        return;
-      }
-
-      // Save draft fields
-      saveDraft();
-
-      // Demo submit
-      state.kycStatus = "SUBMITTED";
-      writeJSON(kycStatusKey(), state.kycStatus);
-
-      // After submit: disable file inputs
-      ["aadhaar","pan","license","selfie"].forEach(updateDocUI);
-
-      setKycStatusUI();
-      setSteps();
-      updateDocsProgress();
-
-      toast("Submitted ✅ Admin verification pending.");
-    }
-
-    function editResubmit(){
-      if(!state.session?.loggedIn) return;
-
-      // Allow editing again in demo
-      state.kycStatus = "NOT_SUBMITTED";
-      writeJSON(kycStatusKey(), state.kycStatus);
-
-      // Enable file inputs again; user must reselect files (browser rule)
-      ["aadhaar","pan","license","selfie"].forEach(k => {
-        $(k).disabled = false;
-        $(k).value = "";
-      });
-      ["aadhaar","pan","license","selfie"].forEach(updateDocUI);
-
-      setKycStatusUI();
-      setSteps();
-      updateDocsProgress();
-
-      toast("Edit mode enabled. Re-select documents to submit.");
-    }
-
-    // ====== Clear local demo ======
-    function clearLocal(){
-      if(!confirm("Clear local demo session + drafts?")) return;
-
-      // Clear generic
-      del(STORAGE.SESSION);
-      del(STORAGE.OTP_META);
-      del(STORAGE.API_MODE);
-
-      // Clear any drafts/status keys for common city usage (best-effort)
-      // We can't iterate all localStorage keys safely in some locked environments, so keep it simple:
-      // If currently logged in, clear for that phone.
-      if(state.session?.phone){
-        del(STORAGE.KYC_DRAFT_PREFIX + state.session.phone);
-        del(STORAGE.KYC_STATUS_PREFIX + state.session.phone);
-      }
-
-      // Reset UI state
-      state.session = null;
-      state.otpMeta = null;
-      state.kycStatus = "NOT_SUBMITTED";
-
-      // Reset inputs
-      $("phoneInput").value = "";
-      $("otpInput").value = "";
-      $("fullName").value = "";
-      $("expYears").value = "";
-      $("primaryArea").value = "";
-      $("companyName").value = "";
-      ["aadhaar","pan","license","selfie"].forEach(k => {
-        $(k).value = "";
-        $(k).disabled = false;
-      });
-
-      ["aadhaar","pan","license","selfie"].forEach(updateDocUI);
-
-      // Re-render
-      setApiMode(false);
-      setSessionUI();
-      setKycStatusUI();
-      setSteps();
-      setOtpUI();
-      updateDocsProgress();
-      toast("Local demo cleared.");
-    }
-
-    // ====== Init ======
-    function init(){
-      $("yr").textContent = new Date().getFullYear();
-
-      // Default footer city (matches your original Bangalore MVP)
-      $("cityFoot").textContent = "Bangalore";
-
-      // API mode restore
-      const apiModeSaved = readJSON(STORAGE.API_MODE, false);
-      setApiMode(!!apiModeSaved);
-
-      // Wire events
-      $("toggleApiBtn").addEventListener("click", () => setApiMode(!state.apiMode));
-      $("sendOtpBtn").addEventListener("click", async () => {
-        if(!canSendOtp()){
-          toast("Locked. Please wait.");
-          return;
-        }
-        await sendOtp();
-      });
-      $("resendBtn").addEventListener("click", resendOtp);
-      $("loginForm").addEventListener("submit", verifyOtp);
-      $("logoutBtn").addEventListener("click", logout);
-      $("logoutTopBtn").addEventListener("click", logout);
-      $("clearLocalBtn").addEventListener("click", clearLocal);
-
-      $("kycForm").addEventListener("submit", submitKyc);
-      $("editKycBtn").addEventListener("click", editResubmit);
-
-      // Phone input live validation
-      $("phoneInput").addEventListener("input", () => {
-        // Keep only digits
-        $("phoneInput").value = $("phoneInput").value.replace(/[^\d]/g,"").slice(0,10);
-        validatePhoneUI();
-      });
-
-      // Draft autosave (profile)
-      ["fullName","expYears","primaryArea","companyName"].forEach(id => {
-        $(id).addEventListener("input", () => {
-          validateProfileFields(false);
-          saveDraft();
+          setKycStatusUI();
+          updateAllDocs();
           updateDocsProgress();
+          setSteps();
+
+          toast("Submitted ✅ (undo available)", {
+            actionText: "Undo",
+            actionFn: () => {
+              STATE.kycStatus = "NOT_SUBMITTED";
+              saveKycForPhone(STATE.session.phone, STATE.kycStatus);
+              setKycStatusUI();
+              updateAllDocs();
+              updateDocsProgress();
+              setSteps();
+              toast("Undone ↩");
+            },
+            timeout: 6500
+          });
+        }catch(e){
+          toast("Submit failed ❌ (API)");
+        }
+      },
+      onSecondary: () => {}
+    });
+  }
+
+  function editResubmit(){
+    if(!STATE.session?.loggedIn) return;
+    if(!(STATE.kycStatus === "SUBMITTED" || STATE.kycStatus === "VERIFIED")) return;
+
+    const body = document.createElement("div");
+    body.textContent = "Enable editing and resubmission? You must re-select documents (browsers do not keep file inputs across states).";
+
+    openModal({
+      title: "Edit / Resubmit",
+      bodyNode: body,
+      primaryText: "Enable edit",
+      secondaryText: "Cancel",
+      onPrimary: () => {
+        STATE.kycStatus = "NOT_SUBMITTED";
+        saveKycForPhone(STATE.session.phone, STATE.kycStatus);
+
+        // Clear doc inputs for re-select
+        Object.keys(DOC_RULES).forEach(k => {
+          $(k).disabled = false;
+          $(k).value = "";
         });
-      });
 
-      // Doc input handlers
-      ["aadhaar","pan","license","selfie"].forEach((key) => {
-        $(key).addEventListener("change", () => {
-          updateDocUI(key);
-          updateDocsProgress();
-        });
-      });
+        setKycStatusUI();
+        updateAllDocs();
+        updateDocsProgress();
+        setSteps();
+        toast("Edit mode enabled ✅");
+      },
+      onSecondary: () => {}
+    });
+  }
 
-      // On load: restore session
-      const sess = readJSON(STORAGE.SESSION, null);
-      if(sess && sess.loggedIn && is10DigitPhone(sess.phone)){
-        state.session = sess;
+  // ====== Clear local demo data ======
+  function clearLocal(){
+    const body = document.createElement("div");
+    body.textContent = "This clears local session, OTP metadata, and any saved drafts for this browser. Continue?";
 
-        // Restore KYC status and draft
-        state.kycStatus = readJSON(STORAGE.KYC_STATUS_PREFIX + sess.phone, "NOT_SUBMITTED") || "NOT_SUBMITTED";
-        loadDraft();
+    openModal({
+      title: "Clear local demo data",
+      bodyNode: body,
+      primaryText: "Clear",
+      secondaryText: "Cancel",
+      onPrimary: () => {
+        // Remove known keys
+        delKey(KEYS.API_MODE);
+        delKey(KEYS.SESSION);
+        delKey(KEYS.OTP);
+
+        // Remove all KYC draft/status keys (prefix match)
+        const keysToRemove = [];
+        for(let i=0; i<localStorage.length; i++){
+          const k = localStorage.key(i);
+          if(!k) continue;
+          if(k.startsWith(KEYS.KYC_STATUS_PREFIX) || k.startsWith(KEYS.KYC_DRAFT_PREFIX)){
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(delKey);
+
+        // Reset in-memory state
+        STATE.apiMode = false;
+        STATE.session = null;
+        STATE.otp = null;
+        STATE.kycStatus = "NOT_SUBMITTED";
+
+        // Reset form values
+        $("phoneInput").value = "";
+        $("otpInput").value = "";
+        $("fullName").value = "";
+        $("expYears").value = "";
+        $("primaryArea").value = "";
+        $("companyName").value = "";
+        $("notes").value = "";
+        Object.keys(DOC_RULES).forEach(k => $(k).value = "");
+
+        // Re-render
+        $("cityFoot").textContent = $("citySelect").value || "Bangalore";
+        $("toggleApiBtnText").textContent = "🔌 API: OFF";
+        qs('[data-action="toggleApi"]').setAttribute("aria-pressed","false");
 
         setSessionUI();
         setKycStatusUI();
         setSteps();
+        renderOtpUI();
+        renderReviewSummary();
 
-        // Disable phone/city interactions since already logged in
-        $("phoneInput").value = sess.phone;
-        $("citySelect").value = sess.city || "Bangalore";
-      }else{
-        setLoggedIn(false);
-      }
+        toast("Local demo cleared ✅");
+      },
+      onSecondary: () => {}
+    });
+  }
 
-      // Restore OTP meta (if any)
-      const meta = loadOtpMeta();
-      if(meta && !state.session?.loggedIn){
-        state.otpMeta = meta;
-        setOtpUI();
-        startOtpTicker();
-      }else{
-        saveOtpMeta(null);
-      }
+  // ====== API mode toggle ======
+  function setApiMode(on){
+    STATE.apiMode = !!on;
+    writeJSON(KEYS.API_MODE, STATE.apiMode);
 
-      // Initial docs render
-      ["aadhaar","pan","license","selfie"].forEach(updateDocUI);
+    const btn = qs('[data-action="toggleApi"]');
+    btn.setAttribute("aria-pressed", STATE.apiMode ? "true" : "false");
+    btn.textContent = STATE.apiMode ? "🔌 API: ON" : "🔌 API: OFF";
+
+    toast(STATE.apiMode ? "API mode ON (stub calls)" : "API mode OFF (demo)");
+  }
+
+  function toggleApi(){ setApiMode(!STATE.apiMode); }
+
+  // ====== Action dispatcher (event delegation) ======
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-action]");
+    if(!a) return;
+
+    const act = a.getAttribute("data-action");
+    if(!act) return;
+
+    switch(act){
+      case "toggleApi": toggleApi(); break;
+      case "sendOtp": sendOtp(); break;
+      case "resendOtp": resendOtp(); break;
+      case "logout": logout(); break;
+      case "clearLocal": clearLocal(); break;
+      case "submitKyc": submitKyc(); break;
+      case "editResubmit": editResubmit(); break;
+      case "webOtp": webOtp(); break;
+      case "copyBrokerId":
+        if(STATE.session?.loggedIn){
+          copyToClipboard(STATE.session.brokerId)
+            .then(ok => toast(ok ? "Broker ID copied ✅" : "Copy failed ❌"));
+        }
+        break;
+      case "copyReview":
+        copyToClipboard(reviewText())
+          .then(ok => toast(ok ? "Copied review ✅" : "Copy failed ❌"));
+        break;
+      case "openReviewModal": openReviewModal(); break;
+      case "modalClose": closeModal(); break;
+      default: break;
+    }
+  });
+
+  // doc menu buttons (delegated)
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-doc-menu]");
+    if(!btn) return;
+    if($("modalBack").hidden === false) return;
+
+    const docKey = btn.getAttribute("data-doc-menu");
+    if(!docKey) return;
+
+    e.preventDefault();
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    if(expanded){
+      closeMenu();
+    }else{
+      openMenu(docKey, btn);
+    }
+  });
+
+  // ====== Input listeners ======
+  $("phoneInput").addEventListener("input", () => validatePhone(false));
+  $("citySelect").addEventListener("change", () => $("cityFoot").textContent = $("citySelect").value || "Bangalore");
+
+  $("loginForm").addEventListener("submit", verifyOtp);
+
+  ["fullName","expYears","primaryArea","companyName","notes"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      validateProfileFields(false);
+      saveDraft();
       updateDocsProgress();
+      renderReviewSummary();
+    });
+  });
+
+  Object.keys(DOC_RULES).forEach(docKey => {
+    $(docKey).addEventListener("change", () => {
+      updateDocUI(docKey);
+      updateDocsProgress();
+      renderReviewSummary();
+    });
+  });
+
+  // ====== Init ======
+  function init(){
+    $("yr").textContent = new Date().getFullYear();
+
+    // Restore API mode
+    const apiMode = readJSON(KEYS.API_MODE, false);
+    setApiMode(!!apiMode);
+
+    // Restore session
+    const sess = readJSON(KEYS.SESSION, null);
+    if(sess && sess.loggedIn && isTenDigits(sess.phone)){
+      STATE.session = sess;
+      STATE.kycStatus = loadKycForPhone(sess.phone);
+      setKycStatusUI();
+      setSessionUI();
+      setSteps();
+      loadDraft(sess.phone);
+    }else{
+      setSessionUI();
+      setKycStatusUI();
+      setSteps();
     }
 
-    init();
-  </script>
+    // Restore OTP meta only if not logged in
+    if(!STATE.session?.loggedIn){
+      const otp = readJSON(KEYS.OTP, null);
+      if(otp && otp.phone && otp.expiresAtMs){
+        STATE.otp = otp;
+      }
+      renderOtpUI();
+      startOtpTicker();
+    }else{
+      saveOtp(null);
+    }
+
+    // KYC initial
+    updateAllDocs();
+    updateDocsProgress();
+    renderReviewSummary();
+  }
+
+  init();
+})();
+</script>
 </body>
 </html>
+

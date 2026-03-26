@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI — Today Follow-ups</title>
+  <style>
+    :root{ --bg:#0b1220; --card:#121b2f; --line:rgba(255,255,255,.10);
+      --txt:#e8eefc; --pill:rgba(255,255,255,.08); }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--txt)}
+    a, button{outline:none;}
+    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;}
+    .skip-link:focus{position:static;width:auto;height:auto;background:var(--pill);color:#000;padding:8px;}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .card{background:var(--card);border:1px solid var(--line);
+      border-radius:16px;padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .h1{font-size:24px;font-weight:900}
+    .muted{opacity:.75}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    a.link{color:var(--txt);text-decoration:none;padding:8px 12px;
+      border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+    button{padding:9px 12px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.06);color:var(--txt);cursor:pointer;font-weight:700}
+    button:hover{background:rgba(255,255,255,.10)}
+    .ok{border-color:rgba(0,255,150,.25);background:rgba(0,255,150,.10)}
+    .warn{border-color:rgba(255,200,0,.25);background:rgba(255,200,0,.10)}
+    .danger{border-color:rgba(255,0,90,.25);background:rgba(255,0,90,.10)}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;
+      background:var(--pill);border:1px solid var(--line)}
+    .mini{font-size:12px;opacity:.75}
+    .title{font-weight:900}
+    .nowrap{white-space:nowrap}
+    input, select, textarea{
+      width:100%;padding:10px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);background:#0b1220;color:var(--txt);
+      outline:none;
+    }
+    textarea{resize:vertical}
+    .bar{display:grid;grid-template-columns: 1.2fr .8fr .8fr .8fr .7fr;gap:10px;margin-top:12px;}
+    @media (max-width:1100px){ .bar{grid-template-columns:1fr 1fr;} }
+    @media (max-width:560px){ .bar{grid-template-columns:1fr;} }
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
+    thead th{opacity:.85;text-align:left;border-bottom:1px solid rgba(255,255,255,.12)}
+    .overdueRow{background:linear-gradient(90deg, rgba(255,0,90,.10), transparent 45%);
+      outline:1px solid rgba(255,0,90,.18);outline-offset:-1px;}
+    .toast{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(0,255,150,.22);background:rgba(0,255,150,.10)}
+    :focus{outline:2px solid var(--pill); outline-offset:2px;}
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="wrap" id="main-content">
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="h1">MEI — Today Follow-ups</div>
+          <div class="muted">Today + Overdue leads only (broker execution)</div>
+        </div>
+        <div class="row">
+          <a class="link" href="dashboard.html">🏠 Dashboard</a>
+          <button type="button" id="refreshBtn">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div id="toast" class="toast" role="status">✅ Updated</div>
+
+      <div class="bar">
+        <input id="q" placeholder="Search buyer / listing / phone / notes..." autocomplete="off">
+
+        <select id="brokerFilter" aria-label="Filter by broker"></select>
+
+        <select id="scope" aria-label="Filter scope">
+          <option value="TODAY_OVERDUE">Today + Overdue</option>
+          <option value="TODAY_ONLY">Today only</option>
+          <option value="OVERDUE_ONLY">Overdue only</option>
+        </select>
+
+        <select id="status" aria-label="Filter status">
+          <option value="ACTIVE">Active (not closed/archived)</option>
+          <option value="ALL">All</option>
+        </select>
+
+        <button class="ok" id="markAllBtn">✅ Mark All Done (tomorrow)</button>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <span class="pill">Showing: <b id="count">0</b></span>
+        <span class="pill">Overdue: <b id="odCount">0</b></span>
+        <span class="pill">Today: <b id="todayCount">0</b></span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div style="overflow:auto;">
+        <table>
+          <caption class="visually-hidden">Leads needing follow-up</caption>
+          <thead>
+            <tr>
+              <th class="nowrap">Follow-up</th>
+              <th>Listing</th>
+              <th>Buyer</th>
+              <th class="nowrap">Phone</th>
+              <th class="nowrap">Assigned</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th class="nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LEADS_KEY="mei_leads_v1", BROKERS_KEY="mei_brokers_v1", WA_TEMPLATE_KEY="mei_whatsapp_template_v1";
+    const $=id=>document.getElementById(id);
+    const toast=(msg="✅ Updated")=>{ const el=$("toast"); el.textContent=msg; el.style.display="block"; clearTimeout(el._timeout); el._timeout=setTimeout(()=>el.style.display="none",1100); };
+
+    function escapeHtml(str){
+      return String(str||"").replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[s]));
+    }
+    function todayYMD(){ const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+    function addDays(days){ const d=new Date(); d.setDate(d.getDate()+days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+    function getLeads(){ return JSON.parse(localStorage.getItem(LEADS_KEY) || "[]"); }
+    function getBrokers(){ return JSON.parse(localStorage.getItem(BROKERS_KEY) || "[]"); }
+
+    function migrate(l){
+      l.notes = l.notes||"";
+      l.followUp = l.followUp||"";
+      l.status = l.status||"NEW";
+      l.assignedTo = l.assignedTo||"";
+      return l;
+    }
+
+    function syncBrokerFilter(){
+      const bf=$("brokerFilter");
+      const current = bf.value;
+      bf.innerHTML = `
+        <option value="ALL">All Brokers</option>
+        <option value="__UNASSIGNED__">Unassigned</option>
+        ${getBrokers().map(b=>`<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join("")}`;
+      bf.value = current || "ALL";
+    }
+
+    function isOverdue(l){
+      const s=(l.status||"").toUpperCase();
+      if(["CLOSED","ARCHIVED"].includes(s)) return false;
+      return l.followUp && l.followUp < todayYMD();
+    }
+    function isToday(l){
+      const s=(l.status||"").toUpperCase();
+      if(["CLOSED","ARCHIVED"].includes(s)) return false;
+      return (l.followUp||"") === todayYMD();
+    }
+    function badge(status){ const s=(status||"NEW").toUpperCase(); return `<span class="pill">${escapeHtml(s)}</span>`; }
+
+    function markDone(id){
+      const leads = getLeads().map(migrate);
+      const idx=leads.findIndex(x=>x.id===id);
+      if(idx>=0){
+        leads[idx].followUp = addDays(1);
+        const now=new Date();
+        const note = `[${now.toLocaleString()}] Done → moved to tomorrow`;
+        leads[idx].notes += (leads[idx].notes?"\n":"") + note;
+        saveLeads(leads);
+        toast("✅ Done → Tomorrow");
+        refresh();
+      }
+    }
+
+    function snooze(id, days){
+      const leads=getLeads().map(migrate);
+      const idx=leads.findIndex(x=>x.id===id);
+      if(idx>=0){
+        const newDate=addDays(days);
+        leads[idx].followUp=newDate;
+        const now=new Date();
+        const note=`[${now.toLocaleString()}] Snoozed +${days} days → ${newDate}`;
+        leads[idx].notes += (leads[idx].notes?"\n":"") + note;
+        saveLeads(leads);
+        toast(`⏰ Snoozed to ${newDate}`);
+        refresh();
+      }
+    }
+
+    function openWA(id){
+      const leads=getLeads().map(migrate);
+      const l=leads.find(x=>x.id===id);
+      if(!l || !l.buyerPhone){ alert("No phone"); return; }
+      const tpl = localStorage.getItem(WA_TEMPLATE_KEY) || `Hello {buyer},\n\nThanks... - MEI`;
+      const msg = tpl.replace("{buyer}", l.buyerName).replace("{listing}", l.listingTitle).replace("{phone}", l.buyerPhone);
+      const phone = l.buyerPhone.replace(/\D/g,"");
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+      toast("💬 WhatsApp opened");
+    }
+
+    function copyMsg(id){
+      const leads=getLeads().map(migrate);
+      const l=leads.find(x=>x.id===id);
+      if(!l) return;
+      const tpl = localStorage.getItem(WA_TEMPLATE_KEY) || `Hello {buyer},\n\nThanks... - MEI`;
+      const msg = tpl.replace("{buyer}", l.buyerName).replace("{listing}", l.listingTitle).replace("{phone}", l.buyerPhone);
+      navigator.clipboard.writeText(msg).then(()=>{
+        toast("📋 Copied");
+      }).catch(()=>alert("Copy failed"));
+    }
+
+    function markAllDone(){
+      if(!confirm("Mark all shown leads done (move to tomorrow)?")) return;
+      const leadRows=document.querySelectorAll("tbody tr[data-lead-id]");
+      const ids=Array.from(leadRows).map(r=>r.getAttribute("data-lead-id"));
+      if(ids.length===0){ alert("No leads"); return; }
+      const leads=getLeads().map(migrate);
+      const now=new Date().toLocaleString();
+      ids.forEach(id=>{
+        const idx=leads.findIndex(x=>x.id===id);
+        if(idx>=0){
+          leads[idx].followUp=addDays(1);
+          leads[idx].notes += `\n[${now}] Bulk done → tomorrow`;
+        }
+      });
+      saveLeads(leads);
+      toast("✅ Bulk done");
+      refresh();
+    }
+
+    function getWATemplate(){
+      return localStorage.getItem(WA_TEMPLATE_KEY) || defaultWATemplate();
+    }
+    function defaultWATemplate(){
+      return `Hello {buyer},\n\nThanks for your interest in "{listing}".\nThis is MEI Realty. Please share your preferred time.\n\n- MEI`;
+    }
+
+    function refresh(){
+      syncBrokerFilter();
+      const all = getLeads().map(migrate);
+      saveLeads(all);
+
+      const q = ($("q").value||"").toLowerCase().trim();
+      const scope = $("scope").value;
+      const status = $("status").value;
+      const brokerF = $("brokerFilter").value;
+
+      const scopeFilter = l => {
+        if(scope==="TODAY_ONLY") return isToday(l);
+        if(scope==="OVERDUE_ONLY") return isOverdue(l);
+        return isToday(l)||isOverdue(l);
+      };
+      const statusFilter = l => (status==="ALL") || !["CLOSED","ARCHIVED"].includes((l.status||"").toUpperCase());
+      const brokerFilter = l => {
+        if(brokerF==="ALL") return true;
+        if(brokerF==="__UNASSIGNED__") return !(l.assignedTo||"");
+        return l.assignedTo===brokerF;
+      };
+      const searchFilter = l => {
+        if(!q) return true;
+        const hay = `${l.listingTitle} ${l.listingId} ${l.buyerName} ${l.buyerPhone} ${l.notes}`.toLowerCase();
+        return hay.includes(q);
+      };
+
+      let list = all.filter(scopeFilter).filter(statusFilter).filter(brokerFilter).filter(searchFilter);
+
+      list.sort((a,b)=>{
+        const ao=isOverdue(a)?0:1, bo=isOverdue(b)?0:1;
+        if(ao!==bo) return ao-bo;
+        const ad=a.followUp||"9999-99-99", bd=b.followUp||"9999-99-99";
+        return ad.localeCompare(bd);
+      });
+
+      $("count").textContent = list.length;
+      $("odCount").textContent = list.filter(isOverdue).length;
+      $("todayCount").textContent = list.filter(isToday).length;
+
+      const tbody = $("body");
+      if(list.length===0){
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:14px;opacity:.75;">No follow-ups for this filter.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(l=>{
+        const overdueClass = isOverdue(l)?"overdueRow":"";
+        const notes = escapeHtml(l.notes || "").replace(/\n/g,"<br>");
+        const fu = l.followUp || "—";
+        return `
+          <tr class="${overdueClass}" data-lead-id="${escapeHtml(l.id)}">
+            <td class="nowrap"><div class="title">${fu}</div>${isOverdue(l)?'<div class="mini">⚠ OVERDUE</div>':'<div class="mini">Today</div>'}</td>
+            <td><div class="title">${escapeHtml(l.listingTitle)}</div><div class="mini">ID: ${escapeHtml(l.listingId)}</div></td>
+            <td>${escapeHtml(l.buyerName)}</td>
+            <td class="nowrap">${escapeHtml(l.buyerPhone)}</td>
+            <td class="nowrap">${renderAssignSelect(l)}</td>
+            <td>${badge(l.status)}</td>
+            <td style="max-width:300px;white-space:pre-wrap;">${notes||"—"}</td>
+            <td class="nowrap">
+              <div class="row">
+                <a class="link" href="tel:${encodeURIComponent(l.buyerPhone)}">📞 Call</a>
+                <button class="warn" onclick="markDone('${escapeHtml(l.id)}')">✅ Done</button>
+                <button onclick="snooze('${escapeHtml(l.id)}',2)">⏰ +2d</button>
+                <button onclick="snooze('${escapeHtml(l.id)}',7)">🗓️ +7d</button>
+                <button onclick="openWA('${escapeHtml(l.id)}')">💬 WhatsApp</button>
+                <button class="ok" onclick="copyMsg('${escapeHtml(l.id)}')">📋 Copy</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderAssignSelect(l){
+      const brokers = getBrokers();
+      const current = l.assignedTo || "";
+      const opts = brokers.map(b=>`<option value="${escapeHtml(b)}"${current===b?' selected':''}>${escapeHtml(b)}</option>`).join("");
+      return `<select onchange="setAssigned('${escapeHtml(l.id)}', this.value)"><option value="">Unassigned</option>${opts}</select>`;
+    }
+    function setAssigned(id, broker){
+      const leads=getLeads().map(migrate);
+      const idx=leads.findIndex(x=>x.id===id);
+      if(idx>=0){ leads[idx].assignedTo = broker; saveLeads(leads); toast("👤 Assigned"); refresh(); }
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      syncBrokerFilter();
+      $("refreshBtn").addEventListener("click", refresh);
+      $("markAllBtn").addEventListener("click", markAllDone);
+      refresh();
+    });
+  </script>
+</body>
+</html>
