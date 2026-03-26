@@ -1,192 +1,124 @@
 (() => {
+  "use strict";
+
   const $ = (id) => document.getElementById(id);
 
-  function cleanDigits(value) {
-    return String(value || "").replace(/[^\d]/g, "");
+  function setMessage(message, type = "") {
+    const msg = $("msg");
+    if (!msg) return;
+    msg.textContent = message || "";
+    msg.classList.remove("success", "error");
+    if (type) msg.classList.add(type);
   }
 
-  function isEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-  }
-
-  function isPhone(value) {
-    const digits = cleanDigits(value);
-    return digits.length === 10 || (digits.length === 12 && digits.startsWith("91"));
-  }
-
-  function normalizeIdentity(value) {
-    const raw = String(value || "").trim();
-    if (isEmail(raw)) return raw.toLowerCase();
-    if (isPhone(raw)) return cleanDigits(raw);
-    return raw;
-  }
-
-  function showError(msg) {
-    $("loginErr").textContent = msg;
-    $("loginErr").hidden = false;
-    $("loginOk").hidden = true;
-  }
-
-  function showSuccess(msg) {
-    $("loginOk").textContent = msg;
-    $("loginOk").hidden = false;
-    $("loginErr").hidden = true;
-  }
-
-  function clearMessages() {
-    $("loginErr").hidden = true;
-    $("loginOk").hidden = true;
-    $("loginErr").textContent = "";
-    $("loginOk").textContent = "";
-  }
-
-  function getUsersSafe() {
-    if (typeof window.getUsers === "function") {
-      return window.getUsers();
-    }
-    return [];
-  }
-
-  function saveSessionSafe(session) {
-    if (typeof window.saveSession === "function") {
-      return window.saveSession(session);
-    }
-    localStorage.setItem("mei_session_v1", JSON.stringify(session));
-    return true;
-  }
-
-  function findMatchingUser(identity, password) {
-    const users = getUsersSafe();
-    const normIdentity = normalizeIdentity(identity);
-    const normPassword = String(password || "").trim();
-
-    return users.find((user) => {
-      const email = String(user.email || "").trim().toLowerCase();
-      const phone = cleanDigits(user.phone || "");
-      const pass = String(user.password || "").trim();
-
-      const identityMatch =
-        (email && normIdentity === email) ||
-        (phone && normIdentity === phone);
-
-      return identityMatch && pass === normPassword;
-    }) || null;
-  }
-
-  function buildSession(user) {
-    return {
-      id: user.id,
-      name: user.name || user.fullName || user.username || "User",
-      fullName: user.fullName || user.name || "",
-      username: user.username || user.name || "",
-      email: user.email || "",
-      phone: user.phone || "",
-      role: user.role || "BROKER",
-      company: user.company || "",
-      city: user.city || "",
-      area: user.area || "",
-      loginAt: new Date().toISOString()
-    };
-  }
-
-  function fillDemo(identity, password) {
-    $("identity").value = identity;
-    $("password").value = password;
-    $("identity").focus();
-  }
-
-  function clearForm() {
-    $("loginForm").reset();
-    clearMessages();
-    $("identity").focus();
-  }
-
-  function togglePassword() {
+  function togglePasswordVisibility() {
     const input = $("password");
     const btn = $("togglePassword");
+    if (!input || !btn) return;
 
-    if (input.type === "password") {
-      input.type = "text";
-      btn.textContent = "Hide";
-    } else {
-      input.type = "password";
-      btn.textContent = "Show";
-    }
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+    btn.textContent = isPassword ? "🙈" : "👁";
+    btn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
   }
 
-  function handleLogin(e) {
-    e.preventDefault();
-    clearMessages();
+  function fillAdminDemo() {
+    $("email").value = "admin@mei.com";
+    $("password").value = "admin123";
+    setMessage("Demo admin credentials filled.", "success");
+  }
 
-    const identity = $("identity").value.trim();
-    const password = $("password").value.trim();
-    const rememberMe = $("rememberMe").checked;
-
-    if (!identity) {
-      showError("Email or phone is required.");
-      $("identity").focus();
-      return;
+  function validateForm(email, password) {
+    if (!email) {
+      return { ok: false, message: "Email is required." };
     }
-
     if (!password) {
-      showError("Password is required.");
-      $("password").focus();
+      return { ok: false, message: "Password is required." };
+    }
+    return { ok: true };
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const email = ($("email")?.value || "").trim();
+    const password = $("password")?.value || "";
+    const loginBtn = $("loginBtn");
+
+    const valid = validateForm(email, password);
+    if (!valid.ok) {
+      setMessage(valid.message, "error");
       return;
     }
 
-    const matchedUser = findMatchingUser(identity, password);
+    if (loginBtn) loginBtn.disabled = true;
+    setMessage("Logging in...", "success");
 
-    if (!matchedUser) {
-      showError("Invalid login. Check email/phone and password.");
-      return;
-    }
+    try {
+      const result = loginUser(email, password);
 
-    if (String(matchedUser.status || "").toLowerCase() !== "active") {
-      showError("This account is not active.");
-      return;
-    }
+      if (!result || !result.ok) {
+        setMessage(result?.message || "Login failed.", "error");
+        if (loginBtn) loginBtn.disabled = false;
+        return;
+      }
 
-    const session = buildSession(matchedUser);
-    saveSessionSafe(session);
+      setMessage("Login successful. Redirecting...", "success");
 
-    if (rememberMe) {
-      localStorage.setItem("mei_login_remember_identity_v1", normalizeIdentity(identity));
-    } else {
-      localStorage.removeItem("mei_login_remember_identity_v1");
-    }
+      const role = result.user?.role || "buyer";
 
-    showSuccess(`Login successful • Role: ${session.role}`);
+      setTimeout(() => {
+        if (typeof redirectByRole === "function") {
+          redirectByRole(role);
+        } else {
+          if (role === "admin") window.location.href = "dashboard.html";
+          else if (role === "buyer") window.location.href = "buyer.html";
+          else if (role === "seller") window.location.href = "seller-dashboard.html";
+          else if (role === "broker") window.location.href = "broker-dashboard.html";
+          else window.location.href = "index.html";
+        }
+      }, 500);
 
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 700);
-  }
-
-  function loadRememberedIdentity() {
-    const remembered = localStorage.getItem("mei_login_remember_identity_v1") || "";
-    if (remembered) {
-      $("identity").value = remembered;
-      $("rememberMe").checked = true;
-    }
-  }
-
-  function seedIfNeeded() {
-    if (typeof window.seedData === "function") {
-      window.seedData();
+    } catch (err) {
+      console.error("Login submit error:", err);
+      setMessage("Something went wrong. Please try again.", "error");
+      if (loginBtn) loginBtn.disabled = false;
     }
   }
 
-  $("loginForm").addEventListener("submit", handleLogin);
-  $("togglePassword").addEventListener("click", togglePassword);
-  $("clearForm").addEventListener("click", clearForm);
+  function redirectIfAlreadyLoggedIn() {
+    try {
+      const user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+      if (!user) return;
 
-  $("fillAdmin").addEventListener("click", () => {
-    fillDemo("admin@meiestate.com", "1234");
-  });
+      if (typeof redirectByRole === "function") {
+        redirectByRole(user.role);
+        return;
+      }
 
-  $("identity").addEventListener("input", clearMessages);
-  $("password").addEventListener("input", clearMessages);
+      const role = user.role || "buyer";
+      if (role === "admin") window.location.href = "dashboard.html";
+      else if (role === "buyer") window.location.href = "buyer.html";
+      else if (role === "seller") window.location.href = "seller-dashboard.html";
+      else if (role === "broker") window.location.href = "broker-dashboard.html";
+      else window.location.href = "index.html";
+    } catch (err) {
+      console.error("redirectIfAlreadyLoggedIn error:", err);
+    }
+  }
 
-  seedIfNeeded();
-  loadRememberedIdentity();
+  function init() {
+    redirectIfAlreadyLoggedIn();
+
+    const form = $("loginForm");
+    const toggleBtn = $("togglePassword");
+    const fillAdminBtn = $("fillAdminBtn");
+
+    if (form) form.addEventListener("submit", handleSubmit);
+    if (toggleBtn) toggleBtn.addEventListener("click", togglePasswordVisibility);
+    if (fillAdminBtn) fillAdminBtn.addEventListener("click", fillAdminDemo);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 })();
+

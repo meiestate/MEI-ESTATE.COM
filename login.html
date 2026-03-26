@@ -2,114 +2,82 @@
 <html lang="ta">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#0b0f17" />
-  <title>MEI Estate — Login</title>
-  <meta name="description" content="Login to MEI Estate dashboard, CRM, listings and broker tools." />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Login</title>
   <link rel="stylesheet" href="login.css" />
 </head>
 <body>
-  <main class="page">
-    <section class="loginWrap">
-      <div class="brandCard">
-        <div class="logo" aria-hidden="true"></div>
-        <div class="brandText">
-          <h1>MEI Estate</h1>
-          <p>Login to access dashboard, CRM, listings, broker tools and your private workspace.</p>
-        </div>
+  <main class="authPage">
+    <section class="authShell">
+      <div class="brandSide">
+        <div class="brandBadge">⚡ MEI Estate SaaS</div>
+        <h1>Welcome back</h1>
+        <p>
+          Real estate workflow-ஐ smart-a handle பண்ண,  
+          admin workspace, buyer flow, broker coordination — எல்லாம் ஒரே roof கீழ்.
+        </p>
 
-        <div class="infoGrid">
-          <div class="infoItem">
-            <div class="infoTitle">Admin Demo</div>
-            <div class="infoText">admin@meiestate.com</div>
-            <div class="infoText">Password: 1234</div>
-          </div>
-          <div class="infoItem">
-            <div class="infoTitle">Broker Demo</div>
-            <div class="infoText">broker@meiestate.com</div>
-            <div class="infoText">Password: 1234</div>
-          </div>
-          <div class="infoItem">
-            <div class="infoTitle">Seller Demo</div>
-            <div class="infoText">seller@meiestate.com</div>
-            <div class="infoText">Password: 1234</div>
-          </div>
-        </div>
-
-        <div class="backLinks">
-          <a href="index.html" class="ghostLink">← Back to Home</a>
-          <a href="register.html" class="ghostLink">Create account</a>
+        <div class="featureList">
+          <div class="featureItem">✅ Admin dashboard access</div>
+          <div class="featureItem">✅ Role-based login redirect</div>
+          <div class="featureItem">✅ Leads + approvals + CRM flow</div>
         </div>
       </div>
 
-      <div class="formCard">
-        <div class="formTop">
-          <div class="pill">Secure Access</div>
-          <h2>Sign in</h2>
-          <p>Use your email or mobile number and password.</p>
-        </div>
-
-        <form id="loginForm" novalidate>
-          <div class="field">
-            <label for="identity">Email or Phone *</label>
-            <input
-              id="identity"
-              type="text"
-              autocomplete="username"
-              placeholder="admin@meiestate.com or 9999999999"
-              maxlength="80"
-              required
-            />
+      <div class="formSide">
+        <div class="card">
+          <div class="topBlock">
+            <div class="miniBadge">Login</div>
+            <h2>Sign in to MEI</h2>
+            <p class="muted">உங்கள் account மூலம் login செய்யுங்கள்.</p>
           </div>
 
-          <div class="field">
-            <label for="password">Password *</label>
-            <div class="passwordRow">
-              <input
-                id="password"
-                type="password"
-                autocomplete="current-password"
-                placeholder="Enter password"
-                maxlength="40"
-                required
-              />
-              <button type="button" class="toggleBtn" id="togglePassword">Show</button>
+          <div class="demoBox">
+            <div class="demoTitle">Default Admin</div>
+            <div class="demoRow"><span>Email:</span> <b>admin@mei.com</b></div>
+            <div class="demoRow"><span>Password:</span> <b>admin123</b></div>
+            <button type="button" id="fillAdminBtn" class="ghostBtn">Use Admin Demo</button>
+          </div>
+
+          <form id="loginForm" novalidate>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required />
             </div>
+
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="passwordWrap">
+                <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
+                <button type="button" id="togglePassword" class="toggleBtn" aria-label="Show password">👁</button>
+              </div>
+            </div>
+
+            <div class="formMeta">
+              <label class="checkRow">
+                <input type="checkbox" id="rememberMe" />
+                <span>Remember me</span>
+              </label>
+
+              <a href="register.html" class="textLink">Create account</a>
+            </div>
+
+            <button type="submit" class="primaryBtn" id="loginBtn">Login</button>
+
+            <div id="msg" data-auth-message class="msg" aria-live="polite"></div>
+          </form>
+
+          <div class="bottomNote">
+            New here?
+            <a href="register.html">Register your account</a>
           </div>
-
-          <div class="row">
-            <label class="checkLabel">
-              <input id="rememberMe" type="checkbox" />
-              <span>Remember me</span>
-            </label>
-
-            <a class="miniLink" href="register.html">Need an account?</a>
-          </div>
-
-          <div id="loginErr" class="err" hidden></div>
-          <div id="loginOk" class="ok" hidden></div>
-
-          <div class="actions">
-            <button class="btn primary" type="submit">Login</button>
-            <button class="btn" type="button" id="fillAdmin">Use Admin Demo</button>
-            <button class="btn" type="button" id="clearForm">Clear</button>
-          </div>
-        </form>
-
-        <div class="tipsCard">
-          <div class="tipsTitle">What happens after login?</div>
-          <ul>
-            <li>Session will be saved in your browser.</li>
-            <li>Homepage will switch from public nav to private nav.</li>
-            <li>Role-based menu will be shown automatically.</li>
-          </ul>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="auth.js"></script>
   <script src="login.js"></script>
 </body>
 </html>
+

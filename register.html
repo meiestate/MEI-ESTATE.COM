@@ -1,146 +1,99 @@
-<!doctype html>
+ <!doctype html>
 <html lang="ta">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#0b0f17" />
-  <title>MEI Estate — Register</title>
-  <meta name="description" content="Create your MEI Estate account." />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Register</title>
   <link rel="stylesheet" href="register.css" />
 </head>
 <body>
-  <main class="page">
-    <section class="registerWrap">
-      <div class="brandCard">
-        <div class="logo" aria-hidden="true"></div>
-        <div class="brandText">
-          <h1>MEI Estate</h1>
-          <p>Create your account and step into the private workspace — dashboard, listings, CRM flow and broker tools.</p>
-        </div>
+  <main class="authPage">
+    <section class="authShell">
+      <div class="brandSide">
+        <div class="brandBadge">🚀 MEI Estate SaaS</div>
+        <h1>Create your account</h1>
+        <p>
+          ஒரு நல்ல platform ஒரு நல்ல door மாதிரி.  
+          சரியான login-ல் தான் சரியான workspace திறக்கும்.
+        </p>
 
-        <div class="benefitGrid">
-          <div class="benefitItem">
-            <div class="benefitTitle">Broker</div>
-            <div class="benefitText">Manage listings, explore network and handle leads.</div>
-          </div>
-          <div class="benefitItem">
-            <div class="benefitTitle">Seller</div>
-            <div class="benefitText">Add property details and track your posting journey.</div>
-          </div>
-          <div class="benefitItem">
-            <div class="benefitTitle">Admin</div>
-            <div class="benefitText">Reserved for platform control and approvals.</div>
-          </div>
-        </div>
-
-        <div class="backLinks">
-          <a href="index.html" class="ghostLink">← Back to Home</a>
-          <a href="login.html" class="ghostLink">Already have an account?</a>
+        <div class="featureList">
+          <div class="featureItem">✅ Admin / Buyer / Seller / Broker roles</div>
+          <div class="featureItem">✅ Role-based dashboard redirect</div>
+          <div class="featureItem">✅ Clean local auth workflow</div>
         </div>
       </div>
 
-      <div class="formCard">
-        <div class="formTop">
-          <div class="pill">New Account</div>
-          <h2>Register</h2>
-          <p>Create a new account using your real details.</p>
-        </div>
+      <div class="formSide">
+        <div class="card">
+          <div class="topBlock">
+            <div class="miniBadge">Register</div>
+            <h2>Create MEI account</h2>
+            <p class="muted">உங்கள் பெயர், email, password கொடுத்து account create செய்யுங்கள்.</p>
+          </div>
 
-        <form id="registerForm" novalidate>
-          <div class="row2">
+          <form id="registerForm" novalidate>
             <div class="field">
-              <label for="fullName">Full Name *</label>
-              <input id="fullName" type="text" maxlength="60" placeholder="Your full name" required />
+              <label for="name">Full Name</label>
+              <input id="name" name="name" type="text" placeholder="Enter your full name" autocomplete="name" required />
             </div>
 
             <div class="field">
-              <label for="role">Role *</label>
-              <select id="role" required>
-                <option value="BROKER">Broker</option>
-                <option value="SELLER">Seller</option>
-                <option value="ADMIN">Admin</option>
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required />
+            </div>
+
+            <div class="field">
+              <label for="role">Role</label>
+              <select id="role" name="role">
+                <option value="buyer">Buyer</option>
+                <option value="seller">Seller</option>
+                <option value="broker">Broker</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
-          </div>
-
-          <div class="row2">
-            <div class="field">
-              <label for="email">Email *</label>
-              <input id="email" type="email" maxlength="80" placeholder="name@example.com" required />
-            </div>
 
             <div class="field">
-              <label for="phone">Phone *</label>
-              <input id="phone" type="tel" inputmode="numeric" maxlength="16" placeholder="10-digit mobile or 91XXXXXXXXXX" required />
-            </div>
-          </div>
-
-          <div class="row2">
-            <div class="field">
-              <label for="city">City *</label>
-              <input id="city" type="text" maxlength="50" placeholder="Bangalore" required />
-            </div>
-
-            <div class="field">
-              <label for="area">Area / Locality</label>
-              <input id="area" type="text" maxlength="80" placeholder="Whitefield / Sarjapur / Hoodi" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="company">Company / Office</label>
-            <input id="company" type="text" maxlength="80" placeholder="Office or company name" />
-          </div>
-
-          <div class="row2">
-            <div class="field">
-              <label for="password">Password *</label>
-              <div class="passwordRow">
-                <input id="password" type="password" maxlength="40" placeholder="Minimum 4 characters" required />
-                <button type="button" class="toggleBtn" id="togglePassword">Show</button>
+              <label for="password">Password</label>
+              <div class="passwordWrap">
+                <input id="password" name="password" type="password" placeholder="Create password" autocomplete="new-password" required />
+                <button type="button" id="togglePassword" class="toggleBtn" aria-label="Show password">👁</button>
               </div>
             </div>
 
             <div class="field">
-              <label for="confirmPassword">Confirm Password *</label>
-              <div class="passwordRow">
-                <input id="confirmPassword" type="password" maxlength="40" placeholder="Re-enter password" required />
-                <button type="button" class="toggleBtn" id="toggleConfirmPassword">Show</button>
+              <label for="confirmPassword">Confirm Password</label>
+              <div class="passwordWrap">
+                <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Re-enter password" autocomplete="new-password" required />
+                <button type="button" id="toggleConfirmPassword" class="toggleBtn" aria-label="Show confirm password">👁</button>
               </div>
             </div>
+
+            <div class="formMeta">
+              <label class="checkRow">
+                <input type="checkbox" id="agreeTerms" />
+                <span>I agree to basic account rules</span>
+              </label>
+
+              <a href="login.html" class="textLink">Already have account?</a>
+            </div>
+
+            <button type="submit" class="primaryBtn" id="registerBtn">Create Account</button>
+
+            <div id="msg" data-auth-message class="msg" aria-live="polite"></div>
+          </form>
+
+          <div class="bottomNote">
+            Already registered?
+            <a href="login.html">Go to login</a>
           </div>
-
-          <div class="row">
-            <label class="checkLabel">
-              <input id="agreeTerms" type="checkbox" />
-              <span>I confirm that the details I entered are correct.</span>
-            </label>
-          </div>
-
-          <div id="registerErr" class="err" hidden></div>
-          <div id="registerOk" class="ok" hidden></div>
-
-          <div class="actions">
-            <button class="btn primary" type="submit">Create Account</button>
-            <button class="btn" type="button" id="fillBrokerDemo">Use Sample Broker</button>
-            <button class="btn" type="button" id="clearForm">Clear</button>
-          </div>
-        </form>
-
-        <div class="tipsCard">
-          <div class="tipsTitle">After registration</div>
-          <ul>
-            <li>Your account will be saved in local storage.</li>
-            <li>You will be logged in automatically.</li>
-            <li>Homepage will switch to private navigation.</li>
-          </ul>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="auth.js"></script>
   <script src="register.js"></script>
 </body>
 </html>
+

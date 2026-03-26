@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Dashboard</title>
+  <link rel="stylesheet" href="crm.css" />
+</head>
+<body>
+  <div class="crm-layout">
+    <aside class="sidebar">
+      <h2>MEI SaaS</h2>
+      <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="crm.html" class="active">CRM</a>
+        <a href="add-property.html">Add Property</a>
+        <a href="listings.html">Listings</a>
+        <a href="broker-network.html">Broker Network</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1>CRM Management</h1>
+          <p>Leads, follow-ups, broker assignment, sales flow</p>
+        </div>
+      </header>
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Leads</h3>
+          <p id="totalLeads">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>New Leads</h3>
+          <p id="newLeads">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Site Visits</h3>
+          <p id="siteVisits">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Won Deals</h3>
+          <p id="wonDeals">0</p>
+        </div>
+      </section>
+
+      <section class="crm-panels">
+        <div class="panel form-panel">
+          <h2>Add New Lead</h2>
+          <form id="leadForm">
+            <input type="text" id="customerName" placeholder="Customer Name" required />
+            <input type="text" id="phone" placeholder="Phone Number" required />
+            <input type="email" id="email" placeholder="Email Address" />
+            <input type="text" id="city" placeholder="City" required />
+            <input type="text" id="budget" placeholder="Budget" />
+            <input type="text" id="propertyLink" placeholder="Property Title / ID" />
+            <input type="text" id="assignedBroker" placeholder="Assigned Broker" />
+
+            <select id="status">
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Site Visit">Site Visit</option>
+              <option value="Negotiation">Negotiation</option>
+              <option value="Won">Won</option>
+              <option value="Lost">Lost</option>
+            </select>
+
+            <input type="date" id="followUpDate" />
+            <textarea id="notes" placeholder="Lead notes"></textarea>
+
+            <button type="submit">Save Lead</button>
+          </form>
+        </div>
+
+        <div class="panel list-panel">
+          <div class="list-header">
+            <h2>Lead List</h2>
+            <input type="text" id="searchLead" placeholder="Search by name / city / broker" />
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>City</th>
+                  <th>Status</th>
+                  <th>Broker</th>
+                  <th>Follow-up</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="leadTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="crm.js"></script>
+</body>
+</html>
+

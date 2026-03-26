@@ -1,373 +1,496 @@
 (() => {
-  const $ = (id) => document.getElementById(id);
+  "use strict";
 
-  function getSessionSafe() {
+  requireRole(["admin"]);
+  const currentUser = getCurrentUser();
+
+  const KEYS = {
+    properties: "mei_properties_v1",
+    buyerLeads: "mei_leads_v1",
+    sellerLeads: "mei_seller_leads_v1",
+    materialLeads: "mei_material_leads_v1",
+    serviceLeads: "mei_service_leads_v1",
+    brokers: "mei_brokers_v1",
+    settings: "mei_settings_v1",
+    seeded: "mei_demo_seeded_v1"
+  };
+
+  const $ = id => document.getElementById(id);
+
+  const state = {
+    properties: [],
+    buyerLeads: [],
+    sellerLeads: [],
+    materialLeads: [],
+    serviceLeads: [],
+    brokers: []
+  };
+
+  function readJSON(key, fallback) {
     try {
-      if (typeof window.getSession === "function") return window.getSession();
-    } catch (e) {}
-    try {
-      return JSON.parse(localStorage.getItem("mei_session_v1") || "null");
-    } catch (e) {
-      return null;
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      return parsed ?? fallback;
+    } catch (err) {
+      console.error("readJSON error:", key, err);
+      return fallback;
     }
   }
 
-  function clearSessionSafe() {
+  function writeJSON(key, value) {
     try {
-      if (typeof window.clearSession === "function") {
-        window.clearSession();
-        return;
-      }
-    } catch (e) {}
-    localStorage.removeItem("mei_session_v1");
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      console.error("writeJSON error:", key, err);
+      return false;
+    }
   }
 
-  function getPropertiesSafe() {
-    try {
-      if (typeof window.getAllProperties === "function") return window.getAllProperties();
-    } catch (e) {}
-    return [];
+  function uid(prefix = "id") {
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
 
-  function getLeadsSafe() {
-    try {
-      if (typeof window.getAllLeads === "function") return window.getAllLeads();
-    } catch (e) {}
-    return [];
+  function escapeHtml(value = "") {
+    return String(value).replace(/[&<>"']/g, m => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[m]);
   }
 
-  function getBrokersSafe() {
-    try {
-      if (typeof window.getAllBrokers === "function") return window.getAllBrokers();
-    } catch (e) {}
-    return [];
+  function money(value) {
+    const n = Number(value || 0);
+    return new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 0
+    }).format(n);
   }
 
-  function fmtDate(value) {
-    if (!value) return "—";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
+  function addActivity(text) {
+    const items = readJSON("mei_recent_activity_v1", []);
+    items.unshift({
+      id: uid("act"),
+      text,
+      ts: new Date().toLocaleString()
     });
+    writeJSON("mei_recent_activity_v1", items.slice(0, 10));
+    renderActivity();
   }
 
-  function makeStatus(status) {
-    const raw = String(status || "").trim();
-    const lower = raw.toLowerCase();
-    return `<span class="statusPill ${lower}">${raw || "—"}</span>`;
-  }
-
-  function setText(id, value) {
-    const el = $(id);
-    if (el) el.textContent = value;
-  }
-
-  function countApproved(properties) {
-    return properties.filter((x) => String(x.status || "").toLowerCase() === "approved").length;
-  }
-
-  function countPending(properties) {
-    return properties.filter((x) => String(x.status || "").toLowerCase() === "pending").length;
-  }
-
-  function renderTable(rows, colspan = 4) {
-    const body = $("tableBody");
-    if (!rows.length) {
-      body.innerHTML = `<tr><td colspan="${colspan}" class="emptyCell">No data available</td></tr>`;
+  function renderActivity() {
+    const wrap = $("recentActivity");
+    const items = readJSON("mei_recent_activity_v1", []);
+    if (!items.length) {
+      wrap.innerHTML = `<div class="emptyState">No recent activity yet.</div>`;
       return;
     }
-    body.innerHTML = rows.join("");
+
+    wrap.innerHTML = items.map(item => `
+      <div class="listItem">
+        <strong>${escapeHtml(item.text)}</strong>
+        <div class="muted" style="margin-top:6px;font-size:12px;">${escapeHtml(item.ts)}</div>
+      </div>
+    `).join("");
   }
 
-  function buildAdminView(session, properties, leads, brokers) {
-    setText("heroBadge", "ADMIN Command Center");
-    $("heroTitle").textContent = `Welcome back, ${session.name || "Admin"}`;
-    $("heroText").textContent = "This dashboard is your control room for approvals, CRM movement, broker activity and platform flow.";
-
-    setText("profileName", session.name || "Admin");
-    setText("profileMeta", `${session.email || ""} ${session.city ? "• " + session.city : ""}`.trim());
-    setText("rolePill", "ADMIN");
-
-    setText("miniStat1Value", String(countApproved(properties)));
-    setText("miniStat1Label", "Approved Listings");
-    setText("miniStat2Value", String(leads.length));
-    setText("miniStat2Label", "CRM Leads");
-    setText("miniStat3Value", String(brokers.length));
-    setText("miniStat3Label", "Brokers");
-
-    setText("stat1Value", String(countApproved(properties)));
-    setText("stat1Label", "Approved Listings");
-    setText("stat2Value", String(countPending(properties)));
-    setText("stat2Label", "Pending Properties");
-    setText("stat3Value", String(leads.length));
-    setText("stat3Label", "CRM Leads");
-    setText("stat4Value", String(brokers.length));
-    setText("stat4Label", "Brokers");
-
-    setText("actionSectionTitle", "Admin Quick Actions");
-    setText("actionSectionText", "Fast operational paths for approvals, CRM and network oversight.");
-
-    $("actionGrid").innerHTML = `
-      <a class="actionCard" href="crm.html">
-        <div class="actionIcon">📇</div>
-        <div class="actionTitle">Open CRM</div>
-        <div class="actionDesc">Review hot leads, move follow-ups and manage lead flow.</div>
-      </a>
-      <a class="actionCard" href="add-property.html">
-        <div class="actionIcon">➕</div>
-        <div class="actionTitle">Add Property</div>
-        <div class="actionDesc">Create a property record or correct intake quickly.</div>
-      </a>
-      <a class="actionCard" href="broker-network.html">
-        <div class="actionIcon">🤝</div>
-        <div class="actionTitle">Broker Network</div>
-        <div class="actionDesc">Monitor and strengthen broker-side collaboration.</div>
-      </a>
-    `;
-
-    setText("tableTitle", "Latest Operational Activity");
-    setText("tableText", "Recent leads and property intake that need attention.");
-
-    const recentLeads = leads
-      .slice()
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-      .slice(0, 6)
-      .map((lead) => `
-        <tr>
-          <td>${lead.buyerName || "Lead"}</td>
-          <td>${lead.listingTitle || lead.message || "CRM entry"}</td>
-          <td>${makeStatus(lead.status || "NEW")}</td>
-          <td>${fmtDate(lead.createdAt)}</td>
-        </tr>
-      `);
-
-    renderTable(recentLeads);
-
-    setText("sideTitle", "Admin Insight");
-    setText("sideText", "The platform breathes through approvals, lead response speed and broker reliability.");
-
-    $("insightList").innerHTML = `
-      <div class="insightItem"><div class="insightDot"></div><div>${countPending(properties)} properties are currently waiting in pending state.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>${leads.length} leads are in the CRM pipeline right now.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>${brokers.length} broker records are available in the network layer.</div></div>
-    `;
-
-    $("fastLinks").innerHTML = `
-      <a class="linkBtn" href="crm.html">Open CRM</a>
-      <a class="linkBtn" href="add-property.html">Add Property</a>
-      <a class="linkBtn" href="listings.html">View Listings</a>
-      <a class="linkBtn" href="broker-network.html">Broker Network</a>
-    `;
+  function loadState() {
+    state.properties = readJSON(KEYS.properties, []);
+    state.buyerLeads = readJSON(KEYS.buyerLeads, []);
+    state.sellerLeads = readJSON(KEYS.sellerLeads, []);
+    state.materialLeads = readJSON(KEYS.materialLeads, []);
+    state.serviceLeads = readJSON(KEYS.serviceLeads, []);
+    state.brokers = readJSON(KEYS.brokers, []);
   }
 
-  function buildBrokerView(session, properties, leads, brokers) {
-    const myName = String(session.name || "").trim().toLowerCase();
-    const myProperties = properties.filter((p) => String(p.brokerName || "").trim().toLowerCase() === myName);
-    const myLeads = leads.filter((l) => {
-      const assigned = String(l.assignedBrokerName || l.assignedTo || "").trim().toLowerCase();
-      return assigned === myName || !assigned;
-    });
+  function saveState() {
+    writeJSON(KEYS.properties, state.properties);
+    writeJSON(KEYS.buyerLeads, state.buyerLeads);
+    writeJSON(KEYS.sellerLeads, state.sellerLeads);
+    writeJSON(KEYS.materialLeads, state.materialLeads);
+    writeJSON(KEYS.serviceLeads, state.serviceLeads);
+    writeJSON(KEYS.brokers, state.brokers);
+  }
 
-    setText("heroBadge", "BROKER Workspace");
-    $("heroTitle").textContent = `Welcome back, ${session.name || "Broker"}`;
-    $("heroText").textContent = "This dashboard is tuned for movement — leads, listings, network and next action all in one place.";
+  function seedData(force = false) {
+    const alreadySeeded = readJSON(KEYS.seeded, false);
+    if (alreadySeeded && !force) return;
 
-    setText("profileName", session.name || "Broker");
-    setText("profileMeta", `${session.area || ""} ${session.city ? "• " + session.city : ""}`.trim() || "Broker Workspace");
-    setText("rolePill", "BROKER");
-
-    setText("miniStat1Value", String(myProperties.length));
-    setText("miniStat1Label", "My Listings");
-    setText("miniStat2Value", String(myLeads.length));
-    setText("miniStat2Label", "Lead Flow");
-    setText("miniStat3Value", String(brokers.length));
-    setText("miniStat3Label", "Network");
-
-    setText("stat1Value", String(myProperties.length));
-    setText("stat1Label", "My Listings");
-    setText("stat2Value", String(countApproved(myProperties)));
-    setText("stat2Label", "Approved");
-    setText("stat3Value", String(myLeads.length));
-    setText("stat3Label", "Lead Flow");
-    setText("stat4Value", String(brokers.length));
-    setText("stat4Label", "Broker Network");
-
-    setText("actionSectionTitle", "Broker Quick Actions");
-    setText("actionSectionText", "Fast paths for follow-up, new inventory and network-driven opportunities.");
-
-    $("actionGrid").innerHTML = `
-      <a class="actionCard" href="crm.html">
-        <div class="actionIcon">📇</div>
-        <div class="actionTitle">Open CRM</div>
-        <div class="actionDesc">Move your enquiries and keep the pipeline hot.</div>
-      </a>
-      <a class="actionCard" href="add-property.html">
-        <div class="actionIcon">➕</div>
-        <div class="actionTitle">Add Property</div>
-        <div class="actionDesc">Push fresh inventory into the system fast.</div>
-      </a>
-      <a class="actionCard" href="broker-network.html">
-        <div class="actionIcon">🤝</div>
-        <div class="actionTitle">Broker Network</div>
-        <div class="actionDesc">Open collaboration and co-broking paths.</div>
-      </a>
-    `;
-
-    setText("tableTitle", "Lead & Listing Pulse");
-    setText("tableText", "Your nearest live opportunities and visible inventory movement.");
-
-    const rows = [
-      ...myLeads.slice(0, 3).map((lead) => `
-        <tr>
-          <td>${lead.buyerName || "Lead"}</td>
-          <td>${lead.listingTitle || lead.message || "Lead enquiry"}</td>
-          <td>${makeStatus(lead.status || "NEW")}</td>
-          <td>${fmtDate(lead.createdAt)}</td>
-        </tr>
-      `),
-      ...myProperties.slice(0, 3).map((property) => `
-        <tr>
-          <td>${property.title || "Property"}</td>
-          <td>${property.area || property.city || "Listing"}</td>
-          <td>${makeStatus(String(property.status || "").toUpperCase())}</td>
-          <td>${fmtDate(property.createdAt)}</td>
-        </tr>
-      `)
+    state.properties = [
+      {
+        id: uid("prop"),
+        title: "Green City Plot",
+        location: "Chennai",
+        type: "Plot",
+        price: 2500000,
+        area: 1200,
+        status: "Available",
+        desc: "Approved residential plot."
+      },
+      {
+        id: uid("prop"),
+        title: "Lake View Villa",
+        location: "Coimbatore",
+        type: "Villa",
+        price: 8500000,
+        area: 2400,
+        status: "Booked",
+        desc: "Premium gated villa."
+      }
     ];
 
-    renderTable(rows);
+    state.buyerLeads = [
+      { id: uid("buy"), name: "Arun", phone: "9876543210", requirement: "2BHK Apartment", budget: "4500000", location: "Chennai" },
+      { id: uid("buy"), name: "Kiran", phone: "9123456780", requirement: "Villa", budget: "9000000", location: "Coimbatore" }
+    ];
 
-    setText("sideTitle", "Broker Insight");
-    setText("sideText", "Your leverage grows when you keep listings visible and leads moving.");
+    state.sellerLeads = [
+      { id: uid("sell"), name: "Mohan", phone: "9000011111", propertyType: "Plot", expectedPrice: "3000000", location: "Madurai" },
+      { id: uid("sell"), name: "Sathya", phone: "9000022222", propertyType: "Apartment", expectedPrice: "5500000", location: "Trichy" }
+    ];
 
-    $("insightList").innerHTML = `
-      <div class="insightItem"><div class="insightDot"></div><div>You currently have ${myProperties.length} listing records connected to your name.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>${myLeads.length} leads are visible in your current workflow layer.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>The broker network contains ${brokers.length} broker entries for collaboration.</div></div>
-    `;
+    state.materialLeads = [
+      { id: uid("mat"), name: "Vijay Traders", phone: "9888888888", material: "Cement", quantity: "500 Bags", city: "Chennai" }
+    ];
 
-    $("fastLinks").innerHTML = `
-      <a class="linkBtn" href="crm.html">Open CRM</a>
-      <a class="linkBtn" href="add-property.html">Add Property</a>
-      <a class="linkBtn" href="listings.html">Open Listings</a>
-      <a class="linkBtn" href="broker-network.html">Broker Network</a>
-    `;
+    state.serviceLeads = [
+      { id: uid("srv"), name: "Ravi", phone: "9777777777", service: "Interior Design", location: "Bangalore", notes: "3BHK full work" }
+    ];
+
+    state.brokers = [
+      { id: uid("brk"), name: "Suresh", phone: "9666666666", area: "Chennai South", speciality: "Plots" },
+      { id: uid("brk"), name: "Prakash", phone: "9555555555", area: "Coimbatore", speciality: "Villas" }
+    ];
+
+    saveState();
+    writeJSON(KEYS.seeded, true);
+    addActivity("Demo data seeded");
   }
 
-  function buildSellerView(session, properties, leads, brokers) {
-    const sellerName = String(session.name || "").trim().toLowerCase();
-    const myProperties = properties.filter((p) => String(p.sellerName || "").trim().toLowerCase() === sellerName);
-    const visibleProperties = myProperties.length ? myProperties : properties.slice(0, 4);
+  function renderStats() {
+    $("statProperties").textContent = state.properties.length;
+    $("statBuyerLeads").textContent = state.buyerLeads.length;
+    $("statSellerLeads").textContent = state.sellerLeads.length;
+    $("statMaterialLeads").textContent = state.materialLeads.length;
+    $("statServiceLeads").textContent = state.serviceLeads.length;
+    $("statBrokers").textContent = state.brokers.length;
+  }
 
-    setText("heroBadge", "SELLER Workspace");
-    $("heroTitle").textContent = `Welcome back, ${session.name || "Seller"}`;
-    $("heroText").textContent = "This dashboard keeps the seller journey simple — posting, visibility and public listing awareness.";
-
-    setText("profileName", session.name || "Seller");
-    setText("profileMeta", `${session.area || ""} ${session.city ? "• " + session.city : ""}`.trim() || "Seller Workspace");
-    setText("rolePill", "SELLER");
-
-    setText("miniStat1Value", String(visibleProperties.length));
-    setText("miniStat1Label", "Visible Listings");
-    setText("miniStat2Value", String(countApproved(visibleProperties)));
-    setText("miniStat2Label", "Approved");
-    setText("miniStat3Value", String(brokers.length));
-    setText("miniStat3Label", "Broker Reach");
-
-    setText("stat1Value", String(visibleProperties.length));
-    setText("stat1Label", "Visible Listings");
-    setText("stat2Value", String(countApproved(visibleProperties)));
-    setText("stat2Label", "Approved");
-    setText("stat3Value", String(countPending(visibleProperties)));
-    setText("stat3Label", "Pending");
-    setText("stat4Value", String(leads.length));
-    setText("stat4Label", "Platform Leads");
-
-    setText("actionSectionTitle", "Seller Quick Actions");
-    setText("actionSectionText", "Fast paths for posting property and tracking public-facing visibility.");
-
-    $("actionGrid").innerHTML = `
-      <a class="actionCard" href="add-property.html">
-        <div class="actionIcon">➕</div>
-        <div class="actionTitle">Add Property</div>
-        <div class="actionDesc">Create a new seller-side listing entry.</div>
-      </a>
-      <a class="actionCard" href="listings.html">
-        <div class="actionIcon">📋</div>
-        <div class="actionTitle">View Listings</div>
-        <div class="actionDesc">See how approved properties appear in public space.</div>
-      </a>
-      <a class="actionCard" href="index.html#lead">
-        <div class="actionIcon">📩</div>
-        <div class="actionTitle">Post Requirement</div>
-        <div class="actionDesc">Use homepage forms to send a fresh requirement.</div>
-      </a>
-    `;
-
-    setText("tableTitle", "Listing Visibility");
-    setText("tableText", "Recent listings related to your seller-side workspace.");
-
-    const rows = visibleProperties.slice(0, 6).map((property) => `
+  function propertyRow(item) {
+    return `
       <tr>
-        <td>${property.title || "Property"}</td>
-        <td>${property.area || property.city || "Listing"}</td>
-        <td>${makeStatus(String(property.status || "").toUpperCase())}</td>
-        <td>${fmtDate(property.createdAt)}</td>
+        <td>${escapeHtml(item.title)}</td>
+        <td>${escapeHtml(item.location)}</td>
+        <td>${escapeHtml(item.type)}</td>
+        <td>₹ ${money(item.price)}</td>
+        <td>${escapeHtml(item.area)}</td>
+        <td><span class="badge">${escapeHtml(item.status)}</span></td>
+        <td><button class="btn danger small" data-del="property" data-id="${item.id}">Delete</button></td>
       </tr>
-    `);
-
-    renderTable(rows);
-
-    setText("sideTitle", "Seller Insight");
-    setText("sideText", "The seller journey gets stronger when listings become approved and visible.");
-
-    $("insightList").innerHTML = `
-      <div class="insightItem"><div class="insightDot"></div><div>${countApproved(visibleProperties)} listings are currently approved in your visible scope.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>${countPending(visibleProperties)} listings are still in pending review state.</div></div>
-      <div class="insightItem"><div class="insightDot"></div><div>${brokers.length} brokers exist in the platform network that can support reach.</div></div>
-    `;
-
-    $("fastLinks").innerHTML = `
-      <a class="linkBtn" href="add-property.html">Add Property</a>
-      <a class="linkBtn" href="listings.html">View Listings</a>
-      <a class="linkBtn" href="index.html#lead">Post Lead</a>
-      <a class="linkBtn" href="index.html">Open Homepage</a>
     `;
   }
 
-  function bootstrap() {
-    if (typeof window.seedData === "function") {
-      window.seedData();
-    }
+  function buyerRow(item) {
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.phone)}</td>
+        <td>${escapeHtml(item.requirement)}</td>
+        <td>₹ ${money(item.budget)}</td>
+        <td>${escapeHtml(item.location)}</td>
+        <td><button class="btn danger small" data-del="buyer" data-id="${item.id}">Delete</button></td>
+      </tr>
+    `;
+  }
 
-    const session = getSessionSafe();
+  function sellerRow(item) {
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.phone)}</td>
+        <td>${escapeHtml(item.propertyType)}</td>
+        <td>₹ ${money(item.expectedPrice)}</td>
+        <td>${escapeHtml(item.location)}</td>
+        <td><button class="btn danger small" data-del="seller" data-id="${item.id}">Delete</button></td>
+      </tr>
+    `;
+  }
 
-    if (!session || !session.role) {
-      window.location.href = "login.html";
-      return;
-    }
+  function materialRow(item) {
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.phone)}</td>
+        <td>${escapeHtml(item.material)}</td>
+        <td>${escapeHtml(item.quantity)}</td>
+        <td>${escapeHtml(item.city)}</td>
+        <td><button class="btn danger small" data-del="material" data-id="${item.id}">Delete</button></td>
+      </tr>
+    `;
+  }
 
-    const properties = getPropertiesSafe();
-    const leads = getLeadsSafe();
-    const brokers = getBrokersSafe();
-    const role = String(session.role || "").toUpperCase();
+  function serviceRow(item) {
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.phone)}</td>
+        <td>${escapeHtml(item.service)}</td>
+        <td>${escapeHtml(item.location)}</td>
+        <td>${escapeHtml(item.notes || "")}</td>
+        <td><button class="btn danger small" data-del="service" data-id="${item.id}">Delete</button></td>
+      </tr>
+    `;
+  }
 
-    if (role === "ADMIN") {
-      buildAdminView(session, properties, leads, brokers);
-    } else if (role === "SELLER") {
-      buildSellerView(session, properties, leads, brokers);
-    } else {
-      buildBrokerView(session, properties, leads, brokers);
-    }
+  function brokerRow(item) {
+    return `
+      <tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.phone)}</td>
+        <td>${escapeHtml(item.area)}</td>
+        <td>${escapeHtml(item.speciality)}</td>
+        <td><button class="btn danger small" data-del="broker" data-id="${item.id}">Delete</button></td>
+      </tr>
+    `;
+  }
 
-    $("logoutBtn").addEventListener("click", () => {
-      clearSessionSafe();
-      window.location.href = "index.html";
+  function renderTables() {
+    $("propertyTable").innerHTML = state.properties.map(propertyRow).join("") || emptyRow(7, "No properties found");
+    $("buyerTable").innerHTML = state.buyerLeads.map(buyerRow).join("") || emptyRow(6, "No buyer leads found");
+    $("sellerTable").innerHTML = state.sellerLeads.map(sellerRow).join("") || emptyRow(6, "No seller leads found");
+    $("materialTable").innerHTML = state.materialLeads.map(materialRow).join("") || emptyRow(6, "No material leads found");
+    $("serviceTable").innerHTML = state.serviceLeads.map(serviceRow).join("") || emptyRow(6, "No service leads found");
+    $("brokerTable").innerHTML = state.brokers.map(brokerRow).join("") || emptyRow(5, "No brokers found");
+  }
+
+  function emptyRow(colspan, text) {
+    return `<tr><td colspan="${colspan}" class="muted">${escapeHtml(text)}</td></tr>`;
+  }
+
+  function refresh() {
+    loadState();
+    renderStats();
+    renderTables();
+    renderActivity();
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".navLink").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+    });
+
+    document.querySelectorAll(".view").forEach(view => {
+      view.classList.remove("active");
+    });
+
+    const target = document.getElementById(`view-${tab}`);
+    if (target) target.classList.add("active");
+
+    const labelMap = {
+      overview: "Admin Dashboard",
+      properties: "Properties",
+      buyers: "Buyer Leads",
+      sellers: "Seller Leads",
+      materials: "Material Leads",
+      services: "Service Leads",
+      brokers: "Broker Network",
+      export: "Export Center"
+    };
+
+    $("pageTitle").textContent = labelMap[tab] || "Admin Dashboard";
+  }
+
+  function bindNav() {
+    document.querySelectorAll(".navLink").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    document.querySelectorAll("[data-jump]").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.jump));
     });
   }
 
-  bootstrap();
+  function bindPropertyForm() {
+    $("propertyForm").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const item = {
+        id: uid("prop"),
+        title: $("pTitle").value.trim(),
+        location: $("pLocation").value.trim(),
+        type: $("pType").value,
+        price: $("pPrice").value,
+        area: $("pArea").value,
+        status: $("pStatus").value,
+        desc: $("pDesc").value.trim()
+      };
+
+      state.properties.unshift(item);
+      saveState();
+      $("propertyForm").reset();
+      addActivity(`Property added: ${item.title}`);
+      refresh();
+      switchTab("properties");
+    });
+  }
+
+  function bindBrokerForm() {
+    $("addBrokerBtn").addEventListener("click", () => {
+      $("brokerForm").classList.toggle("hidden");
+    });
+
+    $("brokerForm").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const item = {
+        id: uid("brk"),
+        name: $("bName").value.trim(),
+        phone: $("bPhone").value.trim(),
+        area: $("bArea").value.trim(),
+        speciality: $("bSpeciality").value.trim()
+      };
+
+      state.brokers.unshift(item);
+      saveState();
+      $("brokerForm").reset();
+      $("brokerForm").classList.add("hidden");
+      addActivity(`Broker added: ${item.name}`);
+      refresh();
+    });
+  }
+
+  function bindDelete() {
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("[data-del]");
+      if (!btn) return;
+
+      const type = btn.dataset.del;
+      const id = btn.dataset.id;
+
+      const maps = {
+        property: ["properties", "Property deleted"],
+        buyer: ["buyerLeads", "Buyer lead deleted"],
+        seller: ["sellerLeads", "Seller lead deleted"],
+        material: ["materialLeads", "Material lead deleted"],
+        service: ["serviceLeads", "Service lead deleted"],
+        broker: ["brokers", "Broker deleted"]
+      };
+
+      const config = maps[type];
+      if (!config) return;
+
+      const [key, activity] = config;
+      state[key] = state[key].filter(item => item.id !== id);
+      saveState();
+      addActivity(activity);
+      refresh();
+    });
+  }
+
+  function bindSearch() {
+    bindSingleSearch("propertySearch", "propertyTable", state.properties, propertyRow, ["title", "location", "type", "status"]);
+    bindSingleSearch("buyerSearch", "buyerTable", state.buyerLeads, buyerRow, ["name", "phone", "requirement", "location"]);
+    bindSingleSearch("sellerSearch", "sellerTable", state.sellerLeads, sellerRow, ["name", "phone", "propertyType", "location"]);
+    bindSingleSearch("materialSearch", "materialTable", state.materialLeads, materialRow, ["name", "phone", "material", "city"]);
+    bindSingleSearch("serviceSearch", "serviceTable", state.serviceLeads, serviceRow, ["name", "phone", "service", "location", "notes"]);
+  }
+
+  function bindSingleSearch(inputId, tableId, sourceArray, rowRenderer, fields) {
+    const input = $(inputId);
+    const table = $(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      const filtered = sourceArray.filter(item =>
+        fields.some(field => String(item[field] || "").toLowerCase().includes(q))
+      );
+      const colsMap = {
+        propertyTable: 7,
+        buyerTable: 6,
+        sellerTable: 6,
+        materialTable: 6,
+        serviceTable: 6
+      };
+      table.innerHTML = filtered.map(rowRenderer).join("") || emptyRow(colsMap[tableId] || 5, "No matching records");
+    });
+  }
+
+  function exportJSON(name, payload) {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function bindExport() {
+    document.querySelectorAll(".exportBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.export;
+
+        if (key === "properties") exportJSON("mei_properties", state.properties);
+        if (key === "buyers") exportJSON("mei_buyer_leads", state.buyerLeads);
+        if (key === "sellers") exportJSON("mei_seller_leads", state.sellerLeads);
+        if (key === "materials") exportJSON("mei_material_leads", state.materialLeads);
+        if (key === "services") exportJSON("mei_service_leads", state.serviceLeads);
+        if (key === "brokers") exportJSON("mei_brokers", state.brokers);
+
+        if (key === "all") {
+          exportJSON("mei_full_backup", {
+            properties: state.properties,
+            buyerLeads: state.buyerLeads,
+            sellerLeads: state.sellerLeads,
+            materialLeads: state.materialLeads,
+            serviceLeads: state.serviceLeads,
+            brokers: state.brokers,
+            exportedAt: new Date().toISOString()
+          });
+        }
+
+        addActivity(`Export created: ${key}`);
+      });
+    });
+  }
+
+  function bindHeaderActions() {
+    $("seedBtn").addEventListener("click", () => {
+      seedData(true);
+      refresh();
+    });
+
+    $("refreshBtn").addEventListener("click", () => {
+      refresh();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof seedData === "function") {
+      // keep external compatibility if another file defines it
+    }
+
+    if (currentUser && $("currentUserText")) {
+      $("currentUserText").textContent = `${currentUser.name} • ${currentUser.role}`;
+    }
+
+    loadState();
+    if (!readJSON(KEYS.seeded, false)) {
+      seedData();
+    }
+
+    bindNav();
+    bindPropertyForm();
+    bindBrokerForm();
+    bindDelete();
+    bindSearch();
+    bindExport();
+    bindHeaderActions();
+
+    refresh();
+  });
 })();
+

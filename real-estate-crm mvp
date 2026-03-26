@@ -1,0 +1,681 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
+import { Search, Phone, Mail, Building2, Users, IndianRupee, CalendarClock, Plus, CheckCircle2, Clock3, AlertCircle, RefreshCw, Database, WifiOff } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
+const demoLeads = [
+  {
+    id: 1,
+    name: "Arun Kumar",
+    phone: "+91 98765 43210",
+    email: "arun@example.com",
+    source: "Website",
+    stage: "New",
+    budget: "₹85L",
+    city: "Chennai",
+    notes: "Looking for 2BHK apartment in OMR",
+    next_follow_up: "2026-03-12",
+  },
+  {
+    id: 2,
+    name: "Meena Raj",
+    phone: "+91 91234 56789",
+    email: "meena@example.com",
+    source: "Broker Referral",
+    stage: "Qualified",
+    budget: "₹1.2Cr",
+    city: "Bangalore",
+    notes: "Interested in villa projects",
+    next_follow_up: "2026-03-13",
+  },
+  {
+    id: 3,
+    name: "Rahul Dev",
+    phone: "+91 90000 11111",
+    email: "rahul@example.com",
+    source: "Instagram Ad",
+    stage: "Site Visit",
+    budget: "₹65L",
+    city: "Coimbatore",
+    notes: "Site visit planned for Saturday",
+    next_follow_up: "2026-03-14",
+  },
+];
+
+const demoProperties = [
+  {
+    id: 101,
+    title: "OMR Green Heights",
+    type: "Apartment",
+    city: "Chennai",
+    price: "₹78L",
+    status: "Active",
+    owner: "Suresh",
+  },
+  {
+    id: 102,
+    title: "Whitefield Palm Villas",
+    type: "Villa",
+    city: "Bangalore",
+    price: "₹1.45Cr",
+    status: "Negotiation",
+    owner: "Naveen",
+  },
+  {
+    id: 103,
+    title: "Saravanampatti Tech Park Plot",
+    type: "Plot",
+    city: "Coimbatore",
+    price: "₹42L",
+    status: "Active",
+    owner: "Priya",
+  },
+];
+
+const demoTasks = [
+  { id: 1, title: "Call Arun about loan support", due: "Today", priority: "High", done: false },
+  { id: 2, title: "Send Meena villa brochure", due: "Tomorrow", priority: "Medium", done: false },
+  { id: 3, title: "Confirm Rahul site visit cab", due: "Tomorrow", priority: "Low", done: true },
+];
+
+const stageColors = {
+  New: "bg-blue-100 text-blue-800",
+  Qualified: "bg-violet-100 text-violet-800",
+  "Site Visit": "bg-amber-100 text-amber-800",
+  Negotiation: "bg-orange-100 text-orange-800",
+  Won: "bg-emerald-100 text-emerald-800",
+  Lost: "bg-rose-100 text-rose-800",
+};
+
+const propertyStatusColors = {
+  Active: "bg-emerald-100 text-emerald-800",
+  Negotiation: "bg-amber-100 text-amber-800",
+  Sold: "bg-slate-200 text-slate-800",
+};
+
+export default function RealEstateCRMMVP() {
+  const [leads, setLeads] = useState([]);
+  const [properties, setProperties] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState("");
+  const [connected, setConnected] = useState(false);
+
+  const [leadForm, setLeadForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    source: "Website",
+    stage: "New",
+    budget: "",
+    city: "",
+    notes: "",
+    next_follow_up: "",
+  });
+
+  const [propertyForm, setPropertyForm] = useState({
+    title: "",
+    type: "Apartment",
+    city: "",
+    price: "",
+    status: "Active",
+    owner: "",
+  });
+
+  async function loadCRMData() {
+    setLoading(true);
+    setError("");
+
+    if (!supabase) {
+      setConnected(false);
+      setLeads(demoLeads);
+      setProperties(demoProperties);
+      setTasks(demoTasks);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const [leadRes, propertyRes, taskRes] = await Promise.all([
+        supabase.from("crm_leads").select("*").order("id", { ascending: false }),
+        supabase.from("crm_properties").select("*").order("id", { ascending: false }),
+        supabase.from("crm_tasks").select("*").order("id", { ascending: false }),
+      ]);
+
+      if (leadRes.error) throw leadRes.error;
+      if (propertyRes.error) throw propertyRes.error;
+      if (taskRes.error) throw taskRes.error;
+
+      setLeads(leadRes.data || []);
+      setProperties(propertyRes.data || []);
+      setTasks(taskRes.data || []);
+      setConnected(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Database connection failed. Check table names and env keys.");
+      setConnected(false);
+      setLeads(demoLeads);
+      setProperties(demoProperties);
+      setTasks(demoTasks);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadCRMData();
+  }, []);
+
+  const filteredLeads = useMemo(() => {
+    const q = search.toLowerCase();
+    return leads.filter(
+      (lead) =>
+        String(lead.name || "").toLowerCase().includes(q) ||
+        String(lead.city || "").toLowerCase().includes(q) ||
+        String(lead.source || "").toLowerCase().includes(q) ||
+        String(lead.stage || "").toLowerCase().includes(q)
+    );
+  }, [leads, search]);
+
+  const metrics = useMemo(() => {
+    const totalLeads = leads.length;
+    const siteVisits = leads.filter((l) => l.stage === "Site Visit").length;
+    const qualified = leads.filter((l) => l.stage === "Qualified").length;
+    const activeProperties = properties.filter((p) => p.status !== "Sold").length;
+    const followUps = leads.filter((l) => l.next_follow_up).length;
+    return { totalLeads, siteVisits, qualified, activeProperties, followUps };
+  }, [leads, properties]);
+
+  const pipelineCounts = useMemo(() => {
+    const stages = ["New", "Qualified", "Site Visit", "Negotiation", "Won", "Lost"];
+    return stages.map((stage) => ({
+      stage,
+      count: leads.filter((l) => l.stage === stage).length,
+    }));
+  }, [leads]);
+
+  async function addLead() {
+    if (!leadForm.name || !leadForm.phone || !leadForm.city) return;
+
+    const payload = {
+      ...leadForm,
+      budget: leadForm.budget || "—",
+      email: leadForm.email || "—",
+      notes: leadForm.notes || "—",
+      next_follow_up: leadForm.next_follow_up || null,
+    };
+
+    if (!supabase) {
+      setLeads((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+      resetLeadForm();
+      return;
+    }
+
+    setSyncing(true);
+    setError("");
+    try {
+      const { data, error: insertError } = await supabase.from("crm_leads").insert([payload]).select().single();
+      if (insertError) throw insertError;
+      setLeads((prev) => [data, ...prev]);
+      resetLeadForm();
+      setConnected(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Lead save failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function addProperty() {
+    if (!propertyForm.title || !propertyForm.city || !propertyForm.owner) return;
+
+    const payload = {
+      ...propertyForm,
+      price: propertyForm.price || "—",
+    };
+
+    if (!supabase) {
+      setProperties((prev) => [{ id: Date.now(), ...payload }, ...prev]);
+      resetPropertyForm();
+      return;
+    }
+
+    setSyncing(true);
+    setError("");
+    try {
+      const { data, error: insertError } = await supabase.from("crm_properties").insert([payload]).select().single();
+      if (insertError) throw insertError;
+      setProperties((prev) => [data, ...prev]);
+      resetPropertyForm();
+      setConnected(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Property save failed.");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function toggleTask(id, currentDone) {
+    if (!supabase) {
+      setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+      return;
+    }
+
+    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+    const { error: updateError } = await supabase.from("crm_tasks").update({ done: !currentDone }).eq("id", id);
+    if (updateError) {
+      setError(updateError.message || "Task update failed.");
+      setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, done: currentDone } : task)));
+    }
+  }
+
+  function resetLeadForm() {
+    setLeadForm({
+      name: "",
+      phone: "",
+      email: "",
+      source: "Website",
+      stage: "New",
+      budget: "",
+      city: "",
+      notes: "",
+      next_follow_up: "",
+    });
+  }
+
+  function resetPropertyForm() {
+    setPropertyForm({
+      title: "",
+      type: "Apartment",
+      city: "",
+      price: "",
+      status: "Active",
+      owner: "",
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between"
+        >
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Real Estate CRM</h1>
+              <Badge className={`rounded-xl border-0 ${connected ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                {connected ? "Supabase Connected" : "Demo / Offline Mode"}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-slate-500">
+              Leads, properties, follow-ups, and deal flow — now database-ready.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search leads, city, source..."
+                className="w-full rounded-2xl pl-9 sm:w-72"
+              />
+            </div>
+            <Button variant="outline" className="rounded-2xl" onClick={loadCRMData}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+            </Button>
+          </div>
+        </motion.div>
+
+        {error && (
+          <Card className="rounded-3xl border-0 shadow-sm">
+            <CardContent className="flex items-start gap-3 p-5 text-sm text-rose-700">
+              <WifiOff className="mt-0.5 h-5 w-5" />
+              <div>
+                <p className="font-semibold">Connection message</p>
+                <p>{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {[
+            { label: "Total Leads", value: metrics.totalLeads, icon: Users },
+            { label: "Qualified", value: metrics.qualified, icon: CheckCircle2 },
+            { label: "Site Visits", value: metrics.siteVisits, icon: Building2 },
+            { label: "Active Properties", value: metrics.activeProperties, icon: IndianRupee },
+            { label: "Follow-ups", value: metrics.followUps, icon: CalendarClock },
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
+                <Card className="rounded-3xl border-0 shadow-sm">
+                  <CardContent className="flex items-center justify-between p-5">
+                    <div>
+                      <p className="text-sm text-slate-500">{item.label}</p>
+                      <p className="mt-1 text-2xl font-bold text-slate-900">{loading ? "..." : item.value}</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-100 p-3">
+                      <Icon className="h-5 w-5 text-slate-700" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <Tabs defaultValue="leads" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 rounded-2xl">
+            <TabsTrigger value="leads">Leads</TabsTrigger>
+            <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="setup">Setup</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="leads">
+            <Card className="rounded-3xl border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <CardTitle>Lead Management</CardTitle>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="rounded-2xl">
+                      <Plus className="mr-2 h-4 w-4" /> Add Lead
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl rounded-3xl">
+                    <DialogHeader>
+                      <DialogTitle>Add New Lead</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Input placeholder="Lead Name" value={leadForm.name} onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })} />
+                      <Input placeholder="Phone" value={leadForm.phone} onChange={(e) => setLeadForm({ ...leadForm, phone: e.target.value })} />
+                      <Input placeholder="Email" value={leadForm.email} onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })} />
+                      <Input placeholder="Budget" value={leadForm.budget} onChange={(e) => setLeadForm({ ...leadForm, budget: e.target.value })} />
+                      <Input placeholder="City" value={leadForm.city} onChange={(e) => setLeadForm({ ...leadForm, city: e.target.value })} />
+                      <Input placeholder="Next Follow-up Date" type="date" value={leadForm.next_follow_up} onChange={(e) => setLeadForm({ ...leadForm, next_follow_up: e.target.value })} />
+                      <Select value={leadForm.source} onValueChange={(value) => setLeadForm({ ...leadForm, source: value })}>
+                        <SelectTrigger><SelectValue placeholder="Source" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Website">Website</SelectItem>
+                          <SelectItem value="Broker Referral">Broker Referral</SelectItem>
+                          <SelectItem value="Instagram Ad">Instagram Ad</SelectItem>
+                          <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={leadForm.stage} onValueChange={(value) => setLeadForm({ ...leadForm, stage: value })}>
+                        <SelectTrigger><SelectValue placeholder="Stage" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Qualified">Qualified</SelectItem>
+                          <SelectItem value="Site Visit">Site Visit</SelectItem>
+                          <SelectItem value="Negotiation">Negotiation</SelectItem>
+                          <SelectItem value="Won">Won</SelectItem>
+                          <SelectItem value="Lost">Lost</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="md:col-span-2">
+                        <Textarea placeholder="Notes" value={leadForm.notes} onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button onClick={addLead} disabled={syncing} className="mt-4 rounded-2xl">{syncing ? "Saving..." : "Save Lead"}</Button>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredLeads.map((lead) => (
+                    <div key={lead.id} className="rounded-3xl border border-slate-200 bg-white p-5 transition hover:shadow-md">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900">{lead.name}</h3>
+                          <p className="text-sm text-slate-500">{lead.city}</p>
+                        </div>
+                        <Badge className={`${stageColors[lead.stage] || "bg-slate-100 text-slate-800"} rounded-xl border-0`}>{lead.stage}</Badge>
+                      </div>
+                      <div className="space-y-2 text-sm text-slate-600">
+                        <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> {lead.phone}</p>
+                        <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> {lead.email}</p>
+                        <p><span className="font-medium text-slate-800">Source:</span> {lead.source}</p>
+                        <p><span className="font-medium text-slate-800">Budget:</span> {lead.budget}</p>
+                        <p><span className="font-medium text-slate-800">Next Follow-up:</span> {lead.next_follow_up || "—"}</p>
+                        <p><span className="font-medium text-slate-800">Notes:</span> {lead.notes}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="pipeline">
+            <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-6">
+              {pipelineCounts.map((item) => (
+                <Card key={item.stage} className="rounded-3xl border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{item.stage}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-slate-900">{item.count}</div>
+                    <div className="mt-3">
+                      <Progress value={(item.count / Math.max(leads.length, 1)) * 100} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="properties">
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+              <Card className="rounded-3xl border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Property Inventory</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {properties.map((property) => (
+                      <div key={property.id} className="rounded-3xl border border-slate-200 p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900">{property.title}</h3>
+                            <p className="text-sm text-slate-500">{property.city} • {property.type}</p>
+                          </div>
+                          <Badge className={`${propertyStatusColors[property.status] || "bg-slate-100 text-slate-800"} rounded-xl border-0`}>
+                            {property.status}
+                          </Badge>
+                        </div>
+                        <div className="mt-4 space-y-2 text-sm text-slate-600">
+                          <p><span className="font-medium text-slate-800">Price:</span> {property.price}</p>
+                          <p><span className="font-medium text-slate-800">Owner:</span> {property.owner}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-3xl border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Add Property</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input placeholder="Property Title" value={propertyForm.title} onChange={(e) => setPropertyForm({ ...propertyForm, title: e.target.value })} />
+                  <Select value={propertyForm.type} onValueChange={(value) => setPropertyForm({ ...propertyForm, type: value })}>
+                    <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Apartment">Apartment</SelectItem>
+                      <SelectItem value="Villa">Villa</SelectItem>
+                      <SelectItem value="Plot">Plot</SelectItem>
+                      <SelectItem value="Commercial">Commercial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="City" value={propertyForm.city} onChange={(e) => setPropertyForm({ ...propertyForm, city: e.target.value })} />
+                  <Input placeholder="Price" value={propertyForm.price} onChange={(e) => setPropertyForm({ ...propertyForm, price: e.target.value })} />
+                  <Input placeholder="Owner Name" value={propertyForm.owner} onChange={(e) => setPropertyForm({ ...propertyForm, owner: e.target.value })} />
+                  <Select value={propertyForm.status} onValueChange={(value) => setPropertyForm({ ...propertyForm, status: value })}>
+                    <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Negotiation">Negotiation</SelectItem>
+                      <SelectItem value="Sold">Sold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={addProperty} disabled={syncing} className="w-full rounded-2xl">
+                    {syncing ? "Saving..." : "Save Property"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="rounded-3xl border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Follow-up Tasks</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {tasks.map((task) => (
+                    <div key={task.id} className="flex items-center justify-between rounded-2xl border border-slate-200 p-4">
+                      <div className="flex items-start gap-3">
+                        <button onClick={() => toggleTask(task.id, task.done)} className="mt-0.5">
+                          {task.done ? (
+                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                          ) : task.priority === "High" ? (
+                            <AlertCircle className="h-5 w-5 text-rose-500" />
+                          ) : (
+                            <Clock3 className="h-5 w-5 text-amber-500" />
+                          )}
+                        </button>
+                        <div>
+                          <p className={`font-medium ${task.done ? "line-through text-slate-400" : "text-slate-900"}`}>{task.title}</p>
+                          <p className="text-sm text-slate-500">{task.due} • {task.priority} Priority</p>
+                        </div>
+                      </div>
+                      <Badge className="rounded-xl" variant={task.done ? "secondary" : "outline"}>
+                        {task.done ? "Done" : "Open"}
+                      </Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-3xl border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Database Status</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm leading-6 text-slate-600">
+                  <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
+                    <Database className="mt-0.5 h-5 w-5 text-slate-700" />
+                    <div>
+                      <p className="font-semibold text-slate-900">Mode</p>
+                      <p>{connected ? "Live Supabase data is active." : "Demo data is showing until env keys and tables are connected."}</p>
+                    </div>
+                  </div>
+                  <p>• Leads table fetch + insert connected</p>
+                  <p>• Properties table fetch + insert connected</p>
+                  <p>• Tasks table fetch + status toggle connected</p>
+                  <p>• Graceful offline fallback included</p>
+                  <p>• Setup SQL included in the Setup tab</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <Card className="rounded-3xl border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle>Supabase Setup</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 text-sm text-slate-700">
+                <div>
+                  <p className="mb-2 font-semibold text-slate-900">1) Install package</p>
+                  <pre className="overflow-x-auto rounded-2xl bg-slate-950 p-4 text-slate-100">npm install @supabase/supabase-js</pre>
+                </div>
+
+                <div>
+                  <p className="mb-2 font-semibold text-slate-900">2) Add .env</p>
+                  <pre className="overflow-x-auto rounded-2xl bg-slate-950 p-4 text-slate-100">VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key</pre>
+                </div>
+
+                <div>
+                  <p className="mb-2 font-semibold text-slate-900">3) Create tables in Supabase SQL Editor</p>
+                  <pre className="overflow-x-auto rounded-2xl bg-slate-950 p-4 text-slate-100">create table if not exists crm_leads (
+  id bigint generated by default as identity primary key,
+  name text not null,
+  phone text not null,
+  email text,
+  source text,
+  stage text default 'New',
+  budget text,
+  city text not null,
+  notes text,
+  next_follow_up date,
+  created_at timestamptz default now()
+);
+
+create table if not exists crm_properties (
+  id bigint generated by default as identity primary key,
+  title text not null,
+  type text,
+  city text not null,
+  price text,
+  status text default 'Active',
+  owner text not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists crm_tasks (
+  id bigint generated by default as identity primary key,
+  title text not null,
+  due text,
+  priority text default 'Medium',
+  done boolean default false,
+  created_at timestamptz default now()
+);
+
+insert into crm_tasks (title, due, priority, done)
+values
+('Call Arun about loan support', 'Today', 'High', false),
+('Send Meena villa brochure', 'Tomorrow', 'Medium', false),
+('Confirm Rahul site visit cab', 'Tomorrow', 'Low', true)
+on conflict do nothing;</pre>
+                </div>
+
+                <div>
+                  <p className="mb-2 font-semibold text-slate-900">4) Optional Row Level Security for later</p>
+                  <p>For now, keep this MVP simple. Next step can be auth + per-user data access.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
+
+
