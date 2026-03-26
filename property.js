@@ -3,6 +3,8 @@
 
   const LOCAL_PROPS_KEY = "mei_properties_v1";
   const DEFAULT_WHATSAPP_NUMBER = "919876543210";
+  const FAVORITES_KEY = "mei_favorite_properties_v1";
+  const COMPARE_KEY = "mei_compare_properties_v1";
   const $ = (id) => document.getElementById(id);
 
   document.addEventListener("DOMContentLoaded", init);
@@ -69,11 +71,24 @@
     }
   }
 
+  function writeJSON(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function showInfo(msg) {
     const el = $("pageInfo");
     if (!el) return;
     el.textContent = msg;
     el.style.display = "block";
+    clearTimeout(showInfo._t);
+    showInfo._t = setTimeout(() => {
+      el.style.display = "none";
+    }, 2400);
   }
 
   function cleanNumber(val) {
@@ -111,6 +126,14 @@
     return digits;
   }
 
+  function normalizeGallery(p) {
+    const arr = Array.isArray(p.images) ? p.images : [];
+    const cleaned = arr.map((v) => String(v || "").trim()).filter(Boolean);
+    const image = String(p.image || p.image_url || p.imageUrl || "").trim();
+    if (image && !cleaned.includes(image)) cleaned.unshift(image);
+    return cleaned;
+  }
+
   function normalizeProperty(p) {
     return {
       id: String(p.id || "").trim(),
@@ -123,6 +146,7 @@
       sqft: cleanNumber(p.sqft || p.areaSqft || p.area_size),
       description: String(p.description || p.desc || p.note || "").trim(),
       image: String(p.image || p.image_url || p.imageUrl || "").trim(),
+      images: normalizeGallery(p),
       status: String(p.status || "").trim().toLowerCase(),
       createdAt: p.created_at || p.createdAt || "",
       featured: Boolean(p.featured),
@@ -207,6 +231,72 @@
       .catch(() => showInfo("Unable to copy link. Please copy it manually."));
   }
 
+  function getFavorites() {
+    return readJSON(FAVORITES_KEY, []);
+  }
+
+  function setFavorites(arr) {
+    writeJSON(FAVORITES_KEY, arr);
+  }
+
+  function isFavorite(id) {
+    return getFavorites().includes(id);
+  }
+
+  function toggleFavorite(id) {
+    const arr = getFavorites();
+    const next = arr.includes(id) ? arr.filter((v) => v !== id) : [...arr, id];
+    setFavorites(next);
+    return next.includes(id);
+  }
+
+  function getCompare() {
+    return readJSON(COMPARE_KEY, []);
+  }
+
+  function setCompare(arr) {
+    writeJSON(COMPARE_KEY, arr);
+  }
+
+  function isCompare(id) {
+    return getCompare().includes(id);
+  }
+
+  function toggleCompare(id) {
+    let arr = getCompare();
+    if (arr.includes(id)) {
+      arr = arr.filter((v) => v !== id);
+    } else {
+      if (arr.length >= 3) {
+        arr.shift();
+      }
+      arr.push(id);
+    }
+    setCompare(arr);
+    return arr.includes(id);
+  }
+
+  function calcEMI(principal, annualRate, months) {
+    const p = cleanNumber(principal);
+    const r = Number(annualRate) / 12 / 100;
+    const n = Number(months);
+
+    if (!p || !n) {
+      return { emi: 0, interest: 0, total: 0 };
+    }
+
+    if (!r) {
+      const total = p;
+      const emi = total / n;
+      return { emi, interest: 0, total };
+    }
+
+    const emi = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const total = emi * n;
+    const interest = total - p;
+    return { emi, interest, total };
+  }
+
   function metaItem(label, value) {
     return `
       <div class="metaItem">
@@ -288,6 +378,8 @@
             <a class="btn primary" href="seller.html">Enquire Now</a>
             <a class="btn whatsapp" href="${escapeAttr(buildWhatsAppUrl(item))}" target="_blank" rel="noopener">🟢 WhatsApp</a>
             <button class="btn share" id="sharePropertyBtn" type="button">🔗 Share / Copy Link</button>
+            <button class="btn favorite ${isFavorite(item.id) ? "active" : ""}" id="favoriteBtn" type="button">${isFavorite(item.id) ? "❤️ Saved" : "🤍 Save"}</button>
+            <button class="btn compare ${isCompare(item.id) ? "active" : ""}" id="compareBtn" type="button">${isCompare(item.id) ? "📊 Added" : "📊 Compare"}</button>
           </div>
         </div>
       </section>
@@ -358,9 +450,71 @@
         </div>
       </section>
 
+      <section class="section">
+        <div class="sectionCard">
+          <h2 class="sectionTitle">EMI Calculator</h2>
+          <div class="emiGrid">
+            <div class="emiForm">
+              <div class="formRow">
+                <label class="formLabel" for="emiPrice">Property Price</label>
+                <input class="formInput" id="emiPrice" type="number" value="${cleanNumber(item.price)}" min="0" step="1000" />
+              </div>
+
+              <div class="formRow">
+                <label class="formLabel" for="emiDownPayment">Down Payment</label>
+                <input class="formInput" id="emiDownPayment" type="number" value="${Math.round(cleanNumber(item.price) * 0.2)}" min="0" step="1000" />
+              </div>
+
+              <div class="formRow">
+                <label class="formLabel" for="emiRate">Interest Rate (%)</label>
+                <input class="formInput" id="emiRate" type="number" value="8.5" min="0" step="0.1" />
+              </div>
+
+              <div class="formRow">
+                <label class="formLabel" for="emiYears">Loan Tenure (Years)</label>
+                <select class="formSelect" id="emiYears">
+                  <option value="5">5 Years</option>
+                  <option value="10">10 Years</option>
+                  <option value="15">15 Years</option>
+                  <option value="20" selected>20 Years</option>
+                  <option value="25">25 Years</option>
+                  <option value="30">30 Years</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="emiResult">
+              <div>
+                <div class="formLabel">Estimated Monthly EMI</div>
+                <div class="emiBig" id="emiMonthly">₹0</div>
+              </div>
+
+              <div class="emiSmall">
+                This is an approximate calculation for planning purposes only.
+              </div>
+
+              <div class="emiStat">
+                <div class="emiStatLabel">Loan Amount</div>
+                <div class="emiStatValue" id="emiLoanAmount">₹0</div>
+              </div>
+
+              <div class="emiStat">
+                <div class="emiStatLabel">Total Interest</div>
+                <div class="emiStatValue" id="emiInterest">₹0</div>
+              </div>
+
+              <div class="emiStat">
+                <div class="emiStatLabel">Total Payment</div>
+                <div class="emiStatValue" id="emiTotal">₹0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       ${related.length ? `
         <section class="section">
-          <div class="sectionCard">
+          <div class="sectionCard relatedSectionFix">
             <h2 class="sectionTitle">Related Properties</h2>
             <div class="relatedGrid">
               ${related.map(renderRelatedCard).join("")}
@@ -370,22 +524,50 @@
       ` : ""}
     `;
 
-    const shareBtn = $("sharePropertyBtn");
-    if (shareBtn) {
-      shareBtn.addEventListener("click", () => shareProperty(item));
-    }
+    bindActions(item);
+    bindGallery(item);
+    bindEMI();
   }
 
   function renderHeroMedia(item) {
-    if (item.image) {
+    if (item.images && item.images.length) {
       return `
-        <img
-          src="${escapeAttr(item.image)}"
-          alt="${escapeAttr(item.title)}"
-          onerror="this.parentNode.innerHTML='${escapeForInlineHtml(noImageFallbackHtml(item))}'"
-        />
+        <div class="galleryStage" id="galleryStage">
+          ${item.images.map((src, idx) => `
+            <div class="gallerySlide ${idx === 0 ? "active" : ""}" data-slide="${idx}">
+              <img src="${escapeAttr(src)}" alt="${escapeAttr(item.title)} image ${idx + 1}" onerror="this.parentNode.innerHTML='${escapeForInlineHtml(noImageFallbackHtml(item))}'">
+            </div>
+          `).join("")}
+
+          ${item.images.length > 1 ? `
+            <button class="galleryNav prev" id="galleryPrev" type="button">‹</button>
+            <button class="galleryNav next" id="galleryNext" type="button">›</button>
+            <div class="galleryThumbs" id="galleryThumbs">
+              ${item.images.map((src, idx) => `
+                <button class="galleryThumb ${idx === 0 ? "active" : ""}" type="button" data-thumb="${idx}">
+                  <img src="${escapeAttr(src)}" alt="thumb ${idx + 1}">
+                </button>
+              `).join("")}
+            </div>
+          ` : ""}
+        </div>
       `;
     }
+
+    if (item.image) {
+      return `
+        <div class="galleryStage">
+          <div class="gallerySlide active">
+            <img
+              src="${escapeAttr(item.image)}"
+              alt="${escapeAttr(item.title)}"
+              onerror="this.parentNode.innerHTML='${escapeForInlineHtml(noImageFallbackHtml(item))}'"
+            />
+          </div>
+        </div>
+      `;
+    }
+
     return noImageFallbackHtml(item);
   }
 
@@ -423,6 +605,88 @@
         </div>
       </article>
     `;
+  }
+
+  function bindActions(item) {
+    const shareBtn = $("sharePropertyBtn");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", () => shareProperty(item));
+    }
+
+    const favoriteBtn = $("favoriteBtn");
+    if (favoriteBtn) {
+      favoriteBtn.addEventListener("click", () => {
+        const active = toggleFavorite(item.id);
+        favoriteBtn.classList.toggle("active", active);
+        favoriteBtn.textContent = active ? "❤️ Saved" : "🤍 Save";
+        showInfo(active ? "Property saved to favorites." : "Property removed from favorites.");
+      });
+    }
+
+    const compareBtn = $("compareBtn");
+    if (compareBtn) {
+      compareBtn.addEventListener("click", () => {
+        const active = toggleCompare(item.id);
+        compareBtn.classList.toggle("active", active);
+        compareBtn.textContent = active ? "📊 Added" : "📊 Compare";
+        showInfo(active ? "Property added to compare list." : "Property removed from compare list.");
+      });
+    }
+  }
+
+  function bindGallery(item) {
+    if (!item.images || item.images.length <= 1) return;
+
+    const slides = Array.from(document.querySelectorAll("[data-slide]"));
+    const thumbs = Array.from(document.querySelectorAll("[data-thumb]"));
+    const prev = $("galleryPrev");
+    const next = $("galleryNext");
+    let index = 0;
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((el, idx) => el.classList.toggle("active", idx === index));
+      thumbs.forEach((el, idx) => el.classList.toggle("active", idx === index));
+    }
+
+    if (prev) prev.addEventListener("click", () => show(index - 1));
+    if (next) next.addEventListener("click", () => show(index + 1));
+    thumbs.forEach((btn, idx) => btn.addEventListener("click", () => show(idx)));
+  }
+
+  function bindEMI() {
+    const priceEl = $("emiPrice");
+    const downEl = $("emiDownPayment");
+    const rateEl = $("emiRate");
+    const yearsEl = $("emiYears");
+
+    if (!priceEl || !downEl || !rateEl || !yearsEl) return;
+
+    const monthlyEl = $("emiMonthly");
+    const loanAmountEl = $("emiLoanAmount");
+    const interestEl = $("emiInterest");
+    const totalEl = $("emiTotal");
+
+    function update() {
+      const price = cleanNumber(priceEl.value);
+      const down = cleanNumber(downEl.value);
+      const loanAmount = Math.max(price - down, 0);
+      const rate = Number(rateEl.value || 0);
+      const months = Number(yearsEl.value || 0) * 12;
+      const result = calcEMI(loanAmount, rate, months);
+
+      monthlyEl.textContent = formatINR(Math.round(result.emi));
+      loanAmountEl.textContent = formatINR(Math.round(loanAmount));
+      interestEl.textContent = formatINR(Math.round(result.interest));
+      totalEl.textContent = formatINR(Math.round(result.total));
+    }
+
+    [priceEl, downEl, rateEl, yearsEl].forEach((el) => {
+      el.addEventListener("input", update);
+      el.addEventListener("change", update);
+    });
+
+    update();
   }
 
   function bindStickyBar(item) {
