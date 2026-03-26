@@ -8,11 +8,13 @@
   <link rel="stylesheet" href="property.css" />
 </head>
 <body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
   <header class="topbar">
     <div class="wrap topbarInner">
       <div class="brand">
         <div class="logo">MEI</div>
-        <div>
+        <div class="brandText">
           <div class="brandTitle">MEI Estate</div>
           <div class="brandSub">Property • Approved Listing • Cloud CRM Enquiry</div>
         </div>
@@ -27,13 +29,13 @@
     </div>
   </header>
 
-  <main class="wrap mainWrap">
+  <main id="main" class="wrap mainWrap">
     <div id="modeBanner" class="banner">Loading property source...</div>
     <div id="pageInfo" class="banner warn" style="display:none;"></div>
     <div id="propertyRoot"></div>
   </main>
 
-  <footer>
+  <footer class="footer">
     <div class="wrap footerRow">
       <div>© <span id="yr"></span> MEI Estate</div>
       <div class="footerLinks">
@@ -45,8 +47,6 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
   <script src="property.js"></script>
 </body>
 </html>
