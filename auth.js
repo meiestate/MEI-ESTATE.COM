@@ -2,11 +2,8 @@
   "use strict";
 
   const USERS_KEY = "mei_users_v1";
-  const CURRENT_USER_KEY = "mei_current_user_v1";
+  const SESSION_KEY = "mei_current_user_v1";
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
   function readJSON(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -29,223 +26,97 @@
     }
   }
 
-  function uid() {
-    try {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    } catch (e) {}
-    return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  function cleanPhone(value) {
+    return String(value || "").replace(/[^\d]/g, "").slice(-10);
   }
 
-  function normalizeEmail(email) {
-    return String(email || "").trim().toLowerCase();
+  function makeId(prefix = "USR") {
+    try {
+      if (window.crypto && crypto.randomUUID) {
+        return `${prefix}_${crypto.randomUUID()}`;
+      }
+    } catch (err) {}
+    return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
   }
 
   function normalizeRole(role) {
     const r = String(role || "").trim().toLowerCase();
-    if (["admin", "buyer", "seller", "broker"].includes(r)) return r;
+    if (["admin", "broker", "seller", "buyer"].includes(r)) return r;
     return "buyer";
   }
 
-  // -----------------------------
-  // User store
-  // -----------------------------
-  function getUsers() {
-    const users = readJSON(USERS_KEY, []);
-    return Array.isArray(users) ? users : [];
+  function getAllUsers() {
+    return readJSON(USERS_KEY, []);
   }
 
-  function saveUsers(users) {
+  function saveAllUsers(users) {
     return writeJSON(USERS_KEY, users || []);
   }
 
   function getCurrentUser() {
-    return readJSON(CURRENT_USER_KEY, null);
+    return readJSON(SESSION_KEY, null);
   }
 
   function setCurrentUser(user) {
-    return writeJSON(CURRENT_USER_KEY, user || null);
+    return writeJSON(SESSION_KEY, user || null);
   }
 
-  function clearCurrentUser() {
-    localStorage.removeItem(CURRENT_USER_KEY);
+  function logoutUser() {
+    localStorage.removeItem(SESSION_KEY);
+    window.location.href = "login.html";
   }
 
   function findUserByEmail(email) {
-    const users = getUsers();
-    const e = normalizeEmail(email);
-    return users.find(u => normalizeEmail(u.email) === e) || null;
+    const users = getAllUsers();
+    return users.find(u => String(u.email).toLowerCase() === String(email).toLowerCase()) || null;
   }
 
-  // -----------------------------
-  // Default admin seed
-  // -----------------------------
-  function ensureDefaultAdmin() {
-    const users = getUsers();
-
-    const hasAdmin = users.some(u => normalizeRole(u.role) === "admin");
-    if (hasAdmin) return;
-
-    users.push({
-      id: uid(),
-      name: "Admin",
-      email: "admin@mei.com",
-      password: "admin123",
-      role: "admin",
-      createdAt: new Date().toISOString(),
-      isDefaultAdmin: true
-    });
-
-    saveUsers(users);
-  }
-
-  // -----------------------------
-  // Register
-  // -----------------------------
   function registerUser(payload) {
-    ensureDefaultAdmin();
+    const users = getAllUsers();
 
-    const name = String(payload?.name || "").trim();
-    const email = normalizeEmail(payload?.email || "");
-    const password = String(payload?.password || "").trim();
-    const role = normalizeRole(payload?.role || "buyer");
+    const exists = users.some(
+      u => String(u.email).toLowerCase() === String(payload.email).toLowerCase()
+    );
 
-    if (!name) {
-      return { ok: false, message: "Name is required" };
-    }
-    if (!email) {
-      return { ok: false, message: "Email is required" };
-    }
-    if (!password) {
-      return { ok: false, message: "Password is required" };
-    }
-    if (password.length < 4) {
-      return { ok: false, message: "Password must be at least 4 characters" };
-    }
-
-    const users = getUsers();
-
-    const exists = users.some(u => normalizeEmail(u.email) === email);
     if (exists) {
-      return { ok: false, message: "Email already registered" };
+      throw new Error("இந்த email ஏற்கனவே register ஆகி இருக்கிறது");
     }
 
     const user = {
-      id: uid(),
-      name,
-      email,
-      password,
-      role,
-      createdAt: new Date().toISOString()
+      id: makeId("USR"),
+      name: String(payload.name || "").trim(),
+      phone: cleanPhone(payload.phone || ""),
+      email: String(payload.email || "").trim().toLowerCase(),
+      password: String(payload.password || ""),
+      role: normalizeRole(payload.role),
+      createdAt: new Date().toISOString(),
+      status: "active"
     };
 
-    users.push(user);
-    saveUsers(users);
-
-    return {
-      ok: true,
-      message: "Registration successful",
-      user
-    };
+    users.unshift(user);
+    saveAllUsers(users);
+    return user;
   }
 
-  // -----------------------------
-  // Login
-  // -----------------------------
   function loginUser(email, password) {
-    ensureDefaultAdmin();
-
-    const e = normalizeEmail(email);
-    const p = String(password || "");
-
-    if (!e || !p) {
-      return { ok: false, message: "Email and password are required" };
+    const user = findUserByEmail(email);
+    if (!user) throw new Error("User account கிடைக்கவில்லை");
+    if (String(user.password) !== String(password)) {
+      throw new Error("Password தவறு");
     }
 
-    const users = getUsers();
-    const user = users.find(
-      u => normalizeEmail(u.email) === e && String(u.password || "") === p
-    );
-
-    if (!user) {
-      return { ok: false, message: "Invalid email or password" };
-    }
-
-    const safeUser = {
+    setCurrentUser({
       id: user.id,
       name: user.name,
+      phone: user.phone,
       email: user.email,
-      role: normalizeRole(user.role),
-      createdAt: user.createdAt || "",
-      loginAt: new Date().toISOString()
-    };
+      role: user.role,
+      createdAt: user.createdAt
+    });
 
-    setCurrentUser(safeUser);
-
-    return {
-      ok: true,
-      message: "Login successful",
-      user: safeUser
-    };
+    return user;
   }
 
-  // -----------------------------
-  // Logout
-  // -----------------------------
-  function logoutUser(redirectUrl = "login.html") {
-    clearCurrentUser();
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    }
-  }
-
-  // -----------------------------
-  // Role checks
-  // -----------------------------
-  function isLoggedIn() {
-    return !!getCurrentUser();
-  }
-
-  function hasRole(allowedRoles = []) {
-    const user = getCurrentUser();
-    if (!user) return false;
-
-    const role = normalizeRole(user.role);
-    const allowed = (allowedRoles || []).map(normalizeRole);
-
-    return allowed.includes(role);
-  }
-
-  function requireLogin(redirectUrl = "login.html") {
-    const user = getCurrentUser();
-    if (!user) {
-      window.location.href = redirectUrl;
-      return false;
-    }
-    return true;
-  }
-
-  function requireRole(allowedRoles = [], redirectUrl = "login.html") {
-    const user = getCurrentUser();
-
-    if (!user) {
-      window.location.href = redirectUrl;
-      return false;
-    }
-
-    const role = normalizeRole(user.role);
-    const allowed = (allowedRoles || []).map(normalizeRole);
-
-    if (!allowed.includes(role)) {
-      redirectByRole(role);
-      return false;
-    }
-
-    return true;
-  }
-
-  // -----------------------------
-  // Redirect helpers
-  // -----------------------------
   function redirectByRole(role) {
     const r = normalizeRole(role);
 
@@ -254,158 +125,186 @@
       return;
     }
 
-    if (r === "buyer") {
-      window.location.href = "buyer.html";
+    if (r === "broker") {
+      window.location.href = "crm.html";
       return;
     }
 
     if (r === "seller") {
-      window.location.href = "seller-dashboard.html";
+      window.location.href = "seller.html";
       return;
     }
 
-    if (r === "broker") {
-      window.location.href = "broker-dashboard.html";
+    if (r === "buyer") {
+      window.location.href = "buyer.html";
       return;
     }
 
     window.location.href = "index.html";
   }
 
-  function redirectCurrentUser() {
+  function ensureDemoUsers() {
+    const users = getAllUsers();
+    if (users.length) return;
+
+    saveAllUsers([
+      {
+        id: makeId("USR"),
+        name: "MEI Admin",
+        phone: "9999999999",
+        email: "admin@mei.com",
+        password: "123456",
+        role: "admin",
+        createdAt: new Date().toISOString(),
+        status: "active"
+      },
+      {
+        id: makeId("USR"),
+        name: "Raj Broker",
+        phone: "9888888888",
+        email: "broker@mei.com",
+        password: "123456",
+        role: "broker",
+        createdAt: new Date().toISOString(),
+        status: "active"
+      },
+      {
+        id: makeId("USR"),
+        name: "Lavanya Seller",
+        phone: "9777777777",
+        email: "seller@mei.com",
+        password: "123456",
+        role: "seller",
+        createdAt: new Date().toISOString(),
+        status: "active"
+      },
+      {
+        id: makeId("USR"),
+        name: "Arun Buyer",
+        phone: "9666666666",
+        email: "buyer@mei.com",
+        password: "123456",
+        role: "buyer",
+        createdAt: new Date().toISOString(),
+        status: "active"
+      }
+    ]);
+  }
+
+  function requireAuth() {
     const user = getCurrentUser();
     if (!user) {
       window.location.href = "login.html";
-      return;
+      return null;
     }
-    redirectByRole(user.role);
+    return user;
   }
 
-  // -----------------------------
-  // Optional page helpers
-  // -----------------------------
-  function handleRegisterForm(formSelector, options = {}) {
-    const form = document.querySelector(formSelector);
+  function requireRole(allowedRoles = []) {
+    const user = requireAuth();
+    if (!user) return null;
+
+    const allowed = (allowedRoles || []).map(normalizeRole);
+    if (!allowed.includes(normalizeRole(user.role))) {
+      redirectByRole(user.role);
+      return null;
+    }
+    return user;
+  }
+
+  function bindRegister() {
+    const form = document.getElementById("registerForm");
     if (!form) return;
 
-    const {
-      nameSelector = '[name="name"]',
-      emailSelector = '[name="email"]',
-      passwordSelector = '[name="password"]',
-      roleSelector = '[name="role"]',
-      messageSelector = '[data-auth-message]',
-      autoLogin = true
-    } = options;
-
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", e => {
       e.preventDefault();
 
-      const nameEl = form.querySelector(nameSelector);
-      const emailEl = form.querySelector(emailSelector);
-      const passwordEl = form.querySelector(passwordSelector);
-      const roleEl = form.querySelector(roleSelector);
-      const msgEl = document.querySelector(messageSelector);
+      const payload = {
+        name: document.getElementById("regName").value.trim(),
+        phone: document.getElementById("regPhone").value.trim(),
+        email: document.getElementById("regEmail").value.trim(),
+        password: document.getElementById("regPassword").value,
+        role: document.getElementById("regRole").value
+      };
 
-      const result = registerUser({
-        name: nameEl ? nameEl.value : "",
-        email: emailEl ? emailEl.value : "",
-        password: passwordEl ? passwordEl.value : "",
-        role: roleEl ? roleEl.value : "buyer"
-      });
-
-      if (msgEl) {
-        msgEl.textContent = result.message;
-        msgEl.style.color = result.ok ? "#00ff96" : "#ff4d7a";
+      if (!payload.name || !payload.phone || !payload.email || !payload.password || !payload.role) {
+        alert("எல்லா fields-யும் fill பண்ணுங்கள்");
+        return;
       }
 
-      if (!result.ok) return;
-
-      if (autoLogin) {
-        const loginResult = loginUser(
-          emailEl ? emailEl.value : "",
-          passwordEl ? passwordEl.value : ""
-        );
-
-        if (loginResult.ok) {
-          redirectByRole(loginResult.user.role);
-          return;
-        }
+      if (payload.password.length < 6) {
+        alert("Password குறைந்தது 6 characters இருக்க வேண்டும்");
+        return;
       }
 
-      window.location.href = "login.html";
+      try {
+        const user = registerUser(payload);
+        setCurrentUser({
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        });
+        alert("Registration success");
+        redirectByRole(user.role);
+      } catch (err) {
+        alert(err.message || "Registration failed");
+      }
     });
   }
 
-  function handleLoginForm(formSelector, options = {}) {
-    const form = document.querySelector(formSelector);
+  function bindLogin() {
+    const form = document.getElementById("loginForm");
     if (!form) return;
 
-    const {
-      emailSelector = '[name="email"]',
-      passwordSelector = '[name="password"]',
-      messageSelector = '[data-auth-message]'
-    } = options;
-
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", e => {
       e.preventDefault();
 
-      const emailEl = form.querySelector(emailSelector);
-      const passwordEl = form.querySelector(passwordSelector);
-      const msgEl = document.querySelector(messageSelector);
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
 
-      const result = loginUser(
-        emailEl ? emailEl.value : "",
-        passwordEl ? passwordEl.value : ""
-      );
-
-      if (msgEl) {
-        msgEl.textContent = result.message;
-        msgEl.style.color = result.ok ? "#00ff96" : "#ff4d7a";
+      if (!email || !password) {
+        alert("Email and password enter பண்ணுங்கள்");
+        return;
       }
 
-      if (!result.ok) return;
-
-      redirectByRole(result.user.role);
+      try {
+        const user = loginUser(email, password);
+        alert("Login success");
+        redirectByRole(user.role);
+      } catch (err) {
+        alert(err.message || "Login failed");
+      }
     });
   }
 
-  // -----------------------------
-  // Init
-  // -----------------------------
-  ensureDefaultAdmin();
+  function autoRedirectIfLoggedIn() {
+    const user = getCurrentUser();
+    const page = location.pathname.split("/").pop().toLowerCase();
 
-  // -----------------------------
-  // Expose globally
-  // -----------------------------
-  window.MEIAuth = {
-    getUsers,
-    saveUsers,
-    getCurrentUser,
-    setCurrentUser,
-    clearCurrentUser,
-    registerUser,
-    loginUser,
-    logoutUser,
-    isLoggedIn,
-    hasRole,
-    requireLogin,
-    requireRole,
-    redirectByRole,
-    redirectCurrentUser,
-    handleRegisterForm,
-    handleLoginForm,
-    ensureDefaultAdmin,
-    findUserByEmail
-  };
+    if (!user) return;
 
-  // direct global helpers for old pages
-  window.getUsers = getUsers;
+    if (page === "login.html" || page === "register.html") {
+      redirectByRole(user.role);
+    }
+  }
+
+  ensureDemoUsers();
+  bindRegister();
+  bindLogin();
+  autoRedirectIfLoggedIn();
+
+  window.getAllUsers = getAllUsers;
+  window.saveAllUsers = saveAllUsers;
   window.getCurrentUser = getCurrentUser;
-  window.registerUser = registerUser;
+  window.setCurrentUser = setCurrentUser;
   window.loginUser = loginUser;
+  window.registerUser = registerUser;
   window.logoutUser = logoutUser;
-  window.requireLogin = requireLogin;
+  window.requireAuth = requireAuth;
   window.requireRole = requireRole;
-  window.redirectCurrentUser = redirectCurrentUser;
+  window.redirectByRole = redirectByRole;
 })();
 

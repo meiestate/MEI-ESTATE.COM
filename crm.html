@@ -1,107 +1,273 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ta">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRM Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI CRM Workspace</title>
   <link rel="stylesheet" href="crm.css" />
 </head>
 <body>
-  <div class="crm-layout">
-    <aside class="sidebar">
-      <h2>MEI SaaS</h2>
-      <nav>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="crm.html" class="active">CRM</a>
-        <a href="add-property.html">Add Property</a>
-        <a href="listings.html">Listings</a>
-        <a href="broker-network.html">Broker Network</a>
+  <div class="crmApp">
+    <aside class="crmSidebar">
+      <div class="crmBrand">
+        <div class="crmLogo">MEI</div>
+        <div>
+          <div class="crmBrandTitle">CRM Workspace</div>
+          <div class="crmBrandSub">Sales follow-up engine</div>
+        </div>
+      </div>
+
+      <nav class="crmNav">
+        <a class="crmNavBtn active" href="crm.html">📇 CRM</a>
+        <a class="crmNavBtn" href="dashboard.html">📊 Dashboard</a>
+        <a class="crmNavBtn" href="listings.html">📋 Listings</a>
+        <a class="crmNavBtn" href="add-property.html">➕ Add Property</a>
+        <a class="crmNavBtn" href="index.html">🏠 Public Site</a>
       </nav>
+
+      <div class="sideCard">
+        <div class="sideCardTitle">Quick Actions</div>
+        <button class="sideBtn" data-action="seedDemo">✨ Seed Demo</button>
+        <button class="sideBtn warn" data-action="resetData">🧨 Reset Data</button>
+      </div>
     </aside>
 
-    <main class="main-content">
-      <header class="topbar">
+    <main class="crmMain">
+      <header class="crmHeader">
         <div>
-          <h1>CRM Management</h1>
-          <p>Leads, follow-ups, broker assignment, sales flow</p>
+          <h1>MEI CRM</h1>
+          <p>Buyer leads, follow-ups, broker assignment, notes, and closures</p>
+        </div>
+        <div class="crmHeaderActions">
+          <button class="btn" data-action="refresh">🔄 Refresh</button>
+          <button class="btn primary" data-open-modal="newLead">➕ Add Lead</button>
         </div>
       </header>
 
-      <section class="stats-grid">
-        <div class="stat-card">
-          <h3>Total Leads</h3>
-          <p id="totalLeads">0</p>
-        </div>
-        <div class="stat-card">
-          <h3>New Leads</h3>
-          <p id="newLeads">0</p>
-        </div>
-        <div class="stat-card">
-          <h3>Site Visits</h3>
-          <p id="siteVisits">0</p>
-        </div>
-        <div class="stat-card">
-          <h3>Won Deals</h3>
-          <p id="wonDeals">0</p>
-        </div>
-      </section>
+      <section class="statsGrid" id="statsGrid"></section>
 
-      <section class="crm-panels">
-        <div class="panel form-panel">
-          <h2>Add New Lead</h2>
-          <form id="leadForm">
-            <input type="text" id="customerName" placeholder="Customer Name" required />
-            <input type="text" id="phone" placeholder="Phone Number" required />
-            <input type="email" id="email" placeholder="Email Address" />
-            <input type="text" id="city" placeholder="City" required />
-            <input type="text" id="budget" placeholder="Budget" />
-            <input type="text" id="propertyLink" placeholder="Property Title / ID" />
-            <input type="text" id="assignedBroker" placeholder="Assigned Broker" />
+      <section class="topGrid">
+        <div class="panel">
+          <div class="panelHeader">
+            <div>
+              <div class="panelTitle">Lead Capture</div>
+              <div class="panelSub">Add new buyer enquiry into CRM</div>
+            </div>
+          </div>
 
-            <select id="status">
-              <option value="New">New</option>
-              <option value="Contacted">Contacted</option>
-              <option value="Qualified">Qualified</option>
-              <option value="Site Visit">Site Visit</option>
-              <option value="Negotiation">Negotiation</option>
-              <option value="Won">Won</option>
-              <option value="Lost">Lost</option>
-            </select>
-
-            <input type="date" id="followUpDate" />
-            <textarea id="notes" placeholder="Lead notes"></textarea>
-
-            <button type="submit">Save Lead</button>
+          <form id="leadForm" class="formGrid">
+            <div>
+              <label class="label" for="leadBuyerName">Buyer Name</label>
+              <input id="leadBuyerName" placeholder="Eg: Arun Kumar" required />
+            </div>
+            <div>
+              <label class="label" for="leadBuyerPhone">Phone</label>
+              <input id="leadBuyerPhone" placeholder="Eg: 9876543210" required />
+            </div>
+            <div>
+              <label class="label" for="leadBuyerCity">City</label>
+              <input id="leadBuyerCity" placeholder="Eg: Bangalore" />
+            </div>
+            <div>
+              <label class="label" for="leadSource">Source</label>
+              <select id="leadSource">
+                <option value="website">Website</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="broker">Broker</option>
+                <option value="call">Call</option>
+                <option value="walkin">Walk-in</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="leadListingTitle">Listing Title</label>
+              <input id="leadListingTitle" placeholder="Eg: 2 BHK Apartment in Whitefield" />
+            </div>
+            <div>
+              <label class="label" for="leadListingId">Listing ID</label>
+              <input id="leadListingId" placeholder="Eg: demo1" />
+            </div>
+            <div>
+              <label class="label" for="leadAssignedTo">Assign Broker</label>
+              <select id="leadAssignedTo">
+                <option value="">Unassigned</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="leadStatus">Status</label>
+              <select id="leadStatus">
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="leadFollowUp">Follow-up Date</label>
+              <input id="leadFollowUp" type="date" />
+            </div>
+            <div class="full">
+              <label class="label" for="leadMessage">Enquiry Message</label>
+              <textarea id="leadMessage" placeholder="Customer requirement / site visit note / budget note"></textarea>
+            </div>
+            <div class="full">
+              <label class="label" for="leadNotes">Internal Notes</label>
+              <textarea id="leadNotes" placeholder="Internal follow-up notes"></textarea>
+            </div>
+            <div class="full formActions">
+              <button class="btn primary" type="submit">✅ Save Lead</button>
+              <button class="btn" type="reset">↺ Clear</button>
+            </div>
           </form>
         </div>
 
-        <div class="panel list-panel">
-          <div class="list-header">
-            <h2>Lead List</h2>
-            <input type="text" id="searchLead" placeholder="Search by name / city / broker" />
+        <div class="stack">
+          <div class="panel">
+            <div class="panelHeader">
+              <div>
+                <div class="panelTitle">Today Focus</div>
+                <div class="panelSub">Leads that need attention right now</div>
+              </div>
+            </div>
+            <div class="miniList" id="todayFocusList"></div>
           </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>City</th>
-                  <th>Status</th>
-                  <th>Broker</th>
-                  <th>Follow-up</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="leadTableBody"></tbody>
-            </table>
+          <div class="panel">
+            <div class="panelHeader">
+              <div>
+                <div class="panelTitle">Broker Load</div>
+                <div class="panelSub">How buyer leads are distributed</div>
+              </div>
+            </div>
+            <div class="miniList" id="brokerLoadList"></div>
           </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHeader">
+          <div>
+            <div class="panelTitle">Lead Pipeline</div>
+            <div class="panelSub">Search, filter, assign, edit, follow-up, close</div>
+          </div>
+          <div class="panelActions">
+            <span class="pill">Total <b id="totalLeadCount">0</b></span>
+            <button class="btn small" data-action="markTodayFollowup">📅 Today Follow-up</button>
+            <button class="btn small success" data-action="exportLeads">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <input id="searchLeads" placeholder="Search buyer / listing / phone / notes..." />
+          <select id="filterBroker">
+            <option value="ALL">All Brokers</option>
+            <option value="__UNASSIGNED__">Unassigned</option>
+          </select>
+          <select id="filterStatus">
+            <option value="ALL">All Status</option>
+            <option value="NEW">NEW</option>
+            <option value="CONTACTED">CONTACTED</option>
+            <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
+            <option value="CLOSED">CLOSED</option>
+            <option value="ARCHIVED">ARCHIVED</option>
+          </select>
+          <select id="filterOverdue">
+            <option value="ALL">All</option>
+            <option value="OVERDUE">Overdue Only</option>
+            <option value="TODAY">Today</option>
+            <option value="NO_FOLLOWUP">No Follow-up</option>
+          </select>
+        </div>
+
+        <div class="tableWrap">
+          <table class="crmTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Buyer</th>
+                <th>Phone</th>
+                <th>Listing</th>
+                <th>Assigned</th>
+                <th>Status</th>
+                <th>Follow-up</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="crmTableBody"></tbody>
+          </table>
         </div>
       </section>
     </main>
   </div>
 
+  <div id="leadModalBack" class="modalBack" hidden>
+    <div class="modal">
+      <div class="modalHeader">
+        <div>
+          <div class="modalTitle">Edit Lead</div>
+          <div class="modalSub" id="modalLeadMeta">Lead info</div>
+        </div>
+        <button class="btn small" data-action="closeModal">✕ Close</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="formGrid">
+          <div>
+            <label class="label" for="mBuyerName">Buyer Name</label>
+            <input id="mBuyerName" />
+          </div>
+          <div>
+            <label class="label" for="mBuyerPhone">Phone</label>
+            <input id="mBuyerPhone" />
+          </div>
+          <div>
+            <label class="label" for="mBuyerCity">City</label>
+            <input id="mBuyerCity" />
+          </div>
+          <div>
+            <label class="label" for="mAssigned">Assigned Broker</label>
+            <select id="mAssigned"></select>
+          </div>
+          <div>
+            <label class="label" for="mStatus">Status</label>
+            <select id="mStatus">
+              <option value="NEW">NEW</option>
+              <option value="CONTACTED">CONTACTED</option>
+              <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
+              <option value="CLOSED">CLOSED</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="mFollowUp">Follow-up Date</label>
+            <input id="mFollowUp" type="date" />
+          </div>
+          <div class="full">
+            <label class="label" for="mListingTitle">Listing Title</label>
+            <input id="mListingTitle" />
+          </div>
+          <div class="full">
+            <label class="label" for="mMessage">Message</label>
+            <textarea id="mMessage"></textarea>
+          </div>
+          <div class="full">
+            <label class="label" for="mNotes">Notes</label>
+            <textarea id="mNotes"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        <button class="btn" data-action="closeModal">Cancel</button>
+        <button class="btn success" data-action="saveModal">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toastStack" id="toastStack"></div>
+
+  <script src="app.js"></script>
   <script src="crm.js"></script>
 </body>
 </html>

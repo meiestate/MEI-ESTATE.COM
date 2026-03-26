@@ -4,80 +4,51 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MEI Login</title>
-  <link rel="stylesheet" href="login.css" />
+  <link rel="stylesheet" href="auth.css" />
 </head>
 <body>
-  <main class="authPage">
-    <section class="authShell">
-      <div class="brandSide">
-        <div class="brandBadge">⚡ MEI Estate SaaS</div>
-        <h1>Welcome back</h1>
-        <p>
-          Real estate workflow-ஐ smart-a handle பண்ண,  
-          admin workspace, buyer flow, broker coordination — எல்லாம் ஒரே roof கீழ்.
-        </p>
-
-        <div class="featureList">
-          <div class="featureItem">✅ Admin dashboard access</div>
-          <div class="featureItem">✅ Role-based login redirect</div>
-          <div class="featureItem">✅ Leads + approvals + CRM flow</div>
+  <div class="authShell">
+    <div class="authCard">
+      <div class="authBrand">
+        <div class="authLogo">MEI</div>
+        <div>
+          <h1>Welcome Back</h1>
+          <p>Login to access your workspace</p>
         </div>
       </div>
 
-      <div class="formSide">
-        <div class="card">
-          <div class="topBlock">
-            <div class="miniBadge">Login</div>
-            <h2>Sign in to MEI</h2>
-            <p class="muted">உங்கள் account மூலம் login செய்யுங்கள்.</p>
-          </div>
-
-          <div class="demoBox">
-            <div class="demoTitle">Default Admin</div>
-            <div class="demoRow"><span>Email:</span> <b>admin@mei.com</b></div>
-            <div class="demoRow"><span>Password:</span> <b>admin123</b></div>
-            <button type="button" id="fillAdminBtn" class="ghostBtn">Use Admin Demo</button>
-          </div>
-
-          <form id="loginForm" novalidate>
-            <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required />
-            </div>
-
-            <div class="field">
-              <label for="password">Password</label>
-              <div class="passwordWrap">
-                <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
-                <button type="button" id="togglePassword" class="toggleBtn" aria-label="Show password">👁</button>
-              </div>
-            </div>
-
-            <div class="formMeta">
-              <label class="checkRow">
-                <input type="checkbox" id="rememberMe" />
-                <span>Remember me</span>
-              </label>
-
-              <a href="register.html" class="textLink">Create account</a>
-            </div>
-
-            <button type="submit" class="primaryBtn" id="loginBtn">Login</button>
-
-            <div id="msg" data-auth-message class="msg" aria-live="polite"></div>
-          </form>
-
-          <div class="bottomNote">
-            New here?
-            <a href="register.html">Register your account</a>
-          </div>
+      <form id="loginForm" class="authForm">
+        <div>
+          <label class="label" for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="Enter email" required />
         </div>
+
+        <div>
+          <label class="label" for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="Enter password" required />
+        </div>
+
+        <button type="submit" class="btn primary full">🔐 Login</button>
+      </form>
+
+      <div class="authFooter">
+        New here?
+        <a href="register.html">Create account</a>
       </div>
-    </section>
-  </main>
+
+      <div class="demoBox">
+        <div class="demoTitle">Quick Demo Accounts</div>
+        <div class="demoLine">Admin: <b>admin@mei.com</b> / <b>123456</b></div>
+        <div class="demoLine">Broker: <b>broker@mei.com</b> / <b>123456</b></div>
+        <div class="demoLine">Seller: <b>seller@mei.com</b> / <b>123456</b></div>
+        <div class="demoLine">Buyer: <b>buyer@mei.com</b> / <b>123456</b></div>
+      </div>
+    </div>
+  </div>
 
   <script src="auth.js"></script>
-  <script src="login.js"></script>
 </body>
 </html>
+
+
 

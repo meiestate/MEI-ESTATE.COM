@@ -1,99 +1,64 @@
- <!doctype html>
+<!doctype html>
 <html lang="ta">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MEI Register</title>
-  <link rel="stylesheet" href="register.css" />
+  <link rel="stylesheet" href="auth.css" />
 </head>
 <body>
-  <main class="authPage">
-    <section class="authShell">
-      <div class="brandSide">
-        <div class="brandBadge">🚀 MEI Estate SaaS</div>
-        <h1>Create your account</h1>
-        <p>
-          ஒரு நல்ல platform ஒரு நல்ல door மாதிரி.  
-          சரியான login-ல் தான் சரியான workspace திறக்கும்.
-        </p>
-
-        <div class="featureList">
-          <div class="featureItem">✅ Admin / Buyer / Seller / Broker roles</div>
-          <div class="featureItem">✅ Role-based dashboard redirect</div>
-          <div class="featureItem">✅ Clean local auth workflow</div>
+  <div class="authShell">
+    <div class="authCard">
+      <div class="authBrand">
+        <div class="authLogo">MEI</div>
+        <div>
+          <h1>Create Account</h1>
+          <p>Join the MEI platform</p>
         </div>
       </div>
 
-      <div class="formSide">
-        <div class="card">
-          <div class="topBlock">
-            <div class="miniBadge">Register</div>
-            <h2>Create MEI account</h2>
-            <p class="muted">உங்கள் பெயர், email, password கொடுத்து account create செய்யுங்கள்.</p>
-          </div>
-
-          <form id="registerForm" novalidate>
-            <div class="field">
-              <label for="name">Full Name</label>
-              <input id="name" name="name" type="text" placeholder="Enter your full name" autocomplete="name" required />
-            </div>
-
-            <div class="field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required />
-            </div>
-
-            <div class="field">
-              <label for="role">Role</label>
-              <select id="role" name="role">
-                <option value="buyer">Buyer</option>
-                <option value="seller">Seller</option>
-                <option value="broker">Broker</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="password">Password</label>
-              <div class="passwordWrap">
-                <input id="password" name="password" type="password" placeholder="Create password" autocomplete="new-password" required />
-                <button type="button" id="togglePassword" class="toggleBtn" aria-label="Show password">👁</button>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="confirmPassword">Confirm Password</label>
-              <div class="passwordWrap">
-                <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Re-enter password" autocomplete="new-password" required />
-                <button type="button" id="toggleConfirmPassword" class="toggleBtn" aria-label="Show confirm password">👁</button>
-              </div>
-            </div>
-
-            <div class="formMeta">
-              <label class="checkRow">
-                <input type="checkbox" id="agreeTerms" />
-                <span>I agree to basic account rules</span>
-              </label>
-
-              <a href="login.html" class="textLink">Already have account?</a>
-            </div>
-
-            <button type="submit" class="primaryBtn" id="registerBtn">Create Account</button>
-
-            <div id="msg" data-auth-message class="msg" aria-live="polite"></div>
-          </form>
-
-          <div class="bottomNote">
-            Already registered?
-            <a href="login.html">Go to login</a>
-          </div>
+      <form id="registerForm" class="authForm">
+        <div>
+          <label class="label" for="regName">Full Name</label>
+          <input id="regName" type="text" placeholder="Enter full name" required />
         </div>
+
+        <div>
+          <label class="label" for="regPhone">Phone</label>
+          <input id="regPhone" type="text" placeholder="Enter phone number" required />
+        </div>
+
+        <div>
+          <label class="label" for="regEmail">Email</label>
+          <input id="regEmail" type="email" placeholder="Enter email" required />
+        </div>
+
+        <div>
+          <label class="label" for="regPassword">Password</label>
+          <input id="regPassword" type="password" placeholder="Create password" required />
+        </div>
+
+        <div>
+          <label class="label" for="regRole">Role</label>
+          <select id="regRole" required>
+            <option value="">Select role</option>
+            <option value="buyer">Buyer</option>
+            <option value="seller">Seller</option>
+            <option value="broker">Broker</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn primary full">✅ Register</button>
+      </form>
+
+      <div class="authFooter">
+        Already have account?
+        <a href="login.html">Login here</a>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
   <script src="auth.js"></script>
-  <script src="register.js"></script>
 </body>
 </html>
 

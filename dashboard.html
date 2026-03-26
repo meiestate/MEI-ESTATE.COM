@@ -1,308 +1,491 @@
 <!doctype html>
-<html lang="en">
+<html lang="ta">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MEI Estate — Admin Dashboard</title>
+  <title>MEI Admin SaaS Dashboard</title>
   <link rel="stylesheet" href="dashboard.css" />
 </head>
 <body>
-  <div class="shell">
-    <aside class="sidebar" id="sidebar">
+  <div class="app">
+    <aside class="sidebar">
       <div class="brand">
         <div class="brandLogo">MEI</div>
         <div>
-          <h1>MEI Estate</h1>
-          <p>Admin SaaS</p>
+          <div class="brandTitle">Admin SaaS</div>
+          <div class="brandSub">Real launch control room</div>
         </div>
       </div>
 
-      <nav class="nav">
-        <button class="navLink active" data-tab="overview">Overview</button>
-        <button class="navLink" data-tab="properties">Properties</button>
-        <button class="navLink" data-tab="buyers">Buyer Leads</button>
-        <button class="navLink" data-tab="sellers">Seller Leads</button>
-        <button class="navLink" data-tab="materials">Material Leads</button>
-        <button class="navLink" data-tab="services">Service Leads</button>
-        <button class="navLink" data-tab="brokers">Broker Network</button>
-        <button class="navLink" data-tab="export">Export</button>
-      </nav>
+      <div class="navGroup">
+        <div class="navLabel">Overview</div>
+        <button class="navBtn active" data-section="dashboard">
+          <span>📊 Dashboard</span><span class="navMeta">Live KPIs</span>
+        </button>
+        <button class="navBtn" data-section="properties">
+          <span>🏠 Properties</span><span class="navMeta" id="navPendingCount">0 pending</span>
+        </button>
+        <button class="navBtn" data-section="buyers">
+          <span>👤 Buyer Leads</span><span class="navMeta" id="navBuyerCount">0 leads</span>
+        </button>
+        <button class="navBtn" data-section="sellers">
+          <span>🏷 Seller Leads</span><span class="navMeta" id="navSellerCount">0 leads</span>
+        </button>
+        <button class="navBtn" data-section="materials">
+          <span>🏗 Materials</span><span class="navMeta" id="navMaterialCount">0 leads</span>
+        </button>
+        <button class="navBtn" data-section="services">
+          <span>🛠 Services</span><span class="navMeta" id="navServiceCount">0 leads</span>
+        </button>
+      </div>
+
+      <div class="navGroup">
+        <div class="navLabel">Operations</div>
+        <button class="navBtn" data-section="brokers"><span>🤝 Brokers</span><span class="navMeta">Master data</span></button>
+        <button class="navBtn" data-section="automation"><span>💬 Automation</span><span class="navMeta">WhatsApp template</span></button>
+        <button class="navBtn" data-section="exports"><span>⬇ Exports</span><span class="navMeta">CSV downloads</span></button>
+      </div>
+
+      <div class="navGroup">
+        <div class="navLabel">Launch links</div>
+        <a class="navBtn" href="index.html"><span>🏠 Public site</span><span class="navMeta">Open home</span></a>
+        <a class="navBtn" href="listings.html"><span>📋 Listings</span><span class="navMeta">Live inventory</span></a>
+        <a class="navBtn" href="add-property.html"><span>➕ Add property</span><span class="navMeta">Broker upload</span></a>
+        <a class="navBtn" href="crm.html"><span>📇 CRM</span><span class="navMeta">Sales workspace</span></a>
+      </div>
     </aside>
 
     <main class="main">
-      <header class="topbar">
-        <div>
-          <h2 id="pageTitle">Admin Dashboard</h2>
-          <p class="muted">Control center for your real-estate SaaS workspace</p>
-        </div>
-
-        <div class="headerActions">
-          <button class="btn ghost" id="seedBtn">Seed Demo</button>
-          <button class="btn primary" id="refreshBtn">Refresh</button>
-
-          <div class="userBox">
-            <span id="currentUserText">User</span>
-            <button class="btn" onclick="logoutUser()">Logout</button>
+      <header class="header">
+        <div class="headerLeft">
+          <div>
+            <div class="headerTitle">MEI Real Estate Admin Dashboard</div>
+            <div class="headerSub">Property approval, broker assignment, lead operations, exports, automation</div>
           </div>
+        </div>
+        <div class="headerActions">
+          <button class="btn" data-action="refresh">🔄 Refresh</button>
+          <button class="btn success" data-action="syncDemo">✨ Seed Demo</button>
+          <button class="btn danger" data-action="resetDemo">🧨 Reset Demo</button>
         </div>
       </header>
 
-      <section class="view active" id="view-overview">
-        <div class="statsGrid">
-          <div class="card statCard">
-            <span class="statLabel">Total Properties</span>
-            <strong id="statProperties">0</strong>
-          </div>
-          <div class="card statCard">
-            <span class="statLabel">Buyer Leads</span>
-            <strong id="statBuyerLeads">0</strong>
-          </div>
-          <div class="card statCard">
-            <span class="statLabel">Seller Leads</span>
-            <strong id="statSellerLeads">0</strong>
-          </div>
-          <div class="card statCard">
-            <span class="statLabel">Material Leads</span>
-            <strong id="statMaterialLeads">0</strong>
-          </div>
-          <div class="card statCard">
-            <span class="statLabel">Service Leads</span>
-            <strong id="statServiceLeads">0</strong>
-          </div>
-          <div class="card statCard">
-            <span class="statLabel">Broker Network</span>
-            <strong id="statBrokers">0</strong>
-          </div>
-        </div>
+      <div class="container">
+        <section id="section-dashboard" class="section active">
+          <div class="gridStats" id="kpiGrid"></div>
 
-        <div class="grid2">
+          <div class="layout2">
+            <div class="stack">
+              <div class="card">
+                <div class="cardHeader">
+                  <div>
+                    <div class="cardTitle">Approval Queue</div>
+                    <div class="cardSub">Pending listings that need admin action before public visibility</div>
+                  </div>
+                  <div class="toolbar">
+                    <span class="pill">Pending <b id="dashPendingPill">0</b></span>
+                    <button class="btn small primary" data-goto="properties">Open queue</button>
+                  </div>
+                </div>
+                <div class="tableWrap">
+                  <table>
+                    <thead><tr><th>Listing</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody id="dashPendingBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="cardHeader">
+                  <div>
+                    <div class="cardTitle">Overdue Buyer Follow-ups</div>
+                    <div class="cardSub">These leads need immediate callback or WhatsApp action</div>
+                  </div>
+                  <button class="btn small warn" data-goto="buyers">Open buyer leads</button>
+                </div>
+                <div class="tableWrap">
+                  <table>
+                    <thead><tr><th>Buyer</th><th>Listing</th><th>Follow-up</th><th>Action</th></tr></thead>
+                    <tbody id="dashOverdueBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="stack">
+              <div class="card">
+                <div class="cardHeader">
+                  <div>
+                    <div class="cardTitle">Quick Health</div>
+                    <div class="cardSub">Launch-readiness snapshot</div>
+                  </div>
+                </div>
+                <div class="cardBody">
+                  <div class="kpiList" id="healthList"></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="cardHeader">
+                  <div>
+                    <div class="cardTitle">Broker Allocation</div>
+                    <div class="cardSub">See how many buyer leads each broker handles</div>
+                  </div>
+                </div>
+                <div class="cardBody">
+                  <div class="kpiList" id="brokerAllocation"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="section-properties" class="section">
           <div class="card">
-            <div class="sectionHead">
-              <h3>Quick Actions</h3>
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Property Approval Center</div>
+                <div class="cardSub">Real-launch workflow: upload → moderation → approve → public listing</div>
+              </div>
+              <div class="toolbar">
+                <span class="pill">Pending <b id="propertiesPendingCount">0</b></span>
+                <span class="pill">Approved <b id="propertiesApprovedCount">0</b></span>
+              </div>
             </div>
-            <div class="quickActions">
-              <button class="btn primary qa" data-jump="properties">Add Property</button>
-              <button class="btn qa" data-jump="buyers">View Buyer Leads</button>
-              <button class="btn qa" data-jump="sellers">View Seller Leads</button>
-              <button class="btn qa" data-jump="brokers">Broker Network</button>
-              <button class="btn qa" data-jump="export">Export Data</button>
+            <div class="filters compact">
+              <input id="propertySearch" placeholder="Search title / city / area / broker..." />
+              <select id="propertyStatusFilter">
+                <option value="ALL">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="archived">Archived</option>
+              </select>
+              <select id="propertyCityFilter"><option value="ALL">All Cities</option></select>
+              <button class="btn success" data-action="exportProperties">⬇ Export CSV</button>
+            </div>
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr><th>Listing</th><th>Broker / Contact</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="propertiesBody"></tbody>
+              </table>
             </div>
           </div>
+        </section>
 
+        <section id="section-buyers" class="section">
           <div class="card">
-            <div class="sectionHead">
-              <h3>Recent Activity</h3>
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Buyer Lead Operations</div>
+                <div class="cardSub">Assign brokers, track follow-ups, push WhatsApp, close the loop</div>
+              </div>
+              <div class="toolbar">
+                <span class="pill">Total <b id="buyerLeadCount">0</b></span>
+                <button class="btn success" data-action="exportBuyer">⬇ Export CSV</button>
+              </div>
             </div>
-            <div id="recentActivity" class="list mutedList">
-              <div class="emptyState">No recent activity yet.</div>
+            <div class="filters">
+              <input id="buyerSearch" placeholder="Search listing / buyer / phone / notes..." />
+              <select id="buyerBrokerFilter"><option value="ALL">All Brokers</option><option value="__UNASSIGNED__">Unassigned</option></select>
+              <select id="buyerStatusFilter">
+                <option value="ALL">All Status</option>
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+              <select id="buyerOverdueFilter">
+                <option value="ALL">All</option>
+                <option value="OVERDUE">Overdue only</option>
+                <option value="NOT_OVERDUE">Not overdue</option>
+              </select>
+              <button class="btn primary" data-action="bulkTodayFollowup">📅 Mark today follow-up</button>
+            </div>
+            <div class="tableWrap">
+              <table class="wideTable">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Listing</th><th>Buyer</th><th>Phone</th><th>Assigned</th>
+                    <th>Status</th><th>Follow-up</th><th>Notes</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="buyerLeadsBody"></tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="view" id="view-properties">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Add Property</h3>
+        <section id="section-sellers" class="section">
+          <div class="card">
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Seller Lead Operations</div>
+                <div class="cardSub">Capture supply-side inventory, verify docs, move to approved property</div>
+              </div>
+              <div class="toolbar">
+                <span class="pill">Total <b id="sellerLeadCount">0</b></span>
+                <button class="btn success" data-action="exportSeller">⬇ Export CSV</button>
+              </div>
+            </div>
+            <div class="filters">
+              <input id="sellerSearch" placeholder="Search seller / phone / title / area..." />
+              <select id="sellerStatusFilter">
+                <option value="ALL">All Status</option>
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="DOCUMENT_PENDING">DOCUMENT_PENDING</option>
+                <option value="PROPERTY_RECEIVED">PROPERTY_RECEIVED</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+              <select id="sellerTypeFilter"><option value="ALL">All Seller Types</option></select>
+              <select id="sellerPropertyTypeFilter"><option value="ALL">All Property Types</option></select>
+              <button class="btn primary" data-action="createPropertyFromSeller">🏠 Convert seller to property</button>
+            </div>
+            <div class="tableWrap">
+              <table class="wideTableSeller">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Seller</th><th>Phone</th><th>Listing Title</th><th>Property</th>
+                    <th>Location</th><th>Expected Price</th><th>Docs</th><th>Status</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sellerLeadsBody"></tbody>
+              </table>
+            </div>
           </div>
+        </section>
 
-          <form id="propertyForm" class="formGrid">
-            <input type="text" id="pTitle" placeholder="Property title" required />
-            <input type="text" id="pLocation" placeholder="Location" required />
-            <select id="pType" required>
-              <option value="">Select type</option>
-              <option>Plot</option>
-              <option>Villa</option>
-              <option>Apartment</option>
-              <option>Commercial</option>
-              <option>Farm Land</option>
-            </select>
-            <input type="number" id="pPrice" placeholder="Price" required />
-            <input type="number" id="pArea" placeholder="Area (sq.ft)" required />
-            <select id="pStatus" required>
-              <option value="">Select status</option>
-              <option>Available</option>
-              <option>Booked</option>
-              <option>Sold</option>
-            </select>
-            <textarea id="pDesc" placeholder="Short description"></textarea>
-            <button type="submit" class="btn primary wide">Save Property</button>
-          </form>
-        </div>
+        <section id="section-materials" class="section">
+          <div class="card">
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Material Leads</div>
+                <div class="cardSub">Track enquiries for steel, cement, bricks, sand and supply partners</div>
+              </div>
+              <div class="toolbar">
+                <span class="pill">Total <b id="materialLeadCount">0</b></span>
+                <button class="btn success" data-action="exportMaterial">⬇ Export CSV</button>
+              </div>
+            </div>
+            <div class="filters">
+              <input id="materialSearch" placeholder="Search material / customer / phone / location..." />
+              <select id="materialStatusFilter">
+                <option value="ALL">All Status</option>
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+              <select id="materialTypeFilter"><option value="ALL">All Materials</option></select>
+              <select id="materialCustomerFilter"><option value="ALL">All Customer Types</option></select>
+              <button class="btn primary" data-action="markMaterialContacted">📞 Quick contact</button>
+            </div>
+            <div class="tableWrap">
+              <table class="wideTableMat">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Customer</th><th>Phone</th><th>Material</th><th>Qty</th>
+                    <th>Location</th><th>Budget</th><th>Status</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="materialLeadsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Property Listings</h3>
-            <input class="tableSearch" id="propertySearch" placeholder="Search properties..." />
+        <section id="section-services" class="section">
+          <div class="card">
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Service Leads</div>
+                <div class="cardSub">Painting, interiors, construction, legal, maintenance and vendor fulfilment</div>
+              </div>
+              <div class="toolbar">
+                <span class="pill">Total <b id="serviceLeadCount">0</b></span>
+                <button class="btn success" data-action="exportService">⬇ Export CSV</button>
+              </div>
+            </div>
+            <div class="filters">
+              <input id="serviceSearch" placeholder="Search service / customer / phone / location..." />
+              <select id="serviceStatusFilter">
+                <option value="ALL">All Status</option>
+                <option value="NEW">NEW</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+              <select id="serviceTypeFilter"><option value="ALL">All Services</option></select>
+              <select id="serviceCustomerFilter"><option value="ALL">All Customer Types</option></select>
+              <button class="btn primary" data-action="markServiceContacted">🛠 Quick contact</button>
+            </div>
+            <div class="tableWrap">
+              <table class="wideTableSer">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Customer</th><th>Phone</th><th>Service</th><th>Property Type</th>
+                    <th>Location</th><th>Budget</th><th>Status</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="serviceLeadsBody"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Location</th>
-                  <th>Type</th>
-                  <th>Price</th>
-                  <th>Area</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="propertyTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="view" id="view-buyers">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Buyer Leads</h3>
-            <input class="tableSearch" id="buyerSearch" placeholder="Search buyer leads..." />
-          </div>
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Requirement</th>
-                  <th>Budget</th>
-                  <th>Location</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="buyerTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        <section id="section-brokers" class="section">
+          <div class="topForm">
+            <div class="card">
+              <div class="cardHeader">
+                <div>
+                  <div class="cardTitle">Broker Master</div>
+                  <div class="cardSub">Add and manage brokers for assignment</div>
+                </div>
+                <button class="btn success" data-action="seedBrokers">✨ Seed Demo Brokers</button>
+              </div>
+              <div class="cardBody stack">
+                <div>
+                  <label class="label" for="brokerName">Broker name</label>
+                  <input id="brokerName" placeholder="Eg: Raj / Priya / Karthik" />
+                </div>
+                <div>
+                  <label class="label" for="brokerCity">City</label>
+                  <input id="brokerCity" placeholder="Eg: Bangalore" />
+                </div>
+                <div>
+                  <label class="label" for="brokerArea">Area</label>
+                  <input id="brokerArea" placeholder="Eg: Whitefield" />
+                </div>
+                <div>
+                  <label class="label" for="brokerCompany">Company</label>
+                  <input id="brokerCompany" placeholder="Eg: MEI Associate" />
+                </div>
+                <button class="btn primary" data-action="addBroker">➕ Add Broker</button>
+              </div>
+            </div>
 
-      <section class="view" id="view-sellers">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Seller Leads</h3>
-            <input class="tableSearch" id="sellerSearch" placeholder="Search seller leads..." />
+            <div class="card">
+              <div class="cardHeader">
+                <div>
+                  <div class="cardTitle">Current Brokers</div>
+                  <div class="cardSub">Delete only if no live workflows depend on them</div>
+                </div>
+              </div>
+              <div class="cardBody">
+                <div class="chips" id="brokerChips"></div>
+              </div>
+            </div>
           </div>
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Property Type</th>
-                  <th>Expected Price</th>
-                  <th>Location</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="sellerTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="view" id="view-materials">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Material Leads</h3>
-            <input class="tableSearch" id="materialSearch" placeholder="Search material leads..." />
-          </div>
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Material</th>
-                  <th>Quantity</th>
-                  <th>City</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="materialTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        <section id="section-automation" class="section">
+          <div class="layoutHalf">
+            <div class="card">
+              <div class="cardHeader">
+                <div>
+                  <div class="cardTitle">Buyer WhatsApp Template</div>
+                  <div class="cardSub">Used when admin clicks WhatsApp on buyer leads</div>
+                </div>
+              </div>
+              <div class="cardBody stack">
+                <div class="chips">
+                  <button class="btn small ghost" data-insert="{buyer}">{buyer}</button>
+                  <button class="btn small ghost" data-insert="{listing}">{listing}</button>
+                  <button class="btn small ghost" data-insert="{phone}">{phone}</button>
+                  <button class="btn small ghost" data-insert="{date}">{date}</button>
+                </div>
+                <div>
+                  <label class="label" for="waTemplate">Template</label>
+                  <textarea id="waTemplate"></textarea>
+                </div>
+                <div class="toolbar">
+                  <button class="btn success" data-action="saveTemplate">💾 Save</button>
+                  <button class="btn warn" data-action="resetTemplate">↩ Reset</button>
+                  <button class="btn" data-action="copyTemplatePreview">📋 Copy Preview</button>
+                </div>
+              </div>
+            </div>
 
-      <section class="view" id="view-services">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Service Leads</h3>
-            <input class="tableSearch" id="serviceSearch" placeholder="Search service leads..." />
+            <div class="card">
+              <div class="cardHeader">
+                <div>
+                  <div class="cardTitle">Live Preview</div>
+                  <div class="cardSub">Sample buyer preview before sending</div>
+                </div>
+              </div>
+              <div class="cardBody">
+                <div class="rowMeta">Sample Buyer: Arun • Listing: 2BHK Whitefield • Phone: 9876543210</div>
+                <div id="waPreview" class="waPreview"></div>
+              </div>
+            </div>
           </div>
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Service</th>
-                  <th>Location</th>
-                  <th>Notes</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="serviceTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="view" id="view-brokers">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Broker Network</h3>
-            <button class="btn primary" id="addBrokerBtn">Add Broker</button>
+        <section id="section-exports" class="section">
+          <div class="layout3">
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Buyer Leads</div><div class="cardSub">CSV export with notes, follow-up, assignment</div><button class="btn success" data-action="exportBuyer">⬇ Download Buyer CSV</button></div></div>
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Seller Leads</div><div class="cardSub">CSV export with property intent and docs status</div><button class="btn success" data-action="exportSeller">⬇ Download Seller CSV</button></div></div>
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Properties</div><div class="cardSub">CSV export for approval queue and live listings</div><button class="btn success" data-action="exportProperties">⬇ Download Properties CSV</button></div></div>
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Materials</div><div class="cardSub">Supplier and materials enquiry export</div><button class="btn success" data-action="exportMaterial">⬇ Download Material CSV</button></div></div>
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Services</div><div class="cardSub">Vendor and service demand export</div><button class="btn success" data-action="exportService">⬇ Download Service CSV</button></div></div>
+            <div class="card"><div class="cardBody stack"><div class="cardTitle">Full Launch Pack</div><div class="cardSub">Use exports daily for ops backup, CRM import, broker reporting</div><button class="btn" data-action="refresh">🔄 Refresh all data</button></div></div>
           </div>
-
-          <form id="brokerForm" class="formGrid hidden">
-            <input type="text" id="bName" placeholder="Broker name" required />
-            <input type="text" id="bPhone" placeholder="Phone number" required />
-            <input type="text" id="bArea" placeholder="Working area" required />
-            <input type="text" id="bSpeciality" placeholder="Speciality" required />
-            <button type="submit" class="btn primary wide">Save Broker</button>
-          </form>
-
-          <div class="tableWrap topSpace">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Area</th>
-                  <th>Speciality</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="brokerTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="view" id="view-export">
-        <div class="card">
-          <div class="sectionHead">
-            <h3>Export Center</h3>
-          </div>
-
-          <div class="exportGrid">
-            <button class="btn primary exportBtn" data-export="properties">Export Properties JSON</button>
-            <button class="btn exportBtn" data-export="buyers">Export Buyer Leads JSON</button>
-            <button class="btn exportBtn" data-export="sellers">Export Seller Leads JSON</button>
-            <button class="btn exportBtn" data-export="materials">Export Material Leads JSON</button>
-            <button class="btn exportBtn" data-export="services">Export Service Leads JSON</button>
-            <button class="btn exportBtn" data-export="brokers">Export Brokers JSON</button>
-            <button class="btn ghost exportBtn" data-export="all">Export Full Backup JSON</button>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 
-  <script src="auth.js"></script>
+  <div id="leadModalBack" class="modalBack" hidden>
+    <div class="modal">
+      <div class="modalHeader">
+        <div>
+          <div class="cardTitle">Edit Buyer Lead</div>
+          <div class="cardSub" id="modalLeadMeta">Lead info</div>
+        </div>
+        <button class="btn small" data-action="closeLeadModal">✕ Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="formGrid">
+          <div>
+            <label class="label" for="mFollowUp">Follow-up date</label>
+            <input id="mFollowUp" type="date" />
+          </div>
+          <div>
+            <label class="label" for="mAssigned">Assigned broker</label>
+            <select id="mAssigned"></select>
+          </div>
+          <div>
+            <label class="label" for="mStatus">Status</label>
+            <select id="mStatus">
+              <option value="NEW">NEW</option>
+              <option value="CONTACTED">CONTACTED</option>
+              <option value="VISIT_SCHEDULED">VISIT_SCHEDULED</option>
+              <option value="CLOSED">CLOSED</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+            </select>
+          </div>
+          <div class="full">
+            <label class="label" for="mNotes">Notes</label>
+            <textarea id="mNotes"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modalFooter">
+        <button class="btn" data-action="closeLeadModal">Cancel</button>
+        <button class="btn success" data-action="saveLeadModal">✅ Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toastStack" id="toastStack"></div>
+
+  <script src="app.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>
