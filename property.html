@@ -1,919 +1,878 @@
 <!doctype html>
-<html lang="ta">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MEI Estate — Property Details</title>
+  <meta name="description" content="View full approved property details on MEI Estate." />
   <style>
     :root{
-      --bg:#0b0f17;
-      --card:#0f1624;
-      --text:#e7eefc;
-      --muted:#a8b3c7;
-      --line:#1f2a3d;
-      --accent:#6ee7ff;
-      --accent2:#a78bfa;
-      --okBorder: rgba(0,255,150,.30);
-      --okBg: rgba(0,255,150,.12);
-      --badBorder: rgba(255,0,90,.34);
-      --badBg: rgba(255,0,90,.12);
+      --bg:#07111f;
+      --bg2:#0b1830;
+      --panel:#0d1a31;
+      --panel2:#122342;
+      --soft:rgba(255,255,255,.05);
+      --soft2:rgba(255,255,255,.08);
+      --line:rgba(255,255,255,.12);
+      --text:#ebf2ff;
+      --muted:#9fb1d1;
+      --accent:#8cb8ff;
+      --accent2:#6ee6ff;
+      --ok:#35d07f;
+      --warn:#ffc857;
+      --shadow:0 18px 60px rgba(0,0,0,.35);
+      --radius:22px;
+      --radius-sm:14px;
+      --max:1200px;
     }
 
     *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
     body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 50%),
-        radial-gradient(900px 500px at 70% 20%, rgba(167,139,250,.18), transparent 55%),
-        var(--bg);
+        radial-gradient(circle at top left, rgba(110,230,255,.08), transparent 26%),
+        radial-gradient(circle at top right, rgba(140,184,255,.10), transparent 22%),
+        linear-gradient(180deg, #04101d 0%, #07111f 30%, #061326 100%);
       color:var(--text);
+      min-height:100vh;
     }
 
     a{color:inherit;text-decoration:none}
-    :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+    img{max-width:100%;display:block}
 
-    .skip-link{
-      position:absolute;
-      left:-999px;
-      top:auto;
-      width:1px;
-      height:1px;
-      overflow:hidden;
-    }
-    .skip-link:focus{
-      position:static;
-      width:auto;
-      height:auto;
-      background:var(--accent);
-      color:#000;
-      padding:8px;
+    .shell{
+      width:min(var(--max), calc(100% - 28px));
+      margin:0 auto;
     }
 
-    .wrap{max-width:1120px;margin:0 auto;padding:22px}
-
-    header{
+    .topbar{
       position:sticky;
       top:0;
-      background:rgba(11,15,23,.65);
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid rgba(31,42,61,.6);
-      z-index:10;
+      z-index:20;
+      backdrop-filter:blur(12px);
+      background:rgba(4,11,23,.72);
+      border-bottom:1px solid var(--line);
     }
-    header .row{
+
+    .topbarInner{
+      width:min(var(--max), calc(100% - 28px));
+      margin:0 auto;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:14px;
+      padding:18px 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .brandLogo{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      background:linear-gradient(135deg, #8cb8ff, #6ee6ff);
+      color:#051120;
+      font-weight:900;
+      display:grid;
+      place-items:center;
+      box-shadow:0 10px 24px rgba(110,230,255,.18);
+      flex:0 0 auto;
+    }
+
+    .brandText{
+      min-width:0;
+    }
+
+    .brandText h1{
+      margin:0;
+      font-size:1.45rem;
+      line-height:1.05;
+      letter-spacing:.2px;
+    }
+
+    .brandText p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.95rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .nav{
+      display:flex;
       flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
     }
 
-    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
-    .logo{
-      width:34px;height:34px;border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
+    .nav a{
+      padding:12px 16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border-radius:16px;
+      color:var(--text);
+      font-weight:700;
+      transition:.18s ease;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
     }
 
-    nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .nav a:hover{
+      transform:translateY(-1px);
+      border-color:rgba(140,184,255,.35);
+      background:linear-gradient(180deg, rgba(140,184,255,.12), rgba(255,255,255,.04));
+    }
+
+    main{
+      padding:24px 0 40px;
+    }
+
+    .infoBar{
+      display:none;
+      margin:0 0 18px;
+      padding:14px 16px;
+      border-radius:16px;
+      border:1px solid rgba(255,200,87,.28);
+      background:linear-gradient(180deg, rgba(255,200,87,.12), rgba(255,200,87,.05));
+      color:#ffe5a3;
+      font-weight:600;
+    }
+
+    .heroCard{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+        linear-gradient(180deg, rgba(140,184,255,.04), rgba(110,230,255,.02));
+      border-radius:30px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .heroGrid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:0;
+    }
+
+    .mediaPane{
+      min-height:440px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+        linear-gradient(135deg, #0c1930, #0a1427);
+      position:relative;
+      display:flex;
+      align-items:stretch;
+      justify-content:stretch;
+    }
+
+    .mediaPane img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .noImage{
+      width:100%;
+      min-height:440px;
+      display:grid;
+      place-items:center;
+      color:#b3c4e8;
+      font-weight:800;
+      font-size:1.2rem;
+      letter-spacing:.4px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(140,184,255,.15), transparent 24%),
+        radial-gradient(circle at 70% 60%, rgba(110,230,255,.12), transparent 24%),
+        linear-gradient(135deg, #0d1c34, #091325);
+    }
+
+    .detailPane{
+      padding:28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+        linear-gradient(135deg, rgba(140,184,255,.05), rgba(110,230,255,.02));
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .badgeRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .badge{
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.86rem;
+      font-weight:800;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+    }
+
+    .badge.ok{
+      color:#b7ffd5;
+      border-color:rgba(53,208,127,.35);
+      background:rgba(53,208,127,.12);
+    }
+
+    .badge.featured{
+      color:#ffe9a3;
+      border-color:rgba(255,200,87,.35);
+      background:rgba(255,200,87,.13);
+    }
+
+    .badge.soft{
+      color:#d9e8ff;
+      border-color:rgba(140,184,255,.26);
+      background:rgba(140,184,255,.10);
+    }
+
+    .propTitle{
+      margin:0 0 10px;
+      font-size:clamp(2rem, 4vw, 3rem);
+      line-height:1.03;
+      letter-spacing:.2px;
+    }
+
+    .propPrice{
+      font-size:1.8rem;
+      font-weight:900;
+      margin:0 0 8px;
+      color:#f5fbff;
+    }
+
+    .propLocation{
+      color:var(--muted);
+      font-size:1.02rem;
+      margin-bottom:18px;
+    }
+
+    .chipGrid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:0 0 20px;
+    }
+
+    .chip{
+      padding:10px 14px;
+      border-radius:14px;
+      background:var(--soft);
+      border:1px solid var(--line);
+      color:#dce8ff;
+      font-weight:700;
+      font-size:.95rem;
+    }
+
+    .desc{
+      margin:0;
+      padding:16px 18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.035);
+      color:#d5e2fb;
+      line-height:1.7;
+    }
+
+    .contactCard{
+      margin-top:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.035);
+      padding:18px;
+    }
+
+    .contactCard h3{
+      margin:0 0 12px;
+      font-size:1.02rem;
+    }
+
+    .contactList{
+      display:grid;
+      gap:10px;
+    }
+
+    .contactItem{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      color:#d8e5ff;
+    }
+
+    .contactItem b{
+      color:#fff;
+    }
+
+    .actionRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:22px;
+    }
 
     .btn{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       gap:8px;
+      min-height:46px;
+      padding:12px 18px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
+      color:var(--text);
+      font-weight:800;
+      letter-spacing:.15px;
+      transition:.18s ease;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(140,184,255,.35);
+    }
+
+    .btn.primary{
+      color:#04111e;
+      border-color:transparent;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:0 12px 28px rgba(110,230,255,.18);
+    }
+
+    .btn.small{
+      min-height:40px;
       padding:10px 14px;
       border-radius:14px;
-      border:1px solid rgba(31,42,61,.9);
-      background:rgba(15,22,36,.7);
-      cursor:pointer;
-      color:var(--text);
-      min-height:40px;
-      font-weight:800;
+      font-size:.92rem;
     }
-    .btn.small{padding:8px 12px;font-size:14px}
-    .btn.primary{
-      background:linear-gradient(135deg, rgba(110,231,255,.25), rgba(167,139,250,.25));
-      border-color:rgba(110,231,255,.35);
-    }
-    .btn.ok{
-      border-color:var(--okBorder);
-      background:var(--okBg);
-    }
-    .btn:hover{filter:brightness(1.05)}
 
-    .card{
-      background:rgba(15,22,36,.55);
-      border:1px solid rgba(31,42,61,.85);
-      border-radius:22px;
+    .section{
+      margin-top:22px;
+    }
+
+    .sectionCard{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+        linear-gradient(135deg, rgba(140,184,255,.04), rgba(110,230,255,.015));
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .sectionTitle{
+      margin:0 0 16px;
+      font-size:1.35rem;
+      letter-spacing:.2px;
+    }
+
+    .metaGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:14px;
+    }
+
+    .metaItem{
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:18px;
       padding:16px;
     }
 
-    .top{
-      display:grid;
-      grid-template-columns:1.2fr .8fr;
-      gap:14px;
-      margin-top:16px;
-    }
-    @media (max-width:980px){.top{grid-template-columns:1fr}}
-
-    .gallery{
-      border-radius:22px;
-      overflow:hidden;
-      border:1px solid rgba(31,42,61,.85);
+    .metaLabel{
+      color:var(--muted);
+      font-size:.88rem;
+      margin-bottom:8px;
     }
 
-    .heroimg{
-      height:320px;
-      background:
-        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18)),
-        radial-gradient(600px 260px at 15% 15%, rgba(110,231,255,.22), transparent 60%),
-        radial-gradient(500px 240px at 70% 25%, rgba(167,139,250,.22), transparent 60%);
-      background-size:cover;
-      background-position:center;
-      background-repeat:no-repeat;
+    .metaValue{
+      font-size:1rem;
+      font-weight:800;
+      color:#f4f8ff;
+      word-break:break-word;
     }
-
-    .thumbs{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      padding:10px;
-      background:rgba(11,15,23,.45);
-    }
-
-    .th{
-      height:72px;
-      border-radius:14px;
-      border:1px solid rgba(31,42,61,.75);
-      background:
-        linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18));
-      background-size:cover;
-      background-position:center;
-      cursor:pointer;
-    }
-
-    .h1{margin:0;font-size:28px;line-height:1.2}
-    .sub{margin:8px 0 0;color:var(--muted);line-height:1.6}
-    .price{font-size:30px;font-weight:950;margin-top:10px}
-
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .chip{
-      font-size:12px;color:var(--muted);
-      border:1px solid rgba(31,42,61,.85);
-      padding:6px 9px;border-radius:999px;
-      background:rgba(11,15,23,.45);
-    }
-
-    .spec{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:12px;
-    }
-    @media (max-width:700px){.spec{grid-template-columns:1fr}}
-
-    .spec .box{
-      border:1px solid rgba(31,42,61,.85);
-      background:rgba(11,15,23,.45);
-      border-radius:18px;
-      padding:12px;
-    }
-    .spec .k{font-size:12px;color:var(--muted)}
-    .spec .v{font-size:16px;font-weight:900;margin-top:3px}
-
-    .grid2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      margin-top:14px;
-    }
-    @media (max-width:980px){.grid2{grid-template-columns:1fr}}
 
     .relatedGrid{
       display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:12px;
-      margin-top:14px;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:16px;
     }
-    @media (max-width:980px){.relatedGrid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:560px){.relatedGrid{grid-template-columns:1fr}}
 
     .relatedCard{
-      border:1px solid rgba(31,42,61,.85);
-      background:rgba(11,15,23,.45);
+      border:1px solid var(--line);
       border-radius:20px;
-      padding:16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+        linear-gradient(135deg, rgba(140,184,255,.04), rgba(110,230,255,.02));
+      overflow:hidden;
+      min-height:100%;
+    }
+
+    .relatedThumb{
+      height:180px;
+      background:
+        radial-gradient(circle at top left, rgba(140,184,255,.14), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(110,230,255,.12), transparent 24%),
+        linear-gradient(135deg, #0e1a31, #091225);
       display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .relatedIcon{
-      width:44px;
-      height:44px;
-      border-radius:14px;
-      display:grid;
-      place-items:center;
-      font-size:20px;
-      background:linear-gradient(135deg, rgba(110,231,255,.18), rgba(167,139,250,.18));
-      border:1px solid rgba(110,231,255,.18);
-    }
-    .relatedTitle{
-      font-size:17px;
-      font-weight:900;
-      line-height:1.2;
-    }
-    .relatedDesc{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.6;
-      flex:1;
+      align-items:center;
+      justify-content:center;
+      color:#bdd0f6;
+      font-weight:800;
     }
 
-    .formGrid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width:700px){.formGrid{grid-template-columns:1fr}}
-
-    label{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin:0 0 6px;
-    }
-
-    input, textarea{
+    .relatedThumb img{
       width:100%;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid rgba(31,42,61,.95);
-      background:rgba(11,15,23,.55);
-      color:var(--text);
-    }
-    textarea{min-height:110px;resize:vertical}
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
+      height:100%;
+      object-fit:cover;
     }
 
-    ul{margin:10px 0 0;color:var(--muted);line-height:1.8}
-
-    .toast{
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      max-width:380px;
-      background:rgba(15,22,36,.92);
-      border:1px solid rgba(31,42,61,.9);
-      padding:12px 14px;
-      border-radius:16px;
-      display:none;
-      z-index:999;
+    .relatedBody{
+      padding:16px;
     }
 
-    .err{
-      margin-top:6px;
-      color:rgba(255,120,170,.98);
-      font-size:12px;
+    .relatedTitle{
+      margin:0 0 8px;
+      font-size:1.08rem;
       font-weight:900;
+      line-height:1.25;
     }
-    .err[hidden]{display:none}
 
-    .empty{
-      padding:34px;
-      text-align:center;
+    .relatedPrice{
+      font-size:1rem;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .relatedMeta{
       color:var(--muted);
+      line-height:1.55;
+      margin-bottom:14px;
+      font-size:.95rem;
     }
 
-    .mini{font-size:12px;color:var(--muted)}
+    .emptyState{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+        linear-gradient(135deg, rgba(140,184,255,.04), rgba(110,230,255,.02));
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:48px 24px;
+      text-align:center;
+    }
+
+    .emptyState h2{
+      margin:0 0 10px;
+      font-size:2rem;
+    }
+
+    .emptyState p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:1rem;
+    }
 
     footer{
-      padding:22px 0;
+      padding:26px 0 38px;
+    }
+
+    .footerInner{
+      width:min(var(--max), calc(100% - 28px));
+      margin:0 auto;
+      border-top:1px solid var(--line);
+      padding-top:18px;
       color:var(--muted);
-      border-top:1px solid rgba(31,42,61,.6);
-      margin-top:18px;
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .footerLinks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+    }
+
+    @media (max-width: 980px){
+      .heroGrid{
+        grid-template-columns:1fr;
+      }
+
+      .mediaPane,
+      .noImage{
+        min-height:320px;
+      }
+
+      .relatedGrid{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px){
+      .topbarInner{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .nav{
+        justify-content:flex-start;
+      }
+
+      .detailPane{
+        padding:20px;
+      }
+
+      .metaGrid{
+        grid-template-columns:1fr;
+      }
+
+      .relatedGrid{
+        grid-template-columns:1fr;
+      }
+
+      .propTitle{
+        font-size:2rem;
+      }
+
+      .propPrice{
+        font-size:1.45rem;
+      }
     }
   </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
-  <header>
-    <div class="wrap row">
+  <header class="topbar">
+    <div class="topbarInner">
       <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <div>MEI Estate</div>
-          <div style="font-size:12px;color:var(--muted);font-weight:600">Property • Approved Listing • Seller Ready</div>
+        <div class="brandLogo">MEI</div>
+        <div class="brandText">
+          <h1>MEI Estate</h1>
+          <p>Property • Approved Listing • Cloud CRM Enquiry</p>
         </div>
       </div>
 
-      <nav>
-        <a class="btn small" href="index.html">Home</a>
-        <a class="btn small" href="listings.html">⬅ Back to Listings</a>
-        <a class="btn small" href="seller.html">🏷 Sell Property</a>
-        <a class="btn primary small" href="dashboard.html">🛡️ Dashboard</a>
+      <nav class="nav">
+        <a href="index.html">🏠 Home</a>
+        <a href="listings.html">⬅ Back to Listings</a>
+        <a href="seller.html">📢 Sell Property</a>
+        <a href="dashboard.html">🛡 Dashboard</a>
       </nav>
     </div>
   </header>
 
-  <main id="main-content" class="wrap">
-    <div id="notFound" class="card empty" hidden>
-      <div style="font-size:24px;font-weight:900;">Property not found</div>
-      <div class="mini" id="notFoundMsg" style="margin-top:8px;">
-        This property may be missing, deleted, or not approved for public view.
-      </div>
-      <div class="actions" style="justify-content:center;">
-        <a class="btn primary" href="listings.html">Go to Listings</a>
-      </div>
-    </div>
-
-    <div id="propertyView" hidden>
-      <div class="top">
-        <div class="gallery">
-          <div class="heroimg" id="heroImg" aria-label="Property image"></div>
-          <div class="thumbs" id="thumbs"></div>
-        </div>
-
-        <div class="card">
-          <div class="h1" id="title">Property</div>
-          <div class="sub" id="subtitle">Locality, City • Type • Area</div>
-          <div class="price" id="price">₹0</div>
-
-          <div class="chips" id="chips"></div>
-
-          <div class="spec">
-            <div class="box">
-              <div class="k">Type</div>
-              <div class="v" id="ptype">—</div>
-            </div>
-            <div class="box">
-              <div class="k">Area</div>
-              <div class="v" id="area">—</div>
-            </div>
-            <div class="box">
-              <div class="k">BHK</div>
-              <div class="v" id="bhk">—</div>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn primary" id="interestBtn" type="button">I'm Interested</button>
-            <button class="btn" id="shareBtn" type="button">Share</button>
-            <button class="btn ok" id="waBtn" type="button">WhatsApp</button>
-          </div>
-
-          <p class="sub" style="font-size:13px;margin-top:10px">
-            Only approved properties are visible here. Enquiry form submits into dashboard CRM.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid2">
-        <section class="card">
-          <h3 style="margin:0 0 8px">Highlights</h3>
-          <ul id="highlights"></ul>
-        </section>
-
-        <section class="card">
-          <h3 style="margin:0 0 8px">Broker & Trust</h3>
-          <ul id="trust"></ul>
-        </section>
-      </div>
-
-      <section class="card" style="margin-top:14px">
-        <h3 style="margin:0 0 8px">Description</h3>
-        <p class="sub" id="desc" style="margin:0">—</p>
-      </section>
-
-      <section class="card" style="margin-top:14px">
-        <h3 style="margin:0 0 8px">Need more than just a listing?</h3>
-        <div class="relatedGrid">
-          <article class="relatedCard">
-            <div class="relatedIcon">🏷</div>
-            <div class="relatedTitle">Sell Property</div>
-            <div class="relatedDesc">Own a property too? Add it into the seller pipeline and grow your supply-side flow.</div>
-            <a class="btn small primary" href="seller.html">Open Seller Page</a>
-          </article>
-
-          <article class="relatedCard">
-            <div class="relatedIcon">🏗</div>
-            <div class="relatedTitle">Construction Materials</div>
-            <div class="relatedDesc">Need cement, steel, tiles, plumbing or electrical for this property journey?</div>
-            <a class="btn small primary" href="materials.html">Find Materials</a>
-          </article>
-
-          <article class="relatedCard">
-            <div class="relatedIcon">🛠</div>
-            <div class="relatedTitle">Real Estate Services</div>
-            <div class="relatedDesc">Get legal help, interiors, construction, renovation and property support services.</div>
-            <a class="btn small primary" href="services.html">Explore Services</a>
-          </article>
-
-          <article class="relatedCard">
-            <div class="relatedIcon">🛡️</div>
-            <div class="relatedTitle">Admin Dashboard</div>
-            <div class="relatedDesc">Manage approvals, leads, sellers, materials and services from the control center.</div>
-            <a class="btn small primary" href="dashboard.html">Open Dashboard</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="card" style="margin-top:14px">
-        <h3 style="margin:0 0 8px">Enquiry Form</h3>
-
-        <div class="formGrid">
-          <div>
-            <label for="buyerName">Your Name *</label>
-            <input id="buyerName" placeholder="Eg: Arun" />
-            <div id="buyerNameErr" class="err" hidden></div>
-          </div>
-
-          <div>
-            <label for="buyerPhone">Phone *</label>
-            <input id="buyerPhone" placeholder="Eg: 9876543210" inputmode="numeric" />
-            <div id="buyerPhoneErr" class="err" hidden></div>
-          </div>
-
-          <div>
-            <label for="buyerCity">Your City</label>
-            <input id="buyerCity" placeholder="Eg: Chennai" />
-            <div id="buyerCityErr" class="err" hidden></div>
-          </div>
-
-          <div>
-            <label for="followUpDate">Preferred Follow-up Date</label>
-            <input id="followUpDate" type="date" />
-            <div id="followUpDateErr" class="err" hidden></div>
-          </div>
-        </div>
-
-        <div style="margin-top:10px">
-          <label for="message">Message</label>
-          <textarea id="message" placeholder="Interested in site visit this weekend..."></textarea>
-          <div id="messageErr" class="err" hidden></div>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" id="submitLeadBtn" type="button">Submit Enquiry</button>
-          <button class="btn" id="copyLinkBtn" type="button">Copy Link</button>
-        </div>
-      </section>
-    </div>
-
-    <footer>
-      <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
-        <div>© <span id="yr"></span> MEI Estate</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <a href="index.html">Home</a>
-          <a href="listings.html">Listings</a>
-          <a href="seller.html">Sell Property</a>
-          <a href="dashboard.html">Dashboard</a>
-        </div>
-      </div>
-    </footer>
+  <main class="shell">
+    <div id="pageInfo" class="infoBar"></div>
+    <div id="propertyRoot"></div>
   </main>
 
-  <div class="toast" id="toast" role="status"></div>
+  <footer>
+    <div class="footerInner">
+      <div>© <span id="yr"></span> MEI Estate</div>
+      <div class="footerLinks">
+        <a href="index.html">Home</a>
+        <a href="listings.html">Listings</a>
+        <a href="seller.html">Sell Property</a>
+        <a href="dashboard.html">Dashboard</a>
+      </div>
+    </div>
+  </footer>
 
-  <script src="app.js"></script>
   <script>
-    document.getElementById("yr").textContent = new Date().getFullYear();
+    (() => {
+      "use strict";
 
-    const PROPS_KEY = (window.MEI_KEYS && window.MEI_KEYS.properties) || "mei_properties_v1";
-    const LEADS_KEY = (window.MEI_KEYS && window.MEI_KEYS.leads) || "mei_leads_v1";
-    const SETTINGS_KEY = (window.MEI_KEYS && window.MEI_KEYS.settings) || "mei_settings_v1";
+      const STORAGE_KEY = "mei_properties_v1";
+      const $ = (id) => document.getElementById(id);
 
-    const $ = (id) => document.getElementById(id);
-    let CURRENT_PROPERTY = null;
+      document.addEventListener("DOMContentLoaded", init);
 
-    function toast(msg){
-      const el = $("toast");
-      el.textContent = msg;
-      el.style.display = "block";
-      clearTimeout(el._timeout);
-      el._timeout = setTimeout(() => el.style.display = "none", 2600);
-    }
+      function init() {
+        const yr = $("yr");
+        if (yr) yr.textContent = new Date().getFullYear();
 
-    function getDataSafe(key, fallback){
-      try{
-        const raw = localStorage.getItem(key);
-        if(!raw) return fallback;
-        const parsed = JSON.parse(raw);
-        return parsed ?? fallback;
-      }catch(e){
-        return fallback;
-      }
-    }
+        const all = readJSON(STORAGE_KEY, []).map(normalizeProperty);
+        const approved = all.filter(item => item.status === "approved");
 
-    function setDataSafe(key, value){
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function normalizePhone(v){
-      return String(v || "").replace(/[^\d]/g, "");
-    }
-
-    function isValidPhone(v){
-      const digits = normalizePhone(v);
-      return digits.length === 10 || (digits.length === 12 && digits.startsWith("91"));
-    }
-
-    function parsePriceToNumber(v){
-      if(typeof v === "number") return Number.isFinite(v) ? v : NaN;
-      const digits = String(v || "").replace(/[^\d]/g, "");
-      return digits ? Number(digits) : NaN;
-    }
-
-    function formatINR(n){
-      const num = parsePriceToNumber(n);
-      if(!Number.isFinite(num)) return "Price on request";
-      return "₹" + num.toLocaleString("en-IN");
-    }
-
-    function getQueryParam(key){
-      const url = new URL(window.location.href);
-      return url.searchParams.get(key);
-    }
-
-    function normalizeType(type){
-      const t = String(type || "").trim().toLowerCase();
-      if(!t) return "";
-      if(t === "apartment") return "Apartment";
-      if(t === "house") return "House";
-      if(t === "plot") return "Plot";
-      if(t === "commercial") return "Commercial";
-      if(t === "villa") return "Villa";
-      return String(type || "").trim();
-    }
-
-    function normalizeProperty(item){
-      const p = Object.assign({}, item || {});
-      p.id = String(p.id || "");
-      p.title = String(p.title || p.name || "Untitled Property").trim();
-      p.city = String(p.city || "").trim();
-      p.area = String(p.area || p.locality || "").trim();
-      p.type = normalizeType(p.type);
-      p.price = parsePriceToNumber(p.price);
-      p.sqft = parsePriceToNumber(p.sqft || p.areaSqft || p.area_size);
-      p.bhk = String(p.bhk || "").trim();
-      p.description = String(p.description || p.desc || p.note || "").trim();
-      p.image = String(p.image || "").trim();
-      p.gallery = Array.isArray(p.gallery) ? p.gallery.filter(Boolean) : [];
-      p.sellerName = String(p.sellerName || p.contactName || "").trim();
-      p.sellerPhone = normalizePhone(p.sellerPhone || p.phone || "");
-      p.brokerName = String(p.brokerName || "").trim();
-      p.status = String(p.status || "").trim().toLowerCase();
-      p.createdAt = p.createdAt || "";
-      p.featured = Boolean(p.featured);
-      return p;
-    }
-
-    function getAllProperties(){
-      try{
-        if(typeof window.getAllProperties === "function"){
-          return window.getAllProperties().map(normalizeProperty);
-        }
-      }catch(e){}
-      return getDataSafe(PROPS_KEY, []).map(normalizeProperty);
-    }
-
-    function getFallbackProperties(){
-      return [
-        {
-          id:"demo1",
-          city:"Bangalore",
-          area:"Whitefield",
-          type:"Apartment",
-          price:8200000,
-          sqft:1180,
-          bhk:"2 BHK",
-          title:"2BHK near ITPL",
-          description:"Comfortable 2BHK apartment with easy access to IT corridors and high rental yield.",
-          status:"approved",
-          brokerName:"Raj",
-          sellerPhone:"9876543210",
-          image:"",
-          gallery:[]
-        }
-      ].map(normalizeProperty);
-    }
-
-    function getApprovedPropertyById(id){
-      const live = getAllProperties().find(p => p.id === id && p.status === "approved");
-      if(live) return live;
-      return getFallbackProperties().find(p => p.id === id) || null;
-    }
-
-    function setList(id, items){
-      const ul = $(id);
-      ul.innerHTML = "";
-      items.forEach(text => {
-        const li = document.createElement("li");
-        li.textContent = text;
-        ul.appendChild(li);
-      });
-    }
-
-    function setChips(property){
-      const wrap = $("chips");
-      wrap.innerHTML = "";
-
-      const chips = [
-        "Approved",
-        property.type || "Property",
-        property.area || "Area",
-        property.city || "City"
-      ];
-      if(property.bhk) chips.push(property.bhk);
-      if(property.featured) chips.unshift("Featured");
-
-      chips.forEach(t => {
-        const span = document.createElement("span");
-        span.className = "chip";
-        span.textContent = t;
-        wrap.appendChild(span);
-      });
-    }
-
-    function safeBgImage(url){
-      const v = String(url || "").trim();
-      if(!v) return "";
-      return `url("${v.replace(/"/g, "%22")}")`;
-    }
-
-    function buildGallery(property){
-      const hero = $("heroImg");
-      const thumbs = $("thumbs");
-
-      const images = [];
-      if(property.image) images.push(property.image);
-      if(Array.isArray(property.gallery)){
-        property.gallery.forEach(img => {
-          if(img && !images.includes(img)) images.push(img);
-        });
-      }
-
-      thumbs.innerHTML = "";
-
-      if(!images.length){
-        hero.style.backgroundImage = "";
-        for(let i = 0; i < 4; i++){
-          const th = document.createElement("div");
-          th.className = "th";
-          thumbs.appendChild(th);
-        }
-        return;
-      }
-
-      hero.style.backgroundImage = safeBgImage(images[0]);
-
-      images.slice(0,4).forEach((img) => {
-        const th = document.createElement("button");
-        th.type = "button";
-        th.className = "th";
-        th.style.backgroundImage = safeBgImage(img);
-        th.addEventListener("click", () => {
-          hero.style.backgroundImage = safeBgImage(img);
-        });
-        thumbs.appendChild(th);
-      });
-    }
-
-    function hydrate(property){
-      CURRENT_PROPERTY = property;
-
-      document.title = property.title + " — Property Details";
-      $("title").textContent = property.title;
-      $("subtitle").textContent = `${property.area || "Area"}, ${property.city || "City"} • ${property.type || "Property"}${Number.isFinite(property.sqft) ? " • " + property.sqft + " sqft" : ""}`;
-      $("price").textContent = formatINR(property.price);
-      $("ptype").textContent = property.type || "—";
-      $("area").textContent = Number.isFinite(property.sqft) ? property.sqft + " sqft" : "—";
-      $("bhk").textContent = property.bhk || "—";
-
-      setChips(property);
-      buildGallery(property);
-
-      const highlights = [];
-      if(property.area) highlights.push(property.area + " locality");
-      if(Number.isFinite(property.sqft)) highlights.push(property.sqft + " sqft built-up area");
-      if(property.bhk) highlights.push(property.bhk + " configuration");
-      if(property.type) highlights.push(property.type + " property");
-      if(Number.isFinite(property.price)) highlights.push("Price: " + formatINR(property.price));
-
-      const trust = [
-        "Admin-approved public listing",
-        "Visible only after approval",
-        property.brokerName ? ("Broker: " + property.brokerName) : "Broker info available",
-        property.sellerName ? ("Seller/Contact: " + property.sellerName) : "Seller details available on request"
-      ];
-
-      setList("highlights", highlights);
-      setList("trust", trust);
-
-      $("desc").textContent = property.description || "No description available.";
-
-      $("propertyView").hidden = false;
-      $("notFound").hidden = true;
-    }
-
-    function showNotFound(msg){
-      $("propertyView").hidden = true;
-      $("notFound").hidden = false;
-      if(msg){
-        $("notFoundMsg").textContent = msg;
-      }
-    }
-
-    function getSettings(){
-      try{
-        if(typeof window.getSettings === "function"){
-          return window.getSettings();
-        }
-      }catch(e){}
-      return getDataSafe(SETTINGS_KEY, {});
-    }
-
-    function validateLeadForm(){
-      let ok = true;
-
-      const name = $("buyerName").value.trim();
-      const phone = $("buyerPhone").value.trim();
-
-      if(!name){
-        ok = false;
-        $("buyerNameErr").hidden = false;
-        $("buyerNameErr").textContent = "Name is required.";
-      }else{
-        $("buyerNameErr").hidden = true;
-        $("buyerNameErr").textContent = "";
-      }
-
-      if(!isValidPhone(phone)){
-        ok = false;
-        $("buyerPhoneErr").hidden = false;
-        $("buyerPhoneErr").textContent = "Enter valid 10-digit phone or 91XXXXXXXXXX.";
-      }else{
-        $("buyerPhoneErr").hidden = true;
-        $("buyerPhoneErr").textContent = "";
-      }
-
-      return ok;
-    }
-
-    function readLeads(){
-      try{
-        if(typeof window.getAllLeads === "function"){
-          return window.getAllLeads();
-        }
-      }catch(e){}
-      return getDataSafe(LEADS_KEY, []);
-    }
-
-    function writeLeads(leads){
-      try{
-        if(typeof window.saveAllLeads === "function"){
-          window.saveAllLeads(leads);
+        if (!approved.length) {
+          renderEmpty(
+            "No approved property found",
+            "Dashboard-ல் approved property save செய்த பிறகு இந்த page automatic-ஆ வேலை செய்யும்."
+          );
           return;
         }
-      }catch(e){}
-      setDataSafe(LEADS_KEY, leads || []);
-    }
 
-    function makeLeadId(){
-      try{
-        if(typeof window.makeId === "function") return window.makeId("LEAD");
-      }catch(e){}
-      return "LEAD_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    }
+        const url = new URL(window.location.href);
+        const id = String(url.searchParams.get("id") || "").trim();
 
-    function submitLead(){
-      if(!CURRENT_PROPERTY) return;
+        let selected = null;
 
-      const ok = validateLeadForm();
-      if(!ok){
-        toast("Please fix enquiry form errors");
-        return;
-      }
-
-      const leads = readLeads();
-      const lead = {
-        id: makeLeadId(),
-        propertyId: CURRENT_PROPERTY.id,
-        propertyTitle: CURRENT_PROPERTY.title,
-        listingId: CURRENT_PROPERTY.id,
-        listingTitle: CURRENT_PROPERTY.title,
-        buyerName: $("buyerName").value.trim(),
-        buyerPhone: normalizePhone($("buyerPhone").value),
-        buyerCity: $("buyerCity").value.trim(),
-        message: $("message").value.trim(),
-        source: "website",
-        status: "NEW",
-        assignedBrokerId: "",
-        assignedBrokerName: CURRENT_PROPERTY.brokerName || "",
-        assignedTo: CURRENT_PROPERTY.brokerName || "",
-        followUp: $("followUpDate").value || "",
-        followUpDate: $("followUpDate").value || "",
-        notes: "",
-        createdAt: new Date().toISOString(),
-        updatedAt: ""
-      };
-
-      leads.unshift(lead);
-      writeLeads(leads);
-
-      $("buyerName").value = "";
-      $("buyerPhone").value = "";
-      $("buyerCity").value = "";
-      $("followUpDate").value = "";
-      $("message").value = "";
-
-      toast("Enquiry submitted successfully ✅");
-    }
-
-    async function copyLink(){
-      try{
-        if(navigator.clipboard && window.isSecureContext){
-          await navigator.clipboard.writeText(window.location.href);
-        }else{
-          const ta = document.createElement("textarea");
-          ta.value = window.location.href;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          ta.remove();
+        if (id) {
+          selected = approved.find(item => String(item.id) === id);
         }
-        toast("Link copied ✅");
-      }catch(e){
-        toast("Unable to copy link");
-      }
-    }
 
-    async function shareProperty(){
-      const shareData = { title: document.title, url: window.location.href };
-      try{
-        if(navigator.share){
-          await navigator.share(shareData);
-        }else{
-          await copyLink();
+        if (!selected) {
+          selected = getLatestProperty(approved);
+
+          if (!id) {
+            replaceUrlId(selected.id);
+            showInfo("Property ID இல்லாததால் latest approved property load செய்யப்பட்டது.");
+          } else {
+            showInfo("Requested property கிடைக்கவில்லை. Latest approved property காட்டப்படுகிறது.");
+          }
         }
-      }catch(e){
-        toast("Unable to share");
-      }
-    }
 
-    function openWhatsApp(){
-      if(!CURRENT_PROPERTY) return;
-
-      const settings = getSettings();
-      const sellerPhone = CURRENT_PROPERTY.sellerPhone || "";
-      const settingsWa = normalizePhone(settings.whatsappNumber || "");
-      const phone = sellerPhone || settingsWa;
-
-      if(!phone){
-        toast("No WhatsApp number available");
-        return;
+        renderProperty(selected, approved);
       }
 
-      const finalPhone = phone.length === 10 ? "91" + phone : phone;
-      const msg = `Hello, I am interested in "${CURRENT_PROPERTY.title}" (${CURRENT_PROPERTY.area}, ${CURRENT_PROPERTY.city}). Please share more details.`;
-      const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-
-    $("shareBtn").addEventListener("click", shareProperty);
-    $("copyLinkBtn").addEventListener("click", copyLink);
-    $("submitLeadBtn").addEventListener("click", submitLead);
-    $("waBtn").addEventListener("click", openWhatsApp);
-    $("interestBtn").addEventListener("click", () => {
-      $("buyerName").focus();
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      if(typeof window.seedData === "function"){
-        window.seedData();
+      function readJSON(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return fallback;
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : fallback;
+        } catch (err) {
+          console.error("readJSON error:", err);
+          return fallback;
+        }
       }
 
-      const id = getQueryParam("id");
-
-      if(!id){
-        showNotFound("No property ID was provided in the URL. Open this page from Listings.");
-        return;
+      function cleanNumber(value) {
+        if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+        const onlyDigits = String(value || "").replace(/[^\d]/g, "");
+        return onlyDigits ? Number(onlyDigits) : 0;
       }
 
-      const property = getApprovedPropertyById(id);
-      if(!property){
-        showNotFound("This property may be missing, deleted, or not approved for public view.");
-        return;
+      function formatINR(value) {
+        const num = cleanNumber(value);
+        return num ? "₹" + num.toLocaleString("en-IN") : "Price on request";
       }
 
-      hydrate(property);
-    });
+      function normalizeType(type) {
+        const t = String(type || "").trim().toLowerCase();
+        if (!t) return "";
+        const map = {
+          apartment: "Apartment",
+          house: "House",
+          plot: "Plot",
+          commercial: "Commercial",
+          villa: "Villa",
+          office: "Office",
+          warehouse: "Warehouse",
+          shop: "Shop",
+          pg: "PG"
+        };
+        return map[t] || String(type || "").trim();
+      }
+
+      function normalizeProperty(p) {
+        return {
+          id: String(p.id || "").trim(),
+          title: String(p.title || p.name || "Untitled Listing").trim(),
+          city: String(p.city || "").trim(),
+          area: String(p.area || p.locality || "").trim(),
+          type: normalizeType(p.type),
+          bhk: String(p.bhk || "").trim(),
+          price: cleanNumber(p.price),
+          sqft: cleanNumber(p.sqft || p.areaSqft || p.area_size),
+          description: String(p.description || p.desc || p.note || "").trim(),
+          image: String(p.image || p.imageUrl || "").trim(),
+          status: String(p.status || "").trim().toLowerCase(),
+          createdAt: p.createdAt || p.created_at || "",
+          featured: Boolean(p.featured),
+          brokerName: String(p.brokerName || p.broker_name || "").trim(),
+          sellerName: String(p.sellerName || p.seller_name || "").trim(),
+          facing: String(p.facing || "").trim(),
+          furnishing: String(p.furnishing || "").trim(),
+          purpose: String(p.purpose || "").trim(),
+          mobile: String(p.mobile || p.phone || "").trim()
+        };
+      }
+
+      function getLatestProperty(items) {
+        return [...items].sort((a, b) => {
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        })[0];
+      }
+
+      function replaceUrlId(id) {
+        if (!id) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set("id", id);
+        window.history.replaceState({}, "", url.toString());
+      }
+
+      function showInfo(message) {
+        const bar = $("pageInfo");
+        if (!bar) return;
+        bar.textContent = message;
+        bar.style.display = "block";
+      }
+
+      function renderEmpty(title, text) {
+        const root = $("propertyRoot");
+        if (!root) return;
+
+        root.innerHTML = `
+          <section class="emptyState">
+            <h2>${escapeHtml(title)}</h2>
+            <p>${escapeHtml(text)}</p>
+            <a class="btn primary" href="listings.html">Go to Listings</a>
+          </section>
+        `;
+      }
+
+      function renderProperty(item, approvedList) {
+        const root = $("propertyRoot");
+        if (!root) return;
+
+        const related = approvedList
+          .filter(p => p.id !== item.id)
+          .sort((a, b) => Number(b.featured) - Number(a.featured))
+          .slice(0, 3);
+
+        root.innerHTML = `
+          <section class="heroCard">
+            <div class="heroGrid">
+              <div class="mediaPane">
+                ${
+                  item.image
+                    ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" onerror="this.parentNode.innerHTML='<div class=\\'noImage\\'>No Image</div>';">`
+                    : `<div class="noImage">No Image</div>`
+                }
+              </div>
+
+              <div class="detailPane">
+                <div class="badgeRow">
+                  <span class="badge ok">Approved</span>
+                  ${item.featured ? `<span class="badge featured">Featured</span>` : ""}
+                  ${item.type ? `<span class="badge soft">${escapeHtml(item.type)}</span>` : ""}
+                </div>
+
+                <h2 class="propTitle">${escapeHtml(item.title)}</h2>
+                <div class="propPrice">${formatINR(item.price)}</div>
+                <div class="propLocation">
+                  ${escapeHtml([item.area, item.city].filter(Boolean).join(", ") || "Location not specified")}
+                </div>
+
+                <div class="chipGrid">
+                  ${item.bhk ? `<span class="chip">${escapeHtml(item.bhk)}</span>` : ""}
+                  ${item.sqft ? `<span class="chip">${item.sqft} sqft</span>` : ""}
+                  ${item.facing ? `<span class="chip">${escapeHtml(item.facing)} Facing</span>` : ""}
+                  ${item.furnishing ? `<span class="chip">${escapeHtml(item.furnishing)}</span>` : ""}
+                  ${item.purpose ? `<span class="chip">${escapeHtml(item.purpose)}</span>` : ""}
+                </div>
+
+                <p class="desc">
+                  ${escapeHtml(item.description || "No detailed description added yet.")}
+                </p>
+
+                <div class="contactCard">
+                  <h3>Contact Details</h3>
+                  <div class="contactList">
+                    ${item.brokerName ? `<div class="contactItem"><b>Broker:</b> <span>${escapeHtml(item.brokerName)}</span></div>` : ""}
+                    ${item.sellerName ? `<div class="contactItem"><b>Seller:</b> <span>${escapeHtml(item.sellerName)}</span></div>` : ""}
+                    ${item.mobile ? `<div class="contactItem"><b>Contact:</b> <span>${escapeHtml(item.mobile)}</span></div>` : ""}
+                    ${!item.brokerName && !item.sellerName && !item.mobile ? `<div class="contactItem"><span>Contact details not added yet.</span></div>` : ""}
+                  </div>
+                </div>
+
+                <div class="actionRow">
+                  <a class="btn" href="listings.html">← Back to Listings</a>
+                  <a class="btn primary" href="seller.html">Enquire Now</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="sectionCard">
+              <h3 class="sectionTitle">Property Overview</h3>
+              <div class="metaGrid">
+                ${metaItem("Property ID", item.id || "Not available")}
+                ${metaItem("Type", item.type || "Not specified")}
+                ${metaItem("Price", formatINR(item.price))}
+                ${metaItem("Area", item.sqft ? item.sqft + " sqft" : "Not specified")}
+                ${metaItem("BHK", item.bhk || "Not specified")}
+                ${metaItem("Purpose", item.purpose || "Not specified")}
+                ${metaItem("Facing", item.facing || "Not specified")}
+                ${metaItem("Furnishing", item.furnishing || "Not specified")}
+                ${metaItem("City", item.city || "Not specified")}
+                ${metaItem("Locality", item.area || "Not specified")}
+              </div>
+            </div>
+          </section>
+
+          ${
+            related.length ? `
+            <section class="section">
+              <div class="sectionCard">
+                <h3 class="sectionTitle">Related Properties</h3>
+                <div class="relatedGrid">
+                  ${related.map(renderRelatedCard).join("")}
+                </div>
+              </div>
+            </section>` : ""
+          }
+        `;
+      }
+
+      function metaItem(label, value) {
+        return `
+          <div class="metaItem">
+            <div class="metaLabel">${escapeHtml(label)}</div>
+            <div class="metaValue">${escapeHtml(value)}</div>
+          </div>
+        `;
+      }
+
+      function renderRelatedCard(item) {
+        return `
+          <article class="relatedCard">
+            <div class="relatedThumb">
+              ${
+                item.image
+                  ? `<img src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" onerror="this.parentNode.innerHTML='No Image';">`
+                  : `No Image`
+              }
+            </div>
+            <div class="relatedBody">
+              <div class="relatedTitle">${escapeHtml(item.title)}</div>
+              <div class="relatedPrice">${formatINR(item.price)}</div>
+              <div class="relatedMeta">
+                ${escapeHtml([item.area, item.city].filter(Boolean).join(", ") || "Location not specified")}
+                ${item.sqft ? ` • ${item.sqft} sqft` : ""}
+              </div>
+              <a class="btn small primary" href="property.html?id=${encodeURIComponent(item.id)}">View Property</a>
+            </div>
+          </article>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+    })();
   </script>
 </body>
 </html>
+
