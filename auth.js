@@ -26,6 +26,14 @@
     }
   }
 
+  function removeKey(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (err) {
+      console.error("removeKey error:", key, err);
+    }
+  }
+
   function cleanPhone(value) {
     return String(value || "").replace(/[^\d]/g, "").slice(-10);
   }
@@ -62,20 +70,32 @@
   }
 
   function logoutUser() {
-    localStorage.removeItem(SESSION_KEY);
+    removeKey(SESSION_KEY);
     window.location.href = "login.html";
   }
 
   function findUserByEmail(email) {
     const users = getAllUsers();
-    return users.find(u => String(u.email).toLowerCase() === String(email).toLowerCase()) || null;
+    return users.find(
+      u => String(u.email || "").trim().toLowerCase() === String(email || "").trim().toLowerCase()
+    ) || null;
   }
 
   function registerUser(payload) {
     const users = getAllUsers();
 
+    const name = String(payload?.name || "").trim();
+    const phone = cleanPhone(payload?.phone || "");
+    const email = String(payload?.email || "").trim().toLowerCase();
+    const password = String(payload?.password || "");
+    const role = normalizeRole(payload?.role || "buyer");
+
+    if (!name || !phone || !email || !password || !role) {
+      throw new Error("எல்லா fields-யும் தேவை");
+    }
+
     const exists = users.some(
-      u => String(u.email).toLowerCase() === String(payload.email).toLowerCase()
+      u => String(u.email || "").trim().toLowerCase() === email
     );
 
     if (exists) {
@@ -84,11 +104,11 @@
 
     const user = {
       id: makeId("USR"),
-      name: String(payload.name || "").trim(),
-      phone: cleanPhone(payload.phone || ""),
-      email: String(payload.email || "").trim().toLowerCase(),
-      password: String(payload.password || ""),
-      role: normalizeRole(payload.role),
+      name,
+      phone,
+      email,
+      password,
+      role,
       createdAt: new Date().toISOString(),
       status: "active"
     };
@@ -100,21 +120,27 @@
 
   function loginUser(email, password) {
     const user = findUserByEmail(email);
-    if (!user) throw new Error("User account கிடைக்கவில்லை");
+
+    if (!user) {
+      throw new Error("User account கிடைக்கவில்லை");
+    }
+
     if (String(user.password) !== String(password)) {
       throw new Error("Password தவறு");
     }
 
-    setCurrentUser({
+    const sessionUser = {
       id: user.id,
       name: user.name,
       phone: user.phone,
       email: user.email,
       role: user.role,
-      createdAt: user.createdAt
-    });
+      createdAt: user.createdAt,
+      status: user.status
+    };
 
-    return user;
+    setCurrentUser(sessionUser);
+    return sessionUser;
   }
 
   function redirectByRole(role) {
@@ -145,9 +171,8 @@
 
   function ensureDemoUsers() {
     const users = getAllUsers();
-    if (users.length) return;
 
-    saveAllUsers([
+    const demoUsers = [
       {
         id: makeId("USR"),
         name: "MEI Admin",
@@ -188,7 +213,24 @@
         createdAt: new Date().toISOString(),
         status: "active"
       }
-    ]);
+    ];
+
+    const existingEmails = new Set(
+      users.map(u => String(u.email || "").trim().toLowerCase())
+    );
+
+    let changed = false;
+
+    for (const demo of demoUsers) {
+      if (!existingEmails.has(demo.email.toLowerCase())) {
+        users.unshift(demo);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      saveAllUsers(users);
+    }
   }
 
   function requireAuth() {
@@ -220,11 +262,11 @@
       e.preventDefault();
 
       const payload = {
-        name: document.getElementById("regName").value.trim(),
-        phone: document.getElementById("regPhone").value.trim(),
-        email: document.getElementById("regEmail").value.trim(),
-        password: document.getElementById("regPassword").value,
-        role: document.getElementById("regRole").value
+        name: document.getElementById("regName")?.value.trim() || "",
+        phone: document.getElementById("regPhone")?.value.trim() || "",
+        email: document.getElementById("regEmail")?.value.trim() || "",
+        password: document.getElementById("regPassword")?.value || "",
+        role: document.getElementById("regRole")?.value || ""
       };
 
       if (!payload.name || !payload.phone || !payload.email || !payload.password || !payload.role) {
@@ -239,14 +281,17 @@
 
       try {
         const user = registerUser(payload);
+
         setCurrentUser({
           id: user.id,
           name: user.name,
           phone: user.phone,
           email: user.email,
           role: user.role,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
+          status: user.status
         });
+
         alert("Registration success");
         redirectByRole(user.role);
       } catch (err) {
@@ -262,8 +307,8 @@
     form.addEventListener("submit", e => {
       e.preventDefault();
 
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
+      const email = document.getElementById("loginEmail")?.value.trim() || "";
+      const password = document.getElementById("loginPassword")?.value || "";
 
       if (!email || !password) {
         alert("Email and password enter பண்ணுங்கள்");
@@ -282,11 +327,11 @@
 
   function autoRedirectIfLoggedIn() {
     const user = getCurrentUser();
-    const page = location.pathname.split("/").pop().toLowerCase();
+    const page = (location.pathname.split("/").pop() || "").toLowerCase();
 
     if (!user) return;
 
-    if (page === "login.html" || page === "register.html") {
+    if (page === "login.html" || page === "register.html" || page === "") {
       redirectByRole(user.role);
     }
   }

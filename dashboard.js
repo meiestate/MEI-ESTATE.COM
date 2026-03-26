@@ -1,6 +1,9 @@
 (() => {
   "use strict";
 
+  requireRole(["admin"]);
+  const currentUser = getCurrentUser();
+
   const WA_TEMPLATE_KEY = "mei_whatsapp_template_v2";
   let MODAL_LEAD_ID = null;
   let CACHE = { buyer: [], seller: [], material: [], service: [], properties: [], brokers: [] };
@@ -848,6 +851,11 @@ This is MEI Estate. Please share your preferred time to discuss today.
 
   document.addEventListener("DOMContentLoaded", async () => {
     if (typeof seedData === "function") seedData();
+
+    if (currentUser && $("currentUserText")) {
+      $("currentUserText").textContent = `${currentUser.name} • ${currentUser.role}`;
+    }
+
     bindNav();
     bindInputs();
     bindActions();

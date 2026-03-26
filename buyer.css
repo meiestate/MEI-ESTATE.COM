@@ -1,0 +1,119 @@
+:root{
+  --bg:#08101d;
+  --panel:#10192d;
+  --line:rgba(255,255,255,.12);
+  --line2:rgba(255,255,255,.08);
+  --txt:#edf3ff;
+  --mut:#aebbd8;
+  --brandSoft:rgba(140,170,255,.16);
+  --shadow:0 24px 48px rgba(0,0,0,.35);
+  --sidebarW:270px;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background:linear-gradient(180deg,#07101b 0%, #0a1324 100%);
+  color:var(--txt);
+}
+a{text-decoration:none;color:inherit}
+button{font:inherit}
+
+.portalApp{display:grid;grid-template-columns:var(--sidebarW) 1fr;min-height:100vh}
+.portalSidebar{
+  position:sticky;top:0;height:100vh;padding:18px;overflow:auto;
+  border-right:1px solid var(--line);background:rgba(10,16,30,.92);backdrop-filter:blur(12px);
+}
+.brand{
+  display:flex;align-items:center;gap:12px;padding:10px 8px 18px;
+  border-bottom:1px solid var(--line);margin-bottom:16px;
+}
+.logo{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#8caaff,#6ef0ff);color:#09111d;font-weight:900;
+}
+.brandTitle{font-size:19px;font-weight:900}
+.brandSub{font-size:12px;color:var(--mut)}
+
+.sideNav{display:grid;gap:10px}
+.sideBtn{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;
+  border:1px solid transparent;background:transparent;color:var(--txt);
+}
+.sideBtn:hover{background:rgba(255,255,255,.05);border-color:var(--line2)}
+.sideBtn.active{background:var(--brandSoft);border-color:rgba(140,170,255,.28)}
+
+.portalMain{padding:22px;min-width:0}
+.topbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}
+.topbar h1{margin:0;font-size:28px}
+.topbar p{margin:6px 0 0;color:var(--mut)}
+
+.userBox{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04);
+}
+#currentUserText{font-size:13px;color:var(--mut);font-weight:700}
+.btn{
+  min-height:40px;padding:0 14px;border-radius:14px;border:1px solid var(--line);
+  background:rgba(255,255,255,.05);color:var(--txt);cursor:pointer;font-weight:800;
+}
+
+.statsGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.statCard,.card{
+  border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.025));
+  box-shadow:var(--shadow);
+}
+.statCard{padding:16px}
+.statLabel{font-size:13px;color:var(--mut)}
+.statValue{font-size:28px;font-weight:900;margin-top:10px}
+
+.layout2{display:grid;grid-template-columns:1.3fr .9fr;gap:16px}
+.stack{display:grid;gap:16px}
+.cardHeader{padding:16px;border-bottom:1px solid var(--line2)}
+.cardTitle{font-size:18px;font-weight:900}
+.cardSub{font-size:13px;color:var(--mut);margin-top:4px}
+.cardBody{padding:16px}
+
+.tableWrap{overflow:auto;padding:0 16px 16px}
+table{width:100%;border-collapse:collapse;min-width:920px}
+th,td{padding:12px 10px;vertical-align:top;border-bottom:1px solid var(--line2);text-align:left}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+
+.status{
+  display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;
+  font-size:12px;font-weight:800;border:1px solid transparent
+}
+.status.NEW{background:rgba(0,153,255,.16);border-color:rgba(0,153,255,.28)}
+.status.CONTACTED{background:rgba(244,180,0,.14);border-color:rgba(244,180,0,.25)}
+.status.VISIT_SCHEDULED{background:rgba(140,170,255,.16);border-color:rgba(140,170,255,.28)}
+.status.CLOSED{background:rgba(46,204,113,.14);border-color:rgba(46,204,113,.26)}
+.status.ARCHIVED{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+.status.APPROVED{background:rgba(46,204,113,.14);border-color:rgba(46,204,113,.26)}
+
+.kpiRow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line2)}
+.kpiRow:last-child{border-bottom:none}
+.kpiLabel{font-size:13px;color:var(--mut)}
+.kpiValue{font-weight:900}
+
+.propertyCard{
+  padding:14px;border-radius:16px;border:1px solid var(--line2);background:rgba(255,255,255,.03);margin-bottom:12px;
+}
+.rowTitle{font-weight:800}
+.rowMeta{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.45}
+.empty{color:var(--mut);text-align:center;padding:20px}
+
+@media (max-width:1100px){
+  .layout2{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .portalApp{grid-template-columns:1fr}
+  .portalSidebar{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+  .statsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:700px){
+  .portalMain,.portalSidebar{padding:14px}
+  .statsGrid{grid-template-columns:1fr}
+}
+

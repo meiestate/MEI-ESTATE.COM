@@ -1,891 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ta">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sell Property | MEI Estate</title>
-  <meta name="description" content="List your property with MEI Estate. Connect with serious buyers, brokers and faster property opportunities." />
-  <style>
-    :root{
-      --bg:#0b0f17;
-      --panel:#121826;
-      --panel-2:#0f1522;
-      --card:#151c2c;
-      --line:rgba(255,255,255,.08);
-      --text:#edf2ff;
-      --muted:#9fb0d0;
-      --gold:#d6a94f;
-      --gold-2:#f0c975;
-      --success:#2ecc71;
-      --danger:#ff6b6b;
-      --shadow:0 18px 40px rgba(0,0,0,.35);
-      --radius:20px;
-      --max:1200px;
-    }
-
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:linear-gradient(180deg,#0a0e16 0%, #0d1320 100%);
-      color:var(--text);
-      line-height:1.55;
-    }
-
-    a{text-decoration:none;color:inherit}
-    button,input,select,textarea{font:inherit}
-
-    .container{
-      width:min(var(--max), calc(100% - 32px));
-      margin:auto;
-    }
-
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:1000;
-      backdrop-filter:blur(10px);
-      background:rgba(10,14,22,.78);
-      border-bottom:1px solid var(--line);
-    }
-
-    .nav{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      min-height:74px;
-      gap:16px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      font-weight:700;
-      letter-spacing:.5px;
-    }
-
-    .brand-badge{
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      background:linear-gradient(135deg,var(--gold),#8e691f);
-      color:#111;
-      display:grid;
-      place-items:center;
-      font-weight:900;
-      box-shadow:var(--shadow);
-    }
-
-    .nav-links{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-    }
-
-    .nav-links a{
-      color:var(--muted);
-      padding:10px 14px;
-      border-radius:12px;
-      transition:.25s ease;
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active{
-      color:var(--text);
-      background:rgba(255,255,255,.05);
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      border:none;
-      border-radius:14px;
-      padding:13px 18px;
-      cursor:pointer;
-      transition:.25s ease;
-      font-weight:700;
-    }
-
-    .btn-primary{
-      background:linear-gradient(135deg,var(--gold),var(--gold-2));
-      color:#17120a;
-      box-shadow:0 10px 30px rgba(214,169,79,.25);
-    }
-
-    .btn-primary:hover{
-      transform:translateY(-2px);
-      filter:brightness(1.03);
-    }
-
-    .btn-secondary{
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      border:1px solid var(--line);
-    }
-
-    .btn-secondary:hover{
-      background:rgba(255,255,255,.1);
-    }
-
-    .hero{
-      padding:72px 0 34px;
-    }
-
-    .hero-wrap{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:26px;
-      align-items:stretch;
-    }
-
-    .hero-card,
-    .info-card,
-    .panel,
-    .feature-card,
-    .step,
-    .cta{
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border:1px solid var(--line);
-      border-radius:28px;
-      box-shadow:var(--shadow);
-    }
-
-    .hero-card{
-      padding:38px;
-      position:relative;
-      overflow:hidden;
-    }
-
-    .hero-card::after{
-      content:"";
-      position:absolute;
-      inset:auto -80px -80px auto;
-      width:220px;
-      height:220px;
-      border-radius:50%;
-      background:radial-gradient(circle, rgba(214,169,79,.18) 0%, rgba(214,169,79,0) 68%);
-      pointer-events:none;
-    }
-
-    .info-card{
-      padding:24px;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-
-    .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:.9rem;
-      color:var(--gold-2);
-      background:rgba(214,169,79,.1);
-      border:1px solid rgba(214,169,79,.22);
-      padding:8px 12px;
-      border-radius:999px;
-      margin-bottom:16px;
-    }
-
-    h1,h2,h3{
-      line-height:1.12;
-      margin:0 0 12px;
-    }
-
-    h1{
-      font-size:clamp(2rem, 4vw, 3.5rem);
-      letter-spacing:-1px;
-    }
-
-    .lead{
-      color:var(--muted);
-      font-size:1.05rem;
-      max-width:60ch;
-      margin-bottom:24px;
-    }
-
-    .hero-actions{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:22px;
-    }
-
-    .hero-points{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:12px;
-      margin-top:20px;
-    }
-
-    .mini{
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-    }
-
-    .mini strong{
-      display:block;
-      font-size:1rem;
-      margin-bottom:6px;
-    }
-
-    .mini span{
-      color:var(--muted);
-      font-size:.92rem;
-    }
-
-    .quote-box{
-      background:linear-gradient(180deg, rgba(214,169,79,.09), rgba(255,255,255,.02));
-      border:1px solid rgba(214,169,79,.18);
-      border-radius:22px;
-      padding:22px;
-    }
-
-    .quote-box p{
-      color:var(--muted);
-      margin:0 0 16px;
-    }
-
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:14px;
-    }
-
-    .stat{
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px;
-    }
-
-    .stat .num{
-      font-size:1.6rem;
-      font-weight:800;
-      color:var(--gold-2);
-      margin-bottom:6px;
-    }
-
-    .stat .label{
-      color:var(--muted);
-      font-size:.92rem;
-    }
-
-    section{
-      padding:34px 0;
-    }
-
-    .section-head{
-      display:flex;
-      align-items:end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:18px;
-    }
-
-    .section-head p{
-      color:var(--muted);
-      max-width:60ch;
-      margin:0;
-    }
-
-    .grid{
-      display:grid;
-      gap:18px;
-    }
-
-    .features{
-      grid-template-columns:repeat(3,1fr);
-    }
-
-    .feature-card{
-      padding:22px;
-    }
-
-    .icon{
-      width:54px;
-      height:54px;
-      border-radius:16px;
-      display:grid;
-      place-items:center;
-      background:rgba(214,169,79,.12);
-      border:1px solid rgba(214,169,79,.22);
-      font-size:1.4rem;
-      margin-bottom:14px;
-    }
-
-    .feature-card p{
-      color:var(--muted);
-      margin:0;
-    }
-
-    .how-it-works{
-      grid-template-columns:repeat(3,1fr);
-    }
-
-    .step{
-      padding:22px;
-    }
-
-    .step-num{
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      display:grid;
-      place-items:center;
-      background:linear-gradient(135deg,var(--gold),var(--gold-2));
-      color:#1a1306;
-      font-weight:900;
-      margin-bottom:14px;
-    }
-
-    .step p{
-      color:var(--muted);
-      margin:0;
-    }
-
-    .form-wrap{
-      display:grid;
-      grid-template-columns:1fr .95fr;
-      gap:22px;
-      align-items:start;
-    }
-
-    .panel{
-      padding:24px;
-    }
-
-    .panel p{
-      color:var(--muted);
-    }
-
-    form{
-      display:grid;
-      gap:14px;
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:14px;
-    }
-
-    label{
-      display:grid;
-      gap:8px;
-      font-weight:700;
-      font-size:.95rem;
-    }
-
-    input, select, textarea{
-      width:100%;
-      background:#0d1421;
-      color:var(--text);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:13px 14px;
-      outline:none;
-      transition:.2s ease;
-    }
-
-    input:focus, select:focus, textarea:focus{
-      border-color:rgba(214,169,79,.42);
-      box-shadow:0 0 0 3px rgba(214,169,79,.12);
-    }
-
-    textarea{
-      min-height:130px;
-      resize:vertical;
-    }
-
-    .full{
-      grid-column:1 / -1;
-    }
-
-    .success-box{
-      display:none;
-      margin-top:12px;
-      padding:14px 16px;
-      border-radius:14px;
-      background:rgba(46,204,113,.12);
-      border:1px solid rgba(46,204,113,.25);
-      color:#a6f2c4;
-      font-weight:700;
-    }
-
-    .side-list{
-      display:grid;
-      gap:12px;
-      margin-top:16px;
-    }
-
-    .side-item{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      padding:14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--line);
-    }
-
-    .side-item .dot{
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      background:var(--gold);
-      margin-top:6px;
-      flex-shrink:0;
-    }
-
-    .cta{
-      padding:32px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-      flex-wrap:wrap;
-      background:linear-gradient(135deg, rgba(214,169,79,.14), rgba(255,255,255,.04));
-      border:1px solid rgba(214,169,79,.22);
-    }
-
-    .cta p{
-      color:var(--muted);
-      margin:8px 0 0;
-      max-width:60ch;
-    }
-
-    footer{
-      border-top:1px solid var(--line);
-      margin-top:34px;
-      padding:26px 0 40px;
-      color:var(--muted);
-    }
-
-    .footer-wrap{
-      display:flex;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-    }
-
-    @media (max-width: 1080px){
-      .hero-wrap,
-      .form-wrap,
-      .features,
-      .how-it-works{
-        grid-template-columns:repeat(2,1fr);
-      }
-
-      .hero-wrap{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width: 760px){
-      .nav{
-        flex-direction:column;
-        align-items:flex-start;
-        padding:12px 0;
-      }
-
-      .nav-links{
-        width:100%;
-      }
-
-      .hero-card,
-      .info-card,
-      .panel,
-      .cta{
-        padding:20px;
-      }
-
-      .features,
-      .how-it-works,
-      .form-grid,
-      .stats,
-      .hero-points,
-      .form-wrap{
-        grid-template-columns:1fr;
-      }
-
-      .section-head{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MEI Seller Portal</title>
+  <link rel="stylesheet" href="seller.css" />
 </head>
 <body>
+  <div class="portalApp">
+    <aside class="portalSidebar">
+      <div class="brand">
+        <div class="logo">MEI</div>
+        <div>
+          <div class="brandTitle">Seller Portal</div>
+          <div class="brandSub">Your inventory workspace</div>
+        </div>
+      </div>
 
-  <header class="topbar">
-    <div class="container nav">
-      <a href="index.html" class="brand">
-        <div class="brand-badge">MEI</div>
-        <div>MEI Estate</div>
-      </a>
-
-      <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="listings.html">Listings</a>
-        <a href="seller.html" class="active">Sell Property</a>
-        <a href="broker-network.html">Brokers</a>
-        <a href="materials.html">Materials</a>
-        <a href="services.html">Services</a>
-        <a href="dashboard.html">Dashboard</a>
+      <nav class="sideNav">
+        <a class="sideBtn active" href="seller.html">🏷 Seller Dashboard</a>
+        <a class="sideBtn" href="index.html">🏠 Public Site</a>
+        <a class="sideBtn" href="login.html">🔐 Login</a>
       </nav>
-    </div>
-  </header>
+    </aside>
 
-  <main>
-    <section class="hero">
-      <div class="container hero-wrap">
-        <div class="hero-card">
-          <div class="eyebrow">Seller Network • Owner & Builder Property Posting</div>
-          <h1>Sell your property with more speed, more reach, and less friction.</h1>
-          <p class="lead">
-            Post your property with MEI Estate and connect with serious buyers,
-            brokers and faster deal opportunities. Perfect for owners, builders,
-            developers and land sellers.
-          </p>
+    <main class="portalMain">
+      <header class="topbar">
+        <div>
+          <h1>Seller Dashboard</h1>
+          <p>Your leads, properties, approvals and document flow</p>
+        </div>
+        <div class="userBox">
+          <span id="currentUserText">User</span>
+          <button class="btn" onclick="logoutUser()">Logout</button>
+        </div>
+      </header>
 
-          <div class="hero-actions">
-            <a href="#seller-form" class="btn btn-primary">Post Property</a>
-            <a href="#benefits" class="btn btn-secondary">Why Sell with Us</a>
+      <section class="statsGrid" id="statsGrid"></section>
+
+      <section class="layout2">
+        <div class="card">
+          <div class="cardHeader">
+            <div>
+              <div class="cardTitle">Your Seller Leads</div>
+              <div class="cardSub">Supply-side entries matching your account phone</div>
+            </div>
           </div>
-
-          <div class="hero-points">
-            <div class="mini">
-              <strong>More Visibility</strong>
-              <span>Your property can reach both buyers and broker network.</span>
-            </div>
-            <div class="mini">
-              <strong>Faster Lead Flow</strong>
-              <span>Direct seller enquiries saved and managed through dashboard.</span>
-            </div>
-            <div class="mini">
-              <strong>Scalable Inventory</strong>
-              <span>Seller listings become the supply engine of your platform.</span>
-            </div>
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Listing</th>
+                  <th>Property</th>
+                  <th>Location</th>
+                  <th>Expected Price</th>
+                  <th>Docs</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="sellerLeadBody"></tbody>
+            </table>
           </div>
         </div>
 
-        <aside class="info-card">
-          <div class="quote-box">
-            <h3>Want to sell your property?</h3>
-            <p>
-              Submit your property details once. Admin can verify, approve and
-              push it into the property listing pipeline.
-            </p>
-            <a href="#seller-form" class="btn btn-primary" style="width:100%;">Submit Seller Lead</a>
-          </div>
-
-          <div class="stats">
-            <div class="stat">
-              <div class="num">Owner</div>
-              <div class="label">Direct Seller Flow</div>
-            </div>
-            <div class="stat">
-              <div class="num">Builder</div>
-              <div class="label">Project Supply Side</div>
-            </div>
-            <div class="stat">
-              <div class="num">Fast</div>
-              <div class="label">Lead Capture</div>
-            </div>
-            <div class="stat">
-              <div class="num">Smart</div>
-              <div class="label">Admin Review Flow</div>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="benefits">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <h2>Why sellers should use this platform</h2>
-            <p>This section turns your website into a real supply-side engine, not just a buyer portal.</p>
-          </div>
-        </div>
-
-        <div class="grid features">
-          <article class="feature-card">
-            <div class="icon">🏠</div>
-            <h3>Owner-Friendly Listing</h3>
-            <p>Owners can submit property details directly without needing a complex backend process.</p>
-          </article>
-
-          <article class="feature-card">
-            <div class="icon">🤝</div>
-            <h3>Broker Reach</h3>
-            <p>Your inventory can be matched with brokers for wider visibility and better conversion.</p>
-          </article>
-
-          <article class="feature-card">
-            <div class="icon">⚡</div>
-            <h3>Faster Deal Opportunities</h3>
-            <p>Once verified, listings can move quickly into the property approval and lead system.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <h2>How it works</h2>
-            <p>A clean seller-to-listing workflow that fits your current platform perfectly.</p>
-          </div>
-        </div>
-
-        <div class="grid how-it-works">
-          <div class="step">
-            <div class="step-num">1</div>
-            <h3>Seller submits details</h3>
-            <p>Owner or builder fills the property information through the seller form.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-num">2</div>
-            <h3>Lead gets stored</h3>
-            <p>The enquiry is saved to localStorage using the seller leads key for dashboard review.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-num">3</div>
-            <h3>Admin verifies and converts</h3>
-            <p>Admin can contact seller, review details and later convert it into a property listing.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="seller-form">
-      <div class="container form-wrap">
-        <div class="panel">
-          <h2>Submit Seller Property Details</h2>
-          <p>
-            This demo saves data in <strong>localStorage</strong> using the key
-            <strong>mei_seller_leads_v1</strong>.
-          </p>
-
-          <form id="sellerForm">
-            <div class="form-grid">
-              <label>
-                Seller Name
-                <input type="text" id="sellerName" placeholder="Enter seller name" required />
-              </label>
-
-              <label>
-                Mobile Number
-                <input type="tel" id="phone" placeholder="Enter mobile number" required />
-              </label>
-
-              <label>
-                Seller Type
-                <select id="sellerType" required>
-                  <option value="">Select seller type</option>
-                  <option>Owner</option>
-                  <option>Builder</option>
-                  <option>Developer</option>
-                  <option>Land Owner</option>
-                </select>
-              </label>
-
-              <label>
-                Property Type
-                <select id="propertyType" required>
-                  <option value="">Select property type</option>
-                  <option>Plot / Land</option>
-                  <option>Apartment</option>
-                  <option>Independent House</option>
-                  <option>Villa</option>
-                  <option>Commercial Space</option>
-                  <option>Office</option>
-                  <option>Warehouse</option>
-                </select>
-              </label>
-
-              <label class="full">
-                Listing Title
-                <input type="text" id="listingTitle" placeholder="e.g. 2BHK Apartment in Whitefield" required />
-              </label>
-
-              <label>
-                City
-                <input type="text" id="city" placeholder="Enter city" required />
-              </label>
-
-              <label>
-                Area / Locality
-                <input type="text" id="area" placeholder="Enter area / locality" required />
-              </label>
-
-              <label>
-                Expected Price
-                <input type="number" id="expectedPrice" placeholder="Enter expected price" required />
-              </label>
-
-              <label>
-                Urgency
-                <select id="urgency">
-                  <option value="">Select urgency</option>
-                  <option>Immediate</option>
-                  <option>This Week</option>
-                  <option>This Month</option>
-                  <option>Flexible</option>
-                </select>
-              </label>
-
-              <label>
-                Documents Ready
-                <select id="documentsReady">
-                  <option value="">Select option</option>
-                  <option>Yes</option>
-                  <option>No</option>
-                  <option>Partial</option>
-                </select>
-              </label>
-
-              <label class="full">
-                Notes
-                <textarea id="notes" placeholder="Mention property highlights, document status, urgency, negotiation details, or any important points..."></textarea>
-              </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Submit Seller Lead</button>
-            <div class="success-box" id="successBox">Seller lead saved successfully.</div>
-          </form>
-        </div>
-
-        <aside class="panel">
-          <h2>Why this matters</h2>
-          <p>
-            Seller module is the missing supply-side pillar. Once this is active,
-            your platform stops being just a lead collector and starts becoming a true marketplace.
-          </p>
-
-          <div class="side-list">
-            <div class="side-item">
-              <div class="dot"></div>
+        <div class="stack">
+          <div class="card">
+            <div class="cardHeader">
               <div>
-                <strong>Direct Inventory Growth</strong><br />
-                Seller leads help you build real property inventory faster.
+                <div class="cardTitle">Status Summary</div>
+                <div class="cardSub">Quick view of your current flow</div>
               </div>
             </div>
-
-            <div class="side-item">
-              <div class="dot"></div>
-              <div>
-                <strong>Better Buyer Match</strong><br />
-                More seller listings means more options for buyer-side conversion.
-              </div>
-            </div>
-
-            <div class="side-item">
-              <div class="dot"></div>
-              <div>
-                <strong>Broker Utility</strong><br />
-                Brokers need fresh inventory. Seller flow feeds your broker ecosystem.
-              </div>
-            </div>
-
-            <div class="side-item">
-              <div class="dot"></div>
-              <div>
-                <strong>Dashboard-Ready</strong><br />
-                Next step is showing seller leads in admin dashboard with contact and conversion actions.
-              </div>
-            </div>
+            <div class="cardBody" id="statusSummary"></div>
           </div>
-        </aside>
-      </div>
-    </section>
 
-    <section>
-      <div class="container">
-        <div class="cta">
-          <div>
-            <h2>Need help listing your property?</h2>
-            <p>Use this seller flow for owners, builders and land sellers. Later you can add “Convert to Property” in dashboard.</p>
-          </div>
-          <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <a href="#seller-form" class="btn btn-primary">Post Now</a>
-            <a href="dashboard.html" class="btn btn-secondary">Open Dashboard</a>
+          <div class="card">
+            <div class="cardHeader">
+              <div>
+                <div class="cardTitle">Your Properties</div>
+                <div class="cardSub">Listings linked to your phone</div>
+              </div>
+            </div>
+            <div class="cardBody" id="propertyCards"></div>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
-  <footer>
-    <div class="container footer-wrap">
-      <div>© 2026 MEI Estate • Seller Network</div>
-      <div>Sell • Connect • Convert</div>
-    </div>
-  </footer>
-
-  <script>
-    const STORAGE_KEY = "mei_seller_leads_v1";
-
-    function getStoredSellerLeads() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch (err) {
-        console.error("Error reading seller leads:", err);
-        return [];
-      }
-    }
-
-    function saveStoredSellerLeads(leads) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
-    }
-
-    document.getElementById("sellerForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const lead = {
-        id: "SEL-" + Date.now(),
-        createdAt: new Date().toISOString(),
-        sellerName: document.getElementById("sellerName").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        sellerType: document.getElementById("sellerType").value,
-        propertyType: document.getElementById("propertyType").value,
-        listingTitle: document.getElementById("listingTitle").value.trim(),
-        city: document.getElementById("city").value.trim(),
-        area: document.getElementById("area").value.trim(),
-        expectedPrice: document.getElementById("expectedPrice").value.trim(),
-        urgency: document.getElementById("urgency").value,
-        documentsReady: document.getElementById("documentsReady").value,
-        notes: document.getElementById("notes").value.trim(),
-        status: "NEW"
-      };
-
-      const leads = getStoredSellerLeads();
-      leads.unshift(lead);
-      saveStoredSellerLeads(leads);
-
-      const successBox = document.getElementById("successBox");
-      successBox.style.display = "block";
-      successBox.textContent = "Seller lead saved successfully. Lead ID: " + lead.id;
-
-      this.reset();
-
-      setTimeout(() => {
-        successBox.style.display = "none";
-      }, 3500);
-    });
-  </script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script src="seller.js"></script>
 </body>
 </html>
+
